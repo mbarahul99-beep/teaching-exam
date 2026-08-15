@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMR Prep Portal - Online Tests & OMR Scanner</title>
+    <!-- Google Fonts: Inter for clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar Navigation Drawer -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h3>Exams & OMR</h3>
+                    <span>v1.0.0</span>
+                </div>
+                <button id="close-sidebar-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-screen="home"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#" class="nav-item" data-screen="exams"><i class="fa-solid fa-school"></i> My Exams</a>
+                <a href="#" class="nav-item" data-screen="notes"><i class="fa-solid fa-file-pdf"></i> PDF Notes</a>
+                <a href="#" class="nav-item" data-screen="test-series-catalog"><i class="fa-solid fa-list-check"></i> Test Series</a>
+                <a href="#" class="nav-item" data-screen="profile"><i class="fa-solid fa-user-clock"></i> Attempt History</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- App Header -->
+            <header class="app-header">
+                <button id="hamburger-btn" class="header-icon-btn"><i class="fa-solid fa-bars"></i></button>
+                <h1 id="header-title">OMR Prep Portal</h1>
+                <button id="header-profile-btn" class="header-profile-btn"><i class="fa-solid fa-circle-user"></i></button>
+            </header>
+
+            <!-- Screens Containers -->
+            <main class="content-container">
+                <!-- 1. Home Screen -->
+                <section id="screen-home" class="app-screen active">
+                    <!-- Welcome & Stats Banner -->
+                    <div class="stats-banner-card">
+                        <div class="banner-welcome">
+                            <span>Welcome Back,</span>
+                            <h2 class="user-display-name">Amit Sharma</h2>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="banner-stats">
+                            <div class="stat-box">
+                                <span class="stat-label">Tests Attempted</span>
+                                <h3 id="stat-attempts-count" class="stat-value">2</h3>
+                            </div>
+                            <div class="stat-box align-end">
+                                <span class="stat-label">Average Score</span>
+                                <h3 id="stat-avg-score" class="stat-value">75.0%</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- My Exams Section -->
+                    <div class="screen-section">
+                        <div class="section-header">
+                            <h3>My Exams</h3>
+                            <button class="view-all-btn" data-target="exams">View All</button>
+                        </div>
+                        <div class="exams-carousel horizontal-scroll" id="home-exams-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Exam Updates News Section -->
+                    <div class="screen-section">
+                        <h3>Exam Updates & News</h3>
+                        <div class="updates-carousel horizontal-scroll" id="home-updates-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- PDF Notes Section -->
+                    <div class="screen-section">
+                        <div class="section-header">
+                            <h3>PDF Notes</h3>
+                            <button class="view-all-btn" data-target="notes">View All</button>
+                        </div>
+                        <div class="subject-chips-carousel horizontal-scroll" id="home-subjects-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Test Series Promo Card -->
+                    <div class="test-series-promo-card" id="test-series-promo">
+                        <div class="promo-content">
+                            <span>TEST SERIES</span>
+                            <h2>Practice Online / Offline OMR</h2>
+                            <p id="promo-test-count">5 full-length examinations available</p>
+                        </div>
+                        <div class="promo-action">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Exams List Screen -->
+                <section id="screen-exams" class="app-screen">
+                    <div class="screen-header">
+                        <h2>Available Exams</h2>
+                    </div>
+                    <div class="search-bar-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="exam-search-input" placeholder="Search exams (e.g. CTET, KVS)">
+                    </div>
+                    <div class="exams-grid" id="exams-grid-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </section>
+
+                <!-- 3. PDF Notes Screen -->
+                <section id="screen-notes" class="app-screen">
+                    <div class="screen-header">
+                        <h2>PDF Notes Library</h2>
+                    </div>
+                    <div class="filter-chips-row horizontal-scroll" id="notes-filter-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="notes-list-container" id="notes-list-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </section>
+
+                <!-- 4. Test Series Catalog Screen -->
+                <section id="screen-test-series-catalog" class="app-screen">
+                    <div class="screen-header">
+                        <h2>Test Series Catalog</h2>
+                    </div>
+                    <div class="test-series-list" id="test-series-list-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </section>
+
+                <!-- 5. Test Series Details Screen -->
+                <section id="screen-test-series-details" class="app-screen">
+                    <div class="back-navigation">
+                        <button class="back-btn" data-target="test-series-catalog"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    </div>
+                    <h2 id="details-series-title">Series Details</h2>
+                    <p id="details-series-desc" class="series-description">Description of this test series.</p>
+                    <div class="tests-list" id="details-tests-list">
+                        <!-- Injected dynamically -->
+                    </div>
+                </section>
+
+                <!-- 6. Online Test Player Screen -->
+                <section id="screen-online-test-player" class="app-screen no-padding">
+                    <div class="player-header">
+                        <div class="player-title-box">
+                            <h3 id="player-test-title">Mock Test</h3>
+                            <span id="player-timer" class="player-timer">Time Left: 30:00</span>
+                        </div>
+                        <button id="player-palette-btn" class="palette-toggle-btn"><i class="fa-solid fa-grid-2"></i> Palette</button>
+                    </div>
+                    <div class="player-body">
+                        <div class="question-container">
+                            <div class="question-header">
+                                <h3 id="player-question-number">Question 1 of 30</h3>
+                                <label class="mark-review-label">
+                                    <input type="checkbox" id="mark-review-checkbox"> Mark for Review
+                                </label>
+                            </div>
+                            <div class="question-card">
+                                <p id="player-question-body">Question text will load here...</p>
+                            </div>
+                            <div class="options-container" id="player-options-list">
+                                <!-- Options will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="player-footer">
+                        <button id="player-prev-btn" class="nav-btn">PREV</button>
+                        <button id="player-submit-btn" class="submit-btn">SUBMIT</button>
+                        <button id="player-next-btn" class="nav-btn">NEXT</button>
+                    </div>
+                </section>
+
+                <!-- 7. OMR Scan Prep Screen -->
+                <section id="screen-omr-scan-prep" class="app-screen">
+                    <div class="back-navigation">
+                        <button class="back-btn" id="omr-prep-back-btn"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    </div>
+                    <h2 id="omr-prep-title" class="test-title">OMR Mock Test Prep</h2>
+                    <div class="instructions-card">
+                        <h4>How it works:</h4>
+                        <ul class="steps-list">
+                            <li><span class="step-num">1</span> Download & Print both the Question Paper PDF and the custom Bubble OMR sheet.</li>
+                            <li><span class="step-num">2</span> Attempt the test offline by marking bubbles on the printed OMR sheet with a black/blue pen.</li>
+                            <li><span class="step-num">3</span> Open this app's camera scanner, align the OMR sheet inside the frame, and scan.</li>
+                            <li><span class="step-num">4</span> The app immediately processes the markings and uploads details to your Profile.</li>
+                        </ul>
+                    </div>
+                    <div class="downloads-section">
+                        <h3>Downloads Required</h3>
+                        <div class="download-row">
+                            <div class="download-info">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>Question Paper PDF</span>
+                            </div>
+                            <button id="btn-download-paper" class="btn-download"><i class="fa-solid fa-download"></i></button>
+                        </div>
+                        <div class="download-row">
+                            <div class="download-info">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                <span>OMR Grid Sheet PDF (30 Bubbles)</span>
+                            </div>
+                            <button id="btn-download-omr" class="btn-download"><i class="fa-solid fa-download"></i></button>
+                        </div>
+                    </div>
+                    <button id="start-scan-btn" class="primary-action-btn"><i class="fa-solid fa-camera"></i> Open OMR Camera Scanner</button>
+                </section>
+
+                <!-- 8. Live OMR Scanner Screen (Camera Access) -->
+                <section id="screen-omr-scanner" class="app-screen no-padding black-bg">
+                    <div class="scanner-header">
+                        <button id="scanner-back-btn" class="scanner-icon-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h3>OMR Scanner</h3>
+                        <div style="width: 40px;"></div> <!-- Spacer -->
+                    </div>
+                    
+                    <div class="camera-viewport-container">
+                        <!-- Real Camera Feed -->
+                        <video id="webcam-feed" autoplay playsinline muted></video>
+                        
+                        <!-- Grid Scanner Overlay -->
+                        <div id="scanner-overlay" class="scanner-overlay">
+                            <div class="guide-corner top-left"></div>
+                            <div class="guide-corner top-right"></div>
+                            <div class="guide-corner bottom-left"></div>
+                            <div class="guide-corner bottom-right"></div>
+                            <div class="scanner-laser"></div>
+                            <div class="align-helper-text">Align OMR borders in frame</div>
+                        </div>
+                    </div>
+
+                    <div class="scanner-footer">
+                        <div class="status-card">
+                            <span id="scanner-status-text">Ready to scan OMR</span>
+                            <div class="scan-progress-bar" id="scan-progress-bar">
+                                <div class="progress-fill" id="scan-progress-fill"></div>
+                            </div>
+                            <button id="capture-scan-btn" class="scan-action-btn"><i class="fa-solid fa-qrcode"></i> Capture & Scan OMR</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. Scorecard / Result Screen -->
+                <section id="screen-omr-result" class="app-screen">
+                    <h2 class="section-center-title">Attempt Scorecard</h2>
+                    <div class="scorecard-hero">
+                        <h3 id="result-test-title">Mock Examination</h3>
+                        <span class="score-label">Score Obtained</span>
+                        <h1 id="result-score-value" class="score-display">24 / 30</h1>
+                        <span id="result-percentage" class="percentage-display">Percentage: 80.0%</span>
+                        <span id="result-mode-badge" class="mode-badge">OMR Attempt</span>
+                    </div>
+
+                    <div class="score-breakdown-card">
+                        <h4>Section Analysis</h4>
+                        <div class="breakdown-row">
+                            <span><i class="fa-solid fa-circle-check text-success"></i> Correct Answers</span>
+                            <strong id="result-correct-count" class="text-success">24</strong>
+                        </div>
+                        <div class="breakdown-divider"></div>
+                        <div class="breakdown-row">
+                            <span><i class="fa-solid fa-circle-xmark text-danger"></i> Incorrect Answers</span>
+                            <strong id="result-incorrect-count" class="text-danger">6</strong>
+                        </div>
+                        <div class="breakdown-divider"></div>
+                        <div class="breakdown-row">
+                            <span><i class="fa-solid fa-circle-minus text-muted"></i> Skipped Questions</span>
+                            <strong id="result-skipped-count" class="text-muted">0</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="metadata-row">
+                        <span id="result-timestamp">Exam Date: 2026-08-15 17:40</span>
+                    </div>
+
+                    <button id="result-home-btn" class="primary-action-btn">Return to Home</button>
+                </section>
+
+                <!-- 10. Profile & History Screen -->
+                <section id="screen-profile" class="app-screen">
+                    <!-- Bio Header -->
+                    <div class="profile-bio-card">
+                        <div class="avatar-box">AS</div>
+                        <div class="bio-details">
+                            <h3>Amit Sharma</h3>
+                            <span>amit.sharma@example.com</span>
+                        </div>
+                    </div>
+
+                    <!-- Statistics grid -->
+                    <div class="profile-stats-grid">
+                        <div class="profile-stat-card">
+                            <span>Total Attempts</span>
+                            <h2 id="profile-total-attempts">2</h2>
+                        </div>
+                        <div class="profile-stat-card">
+                            <span>Average Score</span>
+                            <h2 id="profile-avg-score">75.0%</h2>
+                        </div>
+                    </div>
+
+                    <!-- Attempt History -->
+                    <div class="history-section">
+                        <h3>Attempt History</h3>
+                        <div class="history-list" id="profile-history-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Sticky Footer Bottom Navigation -->
+            <footer class="app-footer">
+                <button class="footer-nav-item active" data-screen="home">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </button>
+                <button class="footer-nav-item" data-screen="exams">
+                    <i class="fa-solid fa-school"></i>
+                    <span>Exams</span>
+                </button>
+                <button class="footer-nav-item" data-screen="notes">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Notes</span>
+                </button>
+                <button class="footer-nav-item" data-screen="profile">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Profile</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- PDF Reader Modal Simulator -->
+    <div id="pdf-reader-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="pdf-reader-title">Geography Class 6.pdf</h4>
+                <button id="close-pdf-reader-btn" class="close-icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body pdf-canvas-container">
+                <div class="pdf-page-mock">
+                    <h3 id="pdf-page-header">Geography Study Guide - Page 1</h3>
+                    <div class="pdf-line-divider"></div>
+                    <p id="pdf-page-body">Loading page content...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="pdf-prev-btn" class="pdf-nav-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="pdf-page-indicator">Page 1 of 12</span>
+                <button id="pdf-next-btn" class="pdf-nav-btn"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Palette Modal -->
+    <div id="palette-modal" class="modal-overlay">
+        <div class="modal-content palette-content">
+            <div class="modal-header">
+                <h4>Question Palette</h4>
+                <button id="close-palette-btn" class="close-icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="palette-grid" id="palette-grid-container">
+                    <!-- Circles injected dynamically -->
+                </div>
+                <div class="palette-legend">
+                    <div class="legend-item"><span class="circle-legend green"></span> Answered</div>
+                    <div class="legend-item"><span class="circle-legend magenta"></span> In Review</div>
+                    <div class="legend-item"><span class="circle-legend gray"></span> Unattempted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

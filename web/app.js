@@ -1,0 +1,980 @@
+// -------------------------------------------------------------
+// App State & Database
+// -------------------------------------------------------------
+
+const DB = {
+    exams: [
+        { id: "ctet", title: "Central Teacher Eligibility Test", shortName: "CTET", iconName: "fa-school" },
+        { id: "kvs_nvs", title: "KVS / NVS Recruitment Exam", shortName: "KVS/NVS", iconName: "fa-building-columns" },
+        { id: "dsssb", title: "DSSSB Teacher Recruitment", shortName: "DSSSB", iconName: "fa-city" },
+        { id: "uptet", title: "Uttar Pradesh Teacher Eligibility Test", shortName: "UPTET", iconName: "fa-gavel" },
+        { id: "emrs", title: "Eklavya Model Resident School", shortName: "EMRS", iconName: "fa-house-user" }
+    ],
+
+    pdfNotes: [
+        { id: "note_his_01", title: "Ancient Indian History Notes", subject: "History", sizeMb: 2.4, pdfUrl: "https://example.com/pdf/ancient_history.pdf" },
+        { id: "note_his_02", title: "Modern Freedom Struggle Key Points", subject: "History", sizeMb: 3.1, pdfUrl: "https://example.com/pdf/modern_history.pdf" },
+        { id: "note_geo_01", title: "Physical Geography of India", subject: "Geography", sizeMb: 4.5, pdfUrl: "https://example.com/pdf/physical_geography.pdf" },
+        { id: "note_geo_02", title: "Solar System & Earth Movements", subject: "Geography", sizeMb: 1.8, pdfUrl: "https://example.com/pdf/solar_system.pdf" },
+        { id: "note_pol_01", title: "Indian Constitution & Preamble", subject: "Political S", sizeMb: 3.0, pdfUrl: "https://example.com/pdf/constitution.pdf" },
+        { id: "note_hin_01", title: "Hindi Vyakaran (Grammar) Book", subject: "Hindi", sizeMb: 5.2, pdfUrl: "https://example.com/pdf/hindi_grammar.pdf" },
+        { id: "note_mat_01", title: "Quantitative Aptitude Formulas", subject: "Maths", sizeMb: 2.2, pdfUrl: "https://example.com/pdf/math_formulas.pdf" },
+        { id: "note_sci_01", title: "Important Physics & Chemistry Laws", subject: "Science", sizeMb: 3.8, pdfUrl: "https://example.com/pdf/science_laws.pdf" }
+    ],
+
+    testSeries: [
+        {
+            id: "ts_ctet_pedagogy",
+            examId: "ctet",
+            title: "CTET Child Development & Pedagogy Mock Tests",
+            description: "10 Full length tests dedicated to child psychology and teaching methodology.",
+            numberOfTests: 3,
+            tests: [
+                { id: "ctet_ped_01", title: "Child Development and Pedagogy - Test 01", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) },
+                { id: "ctet_ped_02", title: "Child Development and Pedagogy - Test 02", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) },
+                { id: "ctet_ped_03", title: "Pedagogy Full length Syllabus - Test 03", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) }
+            ]
+        },
+        {
+            id: "ts_kvs_general",
+            examId: "kvs_nvs",
+            title: "KVS General Paper Mock Test Series",
+            description: "Full length mock tests covering English, Hindi, Reasoning, and Pedagogy.",
+            numberOfTests: 2,
+            tests: [
+                { id: "kvs_gen_01", title: "KVS Mock Test 01 (General Aptitude)", durationMinutes: 60, totalQuestions: 50, answerKey: generateAnswerKey(50) },
+                { id: "kvs_gen_02", title: "KVS Mock Test 02 (English & Reasoning)", durationMinutes: 60, totalQuestions: 50, answerKey: generateAnswerKey(50) }
+            ]
+        }
+    ],
+
+    updates: [
+        { id: "upd_01", title: "CTET December 2026 Application Dates Released", content: "The Central Board of Secondary Education (CBSE) has released the online application dates for CTET Dec 2026. Check the syllabus and eligibility before applying.", dateString: "2026-08-15" },
+        { id: "upd_02", title: "DSSSB PGT/TGT Exam Schedule Declared", content: "DSSSB has announced the exam dates for PGT and TGT examinations. Download admit cards from official portal 7 days prior to exam.", dateString: "2026-08-14" }
+    ],
+
+    defaultAttempts: [
+        { id: "att_01", testId: "ctet_ped_01", testTitle: "Child Development and Pedagogy - Test 01", attemptType: "ONLINE", dateString: "2026-08-12 14:23", marksObtained: 24, totalMarks: 30, correctAnswers: 24, incorrectAnswers: 6, skippedAnswers: 0 },
+        { id: "att_02", testId: "kvs_gen_01", testTitle: "KVS Mock Test 01 (General Aptitude)", attemptType: "OMR", dateString: "2026-08-14 11:05", marksObtained: 38, totalMarks: 50, correctAnswers: 38, incorrectAnswers: 10, skippedAnswers: 2 }
+    ]
+};
+
+function generateAnswerKey(total) {
+    const options = ["A", "B", "C", "D"];
+    const key = {};
+    for (let i = 1; i <= total; i++) {
+        key[i] = options[i % 4];
+    }
+    return key;
+}
+
+// -------------------------------------------------------------
+// State Management Variables
+// -------------------------------------------------------------
+let state = {
+    history: [],
+    currentScreen: "home",
+    selectedSubject: "All",
+    examSearchQuery: "",
+    activeTest: null,
+    activeSeries: null,
+    
+    // Online test state
+    onlineAnswers: {},
+    onlineReview: {},
+    currentQuestionIndex: 0,
+    timerInterval: null,
+    secondsRemaining: 0,
+
+    // PDF state
+    activePdfNote: null,
+    pdfCurrentPage: 1,
+    pdfTotalPages: 12,
+    downloadedNotes: {},
+
+    // Camera Stream
+    videoStream: null
+};
+
+// Load history from localStorage
+function initAppState() {
+    const stored = localStorage.getItem("omr_test_history");
+    if (stored) {
+        state.history = JSON.parse(stored);
+    } else {
+        state.history = [...DB.defaultAttempts];
+        localStorage.setItem("omr_test_history", JSON.stringify(state.history));
+    }
+}
+
+// Save attempts
+function saveAttempt(record) {
+    state.history.unshift(record);
+    localStorage.setItem("omr_test_history", JSON.stringify(state.history));
+    updateProfileStats();
+}
+
+// -------------------------------------------------------------
+// Navigation Controller
+// -------------------------------------------------------------
+function navigateTo(screenId) {
+    // Stop camera stream if we leave scanner screen
+    if (state.currentScreen === "omr-scanner" && screenId !== "omr-scanner") {
+        stopCamera();
+    }
+    // Stop timers if we leave online test player
+    if (state.currentScreen === "online-test-player" && screenId !== "online-test-player") {
+        clearInterval(state.timerInterval);
+    }
+
+    state.currentScreen = screenId;
+    
+    // Toggle active screen visibility
+    document.querySelectorAll(".app-screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+    const targetScreen = document.getElementById(`screen-${screenId}`);
+    if (targetScreen) targetScreen.classList.add("active");
+
+    // Scroll main content to top
+    document.querySelector(".content-container").scrollTop = 0;
+
+    // Toggle footer active state
+    document.querySelectorAll(".footer-nav-item").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("data-screen") === screenId) {
+            btn.classList.add("active");
+        }
+    });
+
+    // Toggle sidebar active state
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
+        if (item.getAttribute("data-screen") === screenId) {
+            item.classList.add("active");
+        }
+    });
+
+    // Header Title updates
+    const titleMap = {
+        "home": "OMR Prep Portal",
+        "exams": "Available Exams",
+        "notes": "PDF Notes Library",
+        "test-series-catalog": "Test Series Catalog",
+        "test-series-details": state.activeSeries ? state.activeSeries.title : "Series Details",
+        "online-test-player": "Online Test Mode",
+        "omr-scan-prep": "OMR Attempt Mode",
+        "omr-scanner": "OMR Scanner Feed",
+        "omr-result": "Grader Scorecard",
+        "profile": "Student Dashboard"
+    };
+    
+    document.getElementById("header-title").innerText = titleMap[screenId] || "OMR Prep Portal";
+}
+
+// -------------------------------------------------------------
+// Component Render Functions
+// -------------------------------------------------------------
+
+// Render Home Screen Exam Buttons
+function renderHomeExams() {
+    const container = document.getElementById("home-exams-list");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DB.exams.forEach(exam => {
+        const div = document.createElement("div");
+        div.className = "exam-carousel-card";
+        div.innerHTML = `
+            <div class="exam-icon-circle"><i class="fa-solid ${exam.iconName}"></i></div>
+            <h4>${exam.shortName}</h4>
+        `;
+        div.addEventListener("click", () => {
+            state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];
+            navigateTo("test-series-details");
+            renderTestSeriesDetails();
+        });
+        container.appendChild(div);
+    });
+
+    // View All Button card
+    const viewAllCard = document.createElement("div");
+    viewAllCard.className = "exam-carousel-card";
+    viewAllCard.innerHTML = `
+        <div class="exam-icon-circle"><i class="fa-solid fa-arrow-right-long"></i></div>
+        <h4>View All</h4>
+    `;
+    viewAllCard.addEventListener("click", () => navigateTo("exams"));
+    container.appendChild(viewAllCard);
+}
+
+// Render Home Screen News Updates
+function renderHomeUpdates() {
+    const container = document.getElementById("home-updates-list");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DB.updates.forEach(upd => {
+        const card = document.createElement("div");
+        card.className = "news-update-card";
+        card.innerHTML = `
+            <div class="news-header">
+                <span class="news-tag">LATEST UPDATE</span>
+                <span class="news-date">${upd.dateString}</span>
+            </div>
+            <h4>${upd.title}</h4>
+            <p>${upd.content}</p>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Render Home Subject List
+function renderHomeSubjects() {
+    const container = document.getElementById("home-subjects-list");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const subjects = ["History", "Geography", "Political S", "Hindi", "Maths", "Science"];
+    const icons = {
+        "History": "fa-hourglass-empty",
+        "Geography": "fa-earth-americas",
+        "Political S": "fa-landmark",
+        "Hindi": "fa-language",
+        "Maths": "fa-calculator",
+        "Science": "fa-flask-vial"
+    };
+
+    subjects.forEach(sub => {
+        const chip = document.createElement("div");
+        chip.className = "subject-chip";
+        chip.innerHTML = `<i class="fa-solid ${icons[sub] || 'fa-file-lines'}"></i> ${sub}`;
+        chip.addEventListener("click", () => {
+            state.selectedSubject = sub;
+            navigateTo("notes");
+            renderPDFNotes();
+        });
+        container.appendChild(chip);
+    });
+}
+
+// Render Searchable Exams Grid
+function renderExamsGrid() {
+    const container = document.getElementById("exams-grid-container");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const query = state.examSearchQuery.toLowerCase();
+    const filtered = DB.exams.filter(exam => 
+        exam.title.toLowerCase().includes(query) || 
+        exam.shortName.toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<p class="empty-text">No exams found matching "${state.examSearchQuery}"</p>`;
+        return;
+    }
+
+    filtered.forEach(exam => {
+        const card = document.createElement("div");
+        card.className = "exam-grid-card";
+        card.innerHTML = `
+            <div class="exam-grid-icon-circle"><i class="fa-solid ${exam.iconName}"></i></div>
+            <h3>${exam.shortName}</h3>
+            <span>${exam.title}</span>
+        `;
+        card.addEventListener("click", () => {
+            state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];
+            navigateTo("test-series-details");
+            renderTestSeriesDetails();
+        });
+        container.appendChild(card);
+    });
+}
+
+// Render PDF Notes Library
+function renderPDFNotes() {
+    const filterContainer = document.getElementById("notes-filter-container");
+    const listContainer = document.getElementById("notes-list-container");
+    if (!filterContainer || !listContainer) return;
+
+    // Render Filter Chips
+    filterContainer.innerHTML = "";
+    const subjects = ["All", "History", "Geography", "Political S", "Hindi", "Maths", "Science"];
+    subjects.forEach(sub => {
+        const chip = document.createElement("div");
+        chip.className = `subject-chip ${state.selectedSubject === sub ? 'active' : ''}`;
+        chip.innerText = sub;
+        chip.addEventListener("click", () => {
+            state.selectedSubject = sub;
+            renderPDFNotes();
+        });
+        filterContainer.appendChild(chip);
+    });
+
+    // Render List
+    listContainer.innerHTML = "";
+    const filtered = state.selectedSubject === "All" 
+        ? DB.pdfNotes 
+        : DB.pdfNotes.filter(n => n.subject === state.selectedSubject);
+
+    if (filtered.length === 0) {
+        listContainer.innerHTML = `<p class="empty-text">No notes available for "${state.selectedSubject}"</p>`;
+        return;
+    }
+
+    filtered.forEach(note => {
+        const isDownloaded = state.downloadedNotes[note.id];
+        const card = document.createElement("div");
+        card.className = "note-item-card";
+
+        const btnHtml = isDownloaded 
+            ? `<button class="btn-view-note" data-id="${note.id}"><i class="fa-solid fa-book-open"></i> View</button>`
+            : `<button class="btn-download-note" data-id="${note.id}"><i class="fa-solid fa-download"></i></button>`;
+
+        card.innerHTML = `
+            <div class="note-info">
+                <h4>${note.title}</h4>
+                <div class="note-metadata">
+                    <span class="note-tag">${note.subject}</span>
+                    <span class="note-size">${note.sizeMb} MB</span>
+                </div>
+            </div>
+            <div class="note-action">
+                ${btnHtml}
+            </div>
+        `;
+
+        // Bind download/view action
+        const actionBtn = card.querySelector("button");
+        actionBtn.addEventListener("click", () => {
+            if (isDownloaded) {
+                openPdfReader(note);
+            } else {
+                // Simulate download
+                actionBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                actionBtn.disabled = true;
+                setTimeout(() => {
+                    state.downloadedNotes[note.id] = true;
+                    renderPDFNotes();
+                }, 1200);
+            }
+        });
+
+        listContainer.appendChild(card);
+    });
+}
+
+// Render Test Series Catalog
+function renderTestSeriesCatalog() {
+    const container = document.getElementById("test-series-list-container");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DB.testSeries.forEach(series => {
+        const card = document.createElement("div");
+        card.className = "test-series-card";
+        const examName = DB.exams.find(e => e.id === series.examId)?.shortName || "Exam";
+        
+        card.innerHTML = `
+            <div class="ts-header">
+                <span class="exam-badge">${examName}</span>
+                <span class="test-count-badge">${series.numberOfTests} Tests</span>
+            </div>
+            <h3>${series.title}</h3>
+            <p>${series.description}</p>
+            <div class="ts-action-link">View Tests <i class="fa-solid fa-chevron-right"></i></div>
+        `;
+        card.addEventListener("click", () => {
+            state.activeSeries = series;
+            navigateTo("test-series-details");
+            renderTestSeriesDetails();
+        });
+        container.appendChild(card);
+    });
+}
+
+// Render Test Series Details Screen
+function renderTestSeriesDetails() {
+    if (!state.activeSeries) return;
+    document.getElementById("details-series-title").innerText = state.activeSeries.title;
+    document.getElementById("details-series-desc").innerText = state.activeSeries.description;
+
+    const container = document.getElementById("details-tests-list");
+    container.innerHTML = "";
+
+    state.activeSeries.tests.forEach(test => {
+        const card = document.createElement("div");
+        card.className = "individual-test-card";
+        card.innerHTML = `
+            <h4>${test.title}</h4>
+            <div class="test-stats-row">
+                <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
+                <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
+            </div>
+            <div class="test-divider"></div>
+            <div class="test-actions-row">
+                <button class="btn-attempt-omr"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
+                <button class="btn-attempt-online"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
+            </div>
+        `;
+
+        card.querySelector(".btn-attempt-online").addEventListener("click", () => {
+            startOnlineTest(test);
+        });
+
+        card.querySelector(".btn-attempt-omr").addEventListener("click", () => {
+            openOmrPrep(test);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+// -------------------------------------------------------------
+// PDF Reader Simulator
+// -------------------------------------------------------------
+function openPdfReader(note) {
+    state.activePdfNote = note;
+    state.pdfCurrentPage = 1;
+    document.getElementById("pdf-reader-title").innerText = note.title;
+    updatePdfPageContent();
+    document.getElementById("pdf-reader-modal").classList.add("active");
+}
+
+function updatePdfPageContent() {
+    if (!state.activePdfNote) return;
+    document.getElementById("pdf-page-indicator").innerText = `Page ${state.pdfCurrentPage} of ${state.pdfTotalPages}`;
+    document.getElementById("pdf-page-header").innerText = `${state.activePdfNote.subject} Study Guide: Chapter ${state.pdfCurrentPage}`;
+    
+    document.getElementById("pdf-page-body").innerHTML = `
+        This is page <strong>${state.pdfCurrentPage}</strong> of the study material for <strong>${state.activePdfNote.title}</strong>.<br><br>
+        <strong>Key Pedagogy Principles:</strong><br>
+        1. Conceptual learning should precede factual evaluation.<br>
+        2. Leverage graphical representations and summaries for revision.<br>
+        3. Solve practice questions in the Test Series section to verify retention.<br><br>
+        <em>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam finibus diam at dolor sollicitudin tincidunt. Proin accumsan lorem sed magna molestie tempor.</em>
+    `;
+    
+    document.getElementById("pdf-prev-btn").disabled = state.pdfCurrentPage === 1;
+    document.getElementById("pdf-next-btn").disabled = state.pdfCurrentPage === state.pdfTotalPages;
+}
+
+// -------------------------------------------------------------
+// Online Test Player Logic
+// -------------------------------------------------------------
+function startOnlineTest(test) {
+    state.activeTest = test;
+    state.onlineAnswers = {};
+    state.onlineReview = {};
+    state.currentQuestionIndex = 0;
+    state.secondsRemaining = test.durationMinutes * 60;
+    
+    document.getElementById("player-test-title").innerText = test.title;
+    
+    // Start countdown timer
+    updateTimerDisplay();
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+        state.secondsRemaining--;
+        updateTimerDisplay();
+        if (state.secondsRemaining <= 0) {
+            clearInterval(state.timerInterval);
+            submitTest("ONLINE");
+        }
+    }, 1000);
+
+    renderQuestion();
+    navigateTo("online-test-player");
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById("player-timer");
+    const m = Math.floor(state.secondsRemaining / 60);
+    const s = state.secondsRemaining % 60;
+    const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    el.innerText = `Time Left: ${formatted}`;
+    
+    if (state.secondsRemaining < 300) { // less than 5 minutes
+        el.classList.add("red");
+    } else {
+        el.classList.remove("red");
+    }
+}
+
+function renderQuestion() {
+    if (!state.activeTest) return;
+    const qNum = state.currentQuestionIndex + 1;
+    
+    document.getElementById("player-question-number").innerText = `Question ${qNum} of ${state.activeTest.totalQuestions}`;
+    document.getElementById("mark-review-checkbox").checked = !!state.onlineReview[qNum];
+    
+    // Inject mock question body
+    const questions = [
+        "Which of the following is considered a primary agent of socialization for young children, especially during early childhood?",
+        "In the context of cognitive development, which stage of Jean Piaget's theory matches with the ability to perform conservation tasks?",
+        "A teacher designs classroom tasks that require collaborative peer dialogues. This pedagogical strategy is most strongly aligned with which learning theorist?"
+    ];
+    document.getElementById("player-question-body").innerText = questions[qNum % 3];
+
+    // Options
+    const options = ["A", "B", "C", "D"];
+    const optionTexts = [
+        ["Mass media and networks", "Family and immediate caregivers", "Formal school curriculum", "Peer groups and clubs"],
+        ["Sensorimotor stage (0-2y)", "Pre-operational stage (2-7y)", "Concrete operational stage (7-11y)", "Formal operational stage (11y+)"],
+        ["B.F. Skinner", "Lev Vygotsky", "Jean Piaget", "Albert Bandura"]
+    ][qNum % 3];
+
+    const optionsContainer = document.getElementById("player-options-list");
+    optionsContainer.innerHTML = "";
+
+    options.forEach((opt, idx) => {
+        const card = document.createElement("div");
+        const isSelected = state.onlineAnswers[qNum] === opt;
+        card.className = `option-card ${isSelected ? 'selected' : ''}`;
+        card.innerHTML = `
+            <div class="option-circle">${opt}</div>
+            <span class="option-text">${optionTexts[idx]}</span>
+        `;
+        card.addEventListener("click", () => {
+            state.onlineAnswers[qNum] = opt;
+            renderQuestion();
+        });
+        optionsContainer.appendChild(card);
+    });
+
+    // Prev/Next button states
+    document.getElementById("player-prev-btn").disabled = state.currentQuestionIndex === 0;
+    document.getElementById("player-next-btn").disabled = state.currentQuestionIndex === state.activeTest.totalQuestions - 1;
+}
+
+function submitTest(attemptType) {
+    if (!state.activeTest) return;
+    
+    clearInterval(state.timerInterval);
+    
+    // Grade the test
+    let correct = 0;
+    let incorrect = 0;
+    let skipped = 0;
+    const test = state.activeTest;
+
+    for (let q = 1; q <= test.totalQuestions; q++) {
+        const submitted = state.onlineAnswers[q];
+        const correctAns = test.answerKey[q];
+        
+        if (!submitted) {
+            skipped++;
+        } else if (submitted.toUpperCase() === correctAns.toUpperCase()) {
+            correct++;
+        } else {
+            incorrect++;
+        }
+    }
+
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    const record = {
+        id: "att_" + Math.random().toString(36).substring(2, 10),
+        testId: test.id,
+        testTitle: test.title,
+        attemptType: attemptType, // "ONLINE" or "OMR"
+        dateString: dateStr,
+        marksObtained: correct,
+        totalMarks: test.totalQuestions,
+        correctAnswers: correct,
+        incorrectAnswers: incorrect,
+        skippedAnswers: skipped
+    };
+
+    saveAttempt(record);
+    showScorecard(record);
+}
+
+function showScorecard(record) {
+    document.getElementById("result-test-title").innerText = record.testTitle;
+    document.getElementById("result-score-value").innerText = `${record.marksObtained} / ${record.totalMarks}`;
+    const pct = ((record.marksObtained / record.totalMarks) * 100).toFixed(1);
+    document.getElementById("result-percentage").innerText = `Percentage: ${pct}%`;
+    document.getElementById("result-mode-badge").innerText = `${record.attemptType} Attempt`;
+    document.getElementById("result-mode-badge").className = `mode-badge ${record.attemptType.toLowerCase()}`;
+    document.getElementById("result-correct-count").innerText = record.correctAnswers;
+    document.getElementById("result-incorrect-count").innerText = record.incorrectAnswers;
+    document.getElementById("result-skipped-count").innerText = record.skippedAnswers;
+    document.getElementById("result-timestamp").innerText = `Exam Date: ${record.dateString}`;
+    
+    navigateTo("omr-result");
+}
+
+// -------------------------------------------------------------
+// OMR Attempt Mode (Prep, Scanner, Cam Access)
+// -------------------------------------------------------------
+function openOmrPrep(test) {
+    state.activeTest = test;
+    document.getElementById("omr-prep-title").innerText = test.title;
+    
+    // Reset file downloaded states in mock
+    document.getElementById("btn-download-paper").innerHTML = `<i class="fa-solid fa-download"></i>`;
+    document.getElementById("btn-download-omr").innerHTML = `<i class="fa-solid fa-download"></i>`;
+    
+    navigateTo("omr-scan-prep");
+}
+
+// Camera Access Setup
+async function startCamera() {
+    const video = document.getElementById("webcam-feed");
+    if (!video) return;
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+        });
+        state.videoStream = stream;
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        document.getElementById("scanner-status-text").innerText = "Webcam aligned. Position OMR sheet.";
+    } catch (err) {
+        console.error("Camera access error:", err);
+        // Fallback for developer simulation without camera hardware:
+        document.getElementById("scanner-status-text").innerText = "Camera API blocked/not found. Running Simulator.";
+    }
+}
+
+function stopCamera() {
+    if (state.videoStream) {
+        state.videoStream.getTracks().forEach(track => track.stop());
+        state.videoStream = null;
+    }
+    const video = document.getElementById("webcam-feed");
+    if (video) video.srcObject = null;
+}
+
+// Simulating the OMR Scanning progress bar
+function simulateOmrScan() {
+    const progressRow = document.getElementById("scan-progress-bar");
+    const progressFill = document.getElementById("scan-progress-fill");
+    const scanBtn = document.getElementById("capture-scan-btn");
+    const statusText = document.getElementById("scanner-status-text");
+    const overlay = document.getElementById("scanner-overlay");
+
+    scanBtn.style.display = "none";
+    progressRow.style.display = "block";
+    overlay.classList.add("active");
+
+    let progress = 0;
+    const intervals = [
+        { text: "Finding corner anchor points...", duration: 800 },
+        { text: "Extracting perspective grid alignment...", duration: 1000 },
+        { text: "Reading bubble optical densities...", duration: 1200 },
+        { text: "Grading against answer key...", duration: 600 }
+    ];
+
+    let currentPhase = 0;
+    
+    function runPhase() {
+        if (currentPhase >= intervals.length) {
+            // Processing complete: simulate randomized answers submission
+            stopCamera();
+            const test = state.activeTest;
+            const submission = {};
+            const options = ["A", "B", "C", "D", null];
+            
+            for (let q = 1; q <= test.totalQuestions; q++) {
+                const correctAns = test.answerKey[q];
+                const roll = Math.floor(Math.random() * 100) + 1;
+                
+                if (roll <= 80) {
+                    submission[q] = correctAns; // 80% correct
+                } else if (roll <= 95) {
+                    submission[q] = options.filter(o => o !== correctAns && o !== null)[Math.floor(Math.random() * 3)]; // Incorrect
+                } else {
+                    submission[q] = null; // Skipped
+                }
+            }
+            
+            // Score submission
+            state.onlineAnswers = submission;
+            submitTest("OMR");
+            return;
+        }
+
+        statusText.innerText = intervals[currentPhase].text;
+        
+        let targetProgress = ((currentPhase + 1) / intervals.length) * 100;
+        let step = (targetProgress - progress) / 20;
+
+        let stepCount = 0;
+        let progressInterval = setInterval(() => {
+            progress += step;
+            progressFill.style.width = `${progress}%`;
+            stepCount++;
+            if (stepCount >= 20) {
+                clearInterval(progressInterval);
+                currentPhase++;
+                runPhase();
+            }
+        }, intervals[currentPhase].duration / 20);
+    }
+
+    runPhase();
+}
+
+// -------------------------------------------------------------
+// Profile History Rendering
+// -------------------------------------------------------------
+function updateProfileStats() {
+    const totalCount = state.history.length;
+    let avg = 0;
+    if (totalCount > 0) {
+        const sum = state.history.reduce((acc, h) => acc + ((h.marksObtained / h.totalMarks) * 100), 0);
+        avg = (sum / totalCount).toFixed(1);
+    }
+    
+    // Updates dashboard statistics DOM elements
+    const elements = {
+        "stat-attempts-count": totalCount,
+        "stat-avg-score": `${avg}%`,
+        "profile-total-attempts": totalCount,
+        "profile-avg-score": `${avg}%`
+    };
+
+    for (let id in elements) {
+        const el = document.getElementById(id);
+        if (el) el.innerText = elements[id];
+    }
+
+    // Render list
+    const container = document.getElementById("profile-history-list");
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (state.history.length === 0) {
+        container.innerHTML = `<p class="empty-text">No test attempts logged yet.</p>`;
+        return;
+    }
+
+    state.history.forEach(record => {
+        const card = document.createElement("div");
+        const modeClass = record.attemptType.toLowerCase();
+        card.className = "history-item-card";
+        card.innerHTML = `
+            <div class="history-info">
+                <h4>${record.testTitle}</h4>
+                <div class="history-metadata">
+                    <span class="history-date">${record.dateString}</span>
+                    <span class="mode-tag ${modeClass}">${record.attemptType}</span>
+                </div>
+            </div>
+            <div class="history-score-box">
+                <span class="history-score">${record.marksObtained}/${record.totalMarks}</span>
+                <span>View scorecard</span>
+            </div>
+        `;
+        card.addEventListener("click", () => {
+            showScorecard(record);
+        });
+        container.appendChild(card);
+    });
+}
+
+// -------------------------------------------------------------
+// DOM Event Listeners & Bootstrapping
+// -------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+    initAppState();
+
+    // 1. Render initial content
+    renderHomeExams();
+    renderHomeUpdates();
+    renderHomeSubjects();
+    renderExamsGrid();
+    renderPDFNotes();
+    renderTestSeriesCatalog();
+    updateProfileStats();
+
+    // 2. Setup Sticky Footer click actions
+    document.querySelectorAll(".footer-nav-item").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const screen = btn.getAttribute("data-screen");
+            navigateTo(screen);
+        });
+    });
+
+    // 3. Setup Sidebar drawer click actions
+    document.querySelectorAll(".nav-item").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const screen = btn.getAttribute("data-screen");
+            navigateTo(screen);
+            // Close sidebar on mobile drawer selection
+            document.getElementById("sidebar").classList.remove("active");
+        });
+    });
+
+    // Hamburger drawer toggle
+    document.getElementById("hamburger-btn").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.add("active");
+    });
+    
+    document.getElementById("close-sidebar-btn").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.remove("active");
+    });
+
+    // Profile icon click
+    document.getElementById("header-profile-btn").addEventListener("click", () => {
+        navigateTo("profile");
+    });
+
+    // Home "View All" redirects
+    document.querySelectorAll(".view-all-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            navigateTo(btn.getAttribute("data-target"));
+        });
+    });
+
+    // Promo Card redirect
+    document.getElementById("test-series-promo").addEventListener("click", () => {
+        navigateTo("test-series-catalog");
+    });
+
+    // Search bar listener for Exams List
+    document.getElementById("exam-search-input").addEventListener("input", (e) => {
+        state.examSearchQuery = e.target.value;
+        renderExamsGrid();
+    });
+
+    // Generic Back navigation buttons
+    document.querySelectorAll(".back-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            navigateTo(btn.getAttribute("data-target"));
+        });
+    });
+
+    // PDF Notes Modal navigation
+    document.getElementById("close-pdf-reader-btn").addEventListener("click", () => {
+        document.getElementById("pdf-reader-modal").classList.remove("active");
+        state.activePdfNote = null;
+    });
+
+    document.getElementById("pdf-prev-btn").addEventListener("click", () => {
+        if (state.pdfCurrentPage > 1) {
+            state.pdfCurrentPage--;
+            updatePdfPageContent();
+        }
+    });
+
+    document.getElementById("pdf-next-btn").addEventListener("click", () => {
+        if (state.pdfCurrentPage < state.pdfTotalPages) {
+            state.pdfCurrentPage++;
+            updatePdfPageContent();
+        }
+    });
+
+    // Mock Downloads inside OMR Prep
+    document.getElementById("btn-download-paper").addEventListener("click", function() {
+        this.innerHTML = `<i class="fa-solid fa-circle-check text-success"></i>`;
+    });
+
+    document.getElementById("btn-download-omr").addEventListener("click", function() {
+        this.innerHTML = `<i class="fa-solid fa-circle-check text-success"></i>`;
+    });
+
+    document.getElementById("omr-prep-back-btn").addEventListener("click", () => {
+        navigateTo("test-series-details");
+    });
+
+    // OMR Scanner navigation triggers
+    document.getElementById("start-scan-btn").addEventListener("click", () => {
+        // Reset scanner button and progress bar
+        document.getElementById("capture-scan-btn").style.display = "block";
+        document.getElementById("scan-progress-bar").style.display = "none";
+        document.getElementById("scanner-overlay").classList.remove("active");
+        
+        navigateTo("omr-scanner");
+        startCamera();
+    });
+
+    document.getElementById("scanner-back-btn").addEventListener("click", () => {
+        navigateTo("omr-scan-prep");
+    });
+
+    document.getElementById("capture-scan-btn").addEventListener("click", () => {
+        simulateOmrScan();
+    });
+
+    // Scorecard completion trigger
+    document.getElementById("result-home-btn").addEventListener("click", () => {
+        navigateTo("home");
+    });
+
+    // Online Player Navigation controls
+    document.getElementById("player-prev-btn").addEventListener("click", () => {
+        if (state.currentQuestionIndex > 0) {
+            state.currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    document.getElementById("player-next-btn").addEventListener("click", () => {
+        if (state.currentQuestionIndex < state.activeTest.totalQuestions - 1) {
+            state.currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    // Submit dialog triggers
+    document.getElementById("player-submit-btn").addEventListener("click", () => {
+        const answered = Object.keys(state.onlineAnswers).length;
+        const total = state.activeTest.totalQuestions;
+        const confirmSubmit = confirm(`You have answered ${answered} of ${total} questions. Do you want to submit the exam?`);
+        if (confirmSubmit) {
+            submitTest("ONLINE");
+        }
+    });
+
+    // Palette modal triggers
+    document.getElementById("player-palette-btn").addEventListener("click", () => {
+        renderPaletteGrid();
+        document.getElementById("palette-modal").classList.add("active");
+    });
+
+    document.getElementById("close-palette-btn").addEventListener("click", () => {
+        document.getElementById("palette-modal").classList.remove("active");
+    });
+
+    function renderPaletteGrid() {
+        const container = document.getElementById("palette-grid-container");
+        if (!container || !state.activeTest) return;
+        container.innerHTML = "";
+
+        for (let q = 1; q <= state.activeTest.totalQuestions; q++) {
+            const circle = document.createElement("div");
+            const isAnswered = state.onlineAnswers[q] !== undefined;
+            const isReview = state.onlineReview[q] === true;
+
+            let statusClass = "gray";
+            if (isReview) statusClass = "magenta";
+            else if (isAnswered) statusClass = "green";
+
+            circle.className = `palette-circle ${statusClass}`;
+            circle.innerText = q;
+            
+            circle.addEventListener("click", () => {
+                state.currentQuestionIndex = q - 1;
+                renderQuestion();
+                document.getElementById("palette-modal").classList.remove("active");
+            });
+
+            container.appendChild(circle);
+        }
+    }
+
+    // Bookmark/Review checkbox change trigger
+    document.getElementById("mark-review-checkbox").addEventListener("change", function() {
+        const qNum = state.currentQuestionIndex + 1;
+        state.onlineReview[qNum] = this.checked;
+    });
+});
