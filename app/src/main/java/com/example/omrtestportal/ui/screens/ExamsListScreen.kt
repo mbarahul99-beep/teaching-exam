@@ -97,7 +97,7 @@ fun ExamsListScreen(
 }
 
 @Composable
-fun ExamListItem(exam: Exam, onClick: () -> Unit) {
+fun RowScope.ExamListItem(exam: Exam, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .weight(1f)
