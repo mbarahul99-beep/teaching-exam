@@ -36,38 +36,27 @@ fun HomeScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Welcome & Stats Banner
-        item {
-            WelcomeBannerCard(
-                userName = "Amit Sharma",
-                totalTests = MockDatabase.attemptHistory.size,
-                avgScore = if (MockDatabase.attemptHistory.isNotEmpty()) {
-                    MockDatabase.attemptHistory.map { (it.marksObtained / it.totalMarks) * 100 }.average()
-                } else 0.0,
-                onProfileClick = { onNavigate(ProfileHistory) }
-            )
-        }
-
-        // 2. My Exams Section
+        // 1. My Exams Section (Vertical stack of compact rectangle buttons)
         item {
             ExamsSection(
                 exams = MockDatabase.exams,
                 onExamClick = { exam ->
-                    // For now, take directly to Test Series filtered by exam
                     onNavigate(TestSeriesCatalog)
                 },
                 onViewAllClick = { onNavigate(ExamsList) }
             )
         }
 
-        // 3. Exam Updates (News Section)
+        // 2. Full Length Test Series (Simple clean heading + banner, no extra practice text)
         item {
-            ExamUpdatesSection(updates = MockDatabase.examUpdates)
+            TestSeriesSection(
+                onClick = { onNavigate(TestSeriesCatalog) }
+            )
         }
 
-        // 4. PDF Notes Section
+        // 3. PDF Notes Section (Vertical stack of compact rectangle buttons: Icon left, Text right)
         item {
             PDFNotesSection(
                 subjects = listOf("History", "Geography", "Political S", "Hindi", "Maths", "Science"),
@@ -78,82 +67,9 @@ fun HomeScreen(
             )
         }
 
-        // 5. Test Series Banner Card
+        // 4. Exam Updates (At the bottom now)
         item {
-            TestSeriesBannerCard(
-                testCount = MockDatabase.testSeries.flatMap { it.tests }.size,
-                onClick = { onNavigate(TestSeriesCatalog) }
-            )
-        }
-    }
-}
-
-@Composable
-fun WelcomeBannerCard(
-    userName: String,
-    totalTests: Int,
-    avgScore: Double,
-    onProfileClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onProfileClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Welcome Back,",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-            )
-            Text(
-                text = userName,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f))
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Tests Attempted",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = "$totalTests",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Average Score",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = String.format("%.1f%%", avgScore),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+            ExamUpdatesSection(updates = MockDatabase.examUpdates)
         }
     }
 }
@@ -176,36 +92,38 @@ fun ExamsSection(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            TextButton(onClick = onViewAllClick) {
+            TextButton(
+                onClick = onViewAllClick,
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
                 Text("View All")
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(end = 16.dp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items(exams) { exam ->
+            exams.forEach { exam ->
                 Card(
                     modifier = Modifier
-                        .width(110.dp)
-                        .height(100.dp)
+                        .fillMaxWidth()
+                        .height(56.dp)
                         .clickable { onExamClick(exam) },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(36.dp)
                                 .background(
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     CircleShape
@@ -221,14 +139,157 @@ fun ExamsSection(
                                     else -> Icons.Default.Home
                                 },
                                 contentDescription = exam.shortName,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = exam.shortName,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = exam.title,
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TestSeriesSection(
+    onClick: () -> Unit
+) {
+    Column {
+        Text(
+            text = "Full Length Test Series",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Full Length Mock Tests",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Go to Test Series",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PDFNotesSection(
+    subjects: List<String>,
+    onSubjectClick: (String) -> Unit,
+    onViewAllClick: () -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "PDF Notes",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            TextButton(
+                onClick = onViewAllClick,
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                Text("View All")
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            subjects.forEach { subject ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable { onSubjectClick(subject) },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = when (subject) {
+                                    "History" -> Icons.Default.HourglassEmpty
+                                    "Geography" -> Icons.Default.Public
+                                    "Political S" -> Icons.Default.AccountBalance
+                                    "Hindi" -> Icons.Default.Translate
+                                    "Maths" -> Icons.Default.Calculate
+                                    "Science" -> Icons.Default.Science
+                                    else -> Icons.Default.Book
+                                },
+                                contentDescription = subject,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = exam.shortName,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            text = subject,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -247,7 +308,7 @@ fun ExamUpdatesSection(updates: List<ExamUpdate>) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
@@ -303,125 +364,6 @@ fun ExamUpdatesSection(updates: List<ExamUpdate>) {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PDFNotesSection(
-    subjects: List<String>,
-    onSubjectClick: (String) -> Unit,
-    onViewAllClick: () -> Unit
-) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "PDF Notes",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            TextButton(onClick = onViewAllClick) {
-                Text("View All")
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(subjects) { subject ->
-                SuggestionChip(
-                    onClick = { onSubjectClick(subject) },
-                    label = { Text(subject) },
-                    icon = {
-                        Icon(
-                            imageVector = when (subject) {
-                                "History" -> Icons.Default.HourglassEmpty
-                                "Geography" -> Icons.Default.Public
-                                "Political S" -> Icons.Default.AccountBalance
-                                "Hindi" -> Icons.Default.Translate
-                                "Maths" -> Icons.Default.Calculate
-                                "Science" -> Icons.Default.Science
-                                else -> Icons.Default.Book
-                            },
-                            contentDescription = subject,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TestSeriesBannerCard(
-    testCount: Int,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
-            )
-            .clickable(onClick = onClick)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "TEST SERIES",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Practice Online / Offline OMR",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Text(
-                        text = "$testCount full-length examinations available",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Navigate to Test Series",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
                 }
             }
         }
