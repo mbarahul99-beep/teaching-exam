@@ -556,10 +556,10 @@ body {
     color: var(--primary);
 }
 
-/* Vertical Compact List Stack */
-.vertical-list-stack {
-    display: flex;
-    flex-direction: column;
+/* Grid with 2 columns */
+.grid-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px; /* minimal margins */
     width: 100%;
 }
@@ -567,11 +567,11 @@ body {
 .compact-rect-item {
     display: flex;
     align-items: center;
-    height: 56px;
-    padding: 8px 12px;
+    height: 48px;
+    padding: 6px 10px;
     background-color: var(--surface-variant);
     border-radius: var(--border-radius-md);
-    gap: 12px;
+    gap: 8px;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
 }
@@ -585,15 +585,15 @@ body {
 }
 
 .rect-icon-box {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.7);
     color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .compact-rect-item.pdf-note-subject .rect-icon-box {
@@ -605,14 +605,16 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 2px;
     overflow: hidden;
 }
 
 .rect-text-box h4 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--on-surface-variant);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .rect-text-box span {

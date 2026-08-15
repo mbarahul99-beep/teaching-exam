@@ -74,10 +74,21 @@ fun ExamsListScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(filteredExams) { exam ->
-                        ExamListItem(exam = exam, onClick = {
-                            onNavigate(TestSeriesCatalog)
-                        })
+                    val chunkedExams = filteredExams.chunked(2)
+                    items(chunkedExams) { rowExams ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowExams.forEach { exam ->
+                                ExamListItem(exam = exam, onClick = {
+                                    onNavigate(TestSeriesCatalog)
+                                })
+                            }
+                            if (rowExams.size < 2) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -89,8 +100,8 @@ fun ExamsListScreen(
 fun ExamListItem(exam: Exam, onClick: () -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
+            .weight(1f)
+            .height(48.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -98,12 +109,12 @@ fun ExamListItem(exam: Exam, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(28.dp)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -117,27 +128,16 @@ fun ExamListItem(exam: Exam, onClick: () -> Unit) {
                     },
                     contentDescription = exam.shortName,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = exam.shortName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = exam.title,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = exam.shortName,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

@@ -189,7 +189,6 @@ function renderHomeExams() {
             <div class="rect-icon-box"><i class="fa-solid ${exam.iconName}"></i></div>
             <div class="rect-text-box">
                 <h4>${exam.shortName}</h4>
-                <span>${exam.title}</span>
             </div>
         `;
         div.addEventListener("click", () => {
@@ -292,7 +291,6 @@ function renderExamsGrid() {
             <div class="rect-icon-box"><i class="fa-solid ${exam.iconName}"></i></div>
             <div class="rect-text-box">
                 <h4>${exam.shortName}</h4>
-                <span>${exam.title}</span>
             </div>
         `;
         card.addEventListener("click", () => {

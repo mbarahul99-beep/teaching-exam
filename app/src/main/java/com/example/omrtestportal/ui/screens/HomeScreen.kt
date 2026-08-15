@@ -104,63 +104,63 @@ fun ExamsSection(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            exams.forEach { exam ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clickable { onExamClick(exam) },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+            val chunkedExams = exams.chunked(2)
+            chunkedExams.forEach { rowExams ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                    rowExams.forEach { exam ->
+                        Card(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
+                                .weight(1f)
+                                .height(48.dp)
+                                .clickable { onExamClick(exam) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                         ) {
-                            Icon(
-                                imageVector = when (exam.iconName) {
-                                    "school" -> Icons.Default.School
-                                    "domain" -> Icons.Default.Domain
-                                    "location_city" -> Icons.Default.LocationCity
-                                    "gavel" -> Icons.Default.Gavel
-                                    else -> Icons.Default.Home
-                                },
-                                contentDescription = exam.shortName,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = when (exam.iconName) {
+                                            "school" -> Icons.Default.School
+                                            "domain" -> Icons.Default.Domain
+                                            "location_city" -> Icons.Default.LocationCity
+                                            "gavel" -> Icons.Default.Gavel
+                                            else -> Icons.Default.Home
+                                        },
+                                        contentDescription = exam.shortName,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = exam.shortName,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = exam.shortName,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = exam.title,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                    }
+                    if (rowExams.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -244,54 +244,65 @@ fun PDFNotesSection(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            subjects.forEach { subject ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clickable { onSubjectClick(subject) },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+            val chunkedSubjects = subjects.chunked(2)
+            chunkedSubjects.forEach { rowSubjects ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                    rowSubjects.forEach { subject ->
+                        Card(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = when (subject) {
-                                    "History" -> Icons.Default.HourglassEmpty
-                                    "Geography" -> Icons.Default.Public
-                                    "Political S" -> Icons.Default.AccountBalance
-                                    "Hindi" -> Icons.Default.Translate
-                                    "Maths" -> Icons.Default.Calculate
-                                    "Science" -> Icons.Default.Science
-                                    else -> Icons.Default.Book
-                                },
-                                contentDescription = subject,
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(20.dp)
+                                .weight(1f)
+                                .height(48.dp)
+                                .clickable { onSubjectClick(subject) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = when (subject) {
+                                            "History" -> Icons.Default.HourglassEmpty
+                                            "Geography" -> Icons.Default.Public
+                                            "Political S" -> Icons.Default.AccountBalance
+                                            "Hindi" -> Icons.Default.Translate
+                                            "Maths" -> Icons.Default.Calculate
+                                            "Science" -> Icons.Default.Science
+                                            else -> Icons.Default.Book
+                                        },
+                                        contentDescription = subject,
+                                        tint = MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = subject,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = subject,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    }
+                    if (rowSubjects.size < 2) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
