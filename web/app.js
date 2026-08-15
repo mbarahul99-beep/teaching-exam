@@ -184,10 +184,13 @@ function renderHomeExams() {
 
     DB.exams.forEach(exam => {
         const div = document.createElement("div");
-        div.className = "exam-carousel-card";
+        div.className = "compact-rect-item";
         div.innerHTML = `
-            <div class="exam-icon-circle"><i class="fa-solid ${exam.iconName}"></i></div>
-            <h4>${exam.shortName}</h4>
+            <div class="rect-icon-box"><i class="fa-solid ${exam.iconName}"></i></div>
+            <div class="rect-text-box">
+                <h4>${exam.shortName}</h4>
+                <span>${exam.title}</span>
+            </div>
         `;
         div.addEventListener("click", () => {
             state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];
@@ -197,12 +200,14 @@ function renderHomeExams() {
         container.appendChild(div);
     });
 
-    // View All Button card
+    // View All Button card at the bottom of the list
     const viewAllCard = document.createElement("div");
-    viewAllCard.className = "exam-carousel-card";
+    viewAllCard.className = "compact-rect-item";
     viewAllCard.innerHTML = `
-        <div class="exam-icon-circle"><i class="fa-solid fa-arrow-right-long"></i></div>
-        <h4>View All</h4>
+        <div class="rect-icon-box" style="color: var(--secondary);"><i class="fa-solid fa-arrow-right-long"></i></div>
+        <div class="rect-text-box">
+            <h4>View All Exams</h4>
+        </div>
     `;
     viewAllCard.addEventListener("click", () => navigateTo("exams"));
     container.appendChild(viewAllCard);
@@ -229,7 +234,7 @@ function renderHomeUpdates() {
     });
 }
 
-// Render Home Subject List
+// Render Home Subject List (Compact rectangles, from up to down)
 function renderHomeSubjects() {
     const container = document.getElementById("home-subjects-list");
     if (!container) return;
@@ -246,19 +251,24 @@ function renderHomeSubjects() {
     };
 
     subjects.forEach(sub => {
-        const chip = document.createElement("div");
-        chip.className = "subject-chip";
-        chip.innerHTML = `<i class="fa-solid ${icons[sub] || 'fa-file-lines'}"></i> ${sub}`;
-        chip.addEventListener("click", () => {
+        const div = document.createElement("div");
+        div.className = "compact-rect-item pdf-note-subject";
+        div.innerHTML = `
+            <div class="rect-icon-box"><i class="fa-solid ${icons[sub] || 'fa-file-lines'}"></i></div>
+            <div class="rect-text-box">
+                <h4>${sub}</h4>
+            </div>
+        `;
+        div.addEventListener("click", () => {
             state.selectedSubject = sub;
             navigateTo("notes");
             renderPDFNotes();
         });
-        container.appendChild(chip);
+        container.appendChild(div);
     });
 }
 
-// Render Searchable Exams Grid
+// Render Searchable Exams Grid (Now compact list)
 function renderExamsGrid() {
     const container = document.getElementById("exams-grid-container");
     if (!container) return;
@@ -277,11 +287,13 @@ function renderExamsGrid() {
 
     filtered.forEach(exam => {
         const card = document.createElement("div");
-        card.className = "exam-grid-card";
+        card.className = "compact-rect-item";
         card.innerHTML = `
-            <div class="exam-grid-icon-circle"><i class="fa-solid ${exam.iconName}"></i></div>
-            <h3>${exam.shortName}</h3>
-            <span>${exam.title}</span>
+            <div class="rect-icon-box"><i class="fa-solid ${exam.iconName}"></i></div>
+            <div class="rect-text-box">
+                <h4>${exam.shortName}</h4>
+                <span>${exam.title}</span>
+            </div>
         `;
         card.addEventListener("click", () => {
             state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];

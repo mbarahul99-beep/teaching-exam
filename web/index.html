@@ -48,41 +48,23 @@
             <main class="content-container">
                 <!-- 1. Home Screen -->
                 <section id="screen-home" class="app-screen active">
-                    <!-- Welcome & Stats Banner -->
-                    <div class="stats-banner-card">
-                        <div class="banner-welcome">
-                            <span>Welcome Back,</span>
-                            <h2 class="user-display-name">Amit Sharma</h2>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="banner-stats">
-                            <div class="stat-box">
-                                <span class="stat-label">Tests Attempted</span>
-                                <h3 id="stat-attempts-count" class="stat-value">2</h3>
-                            </div>
-                            <div class="stat-box align-end">
-                                <span class="stat-label">Average Score</span>
-                                <h3 id="stat-avg-score" class="stat-value">75.0%</h3>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- My Exams Section -->
                     <div class="screen-section">
                         <div class="section-header">
                             <h3>My Exams</h3>
                             <button class="view-all-btn" data-target="exams">View All</button>
                         </div>
-                        <div class="exams-carousel horizontal-scroll" id="home-exams-list">
+                        <div class="vertical-list-stack" id="home-exams-list">
                             <!-- Injected dynamically -->
                         </div>
                     </div>
 
-                    <!-- Exam Updates News Section -->
+                    <!-- Full Length Test Series -->
                     <div class="screen-section">
-                        <h3>Exam Updates & News</h3>
-                        <div class="updates-carousel horizontal-scroll" id="home-updates-list">
-                            <!-- Injected dynamically -->
+                        <h3>Full Length Test Series</h3>
+                        <div class="simple-promo-card" id="test-series-promo">
+                            <span>Full Length Mock Tests</span>
+                            <i class="fa-solid fa-arrow-right"></i>
                         </div>
                     </div>
 
@@ -92,20 +74,16 @@
                             <h3>PDF Notes</h3>
                             <button class="view-all-btn" data-target="notes">View All</button>
                         </div>
-                        <div class="subject-chips-carousel horizontal-scroll" id="home-subjects-list">
+                        <div class="vertical-list-stack" id="home-subjects-list">
                             <!-- Injected dynamically -->
                         </div>
                     </div>
 
-                    <!-- Test Series Promo Card -->
-                    <div class="test-series-promo-card" id="test-series-promo">
-                        <div class="promo-content">
-                            <span>TEST SERIES</span>
-                            <h2>Practice Online / Offline OMR</h2>
-                            <p id="promo-test-count">5 full-length examinations available</p>
-                        </div>
-                        <div class="promo-action">
-                            <i class="fa-solid fa-arrow-right"></i>
+                    <!-- Exam Updates News Section -->
+                    <div class="screen-section">
+                        <h3>Exam Updates & News</h3>
+                        <div class="updates-carousel horizontal-scroll" id="home-updates-list">
+                            <!-- Injected dynamically -->
                         </div>
                     </div>
                 </section>
@@ -119,7 +97,7 @@
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="exam-search-input" placeholder="Search exams (e.g. CTET, KVS)">
                     </div>
-                    <div class="exams-grid" id="exams-grid-container">
+                    <div class="vertical-list-stack" id="exams-grid-container">
                         <!-- Injected dynamically -->
                     </div>
                 </section>

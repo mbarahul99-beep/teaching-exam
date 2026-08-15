@@ -529,60 +529,103 @@ body {
     color: var(--primary);
 }
 
-/* Test Series Promo Card */
-.test-series-promo-card {
-    background: var(--primary-gradient);
-    border-radius: var(--border-radius-lg);
-    padding: 20px;
-    color: #fff;
+/* Simple Test Series Promo Card */
+.simple-promo-card {
+    height: 64px;
+    padding: 0 16px;
+    background-color: var(--primary-container);
+    color: var(--on-primary-container);
+    border-radius: var(--border-radius-md);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    font-weight: 700;
+    font-size: 15px;
     cursor: pointer;
-    box-shadow: 0 10px 25px rgba(0, 122, 255, 0.15);
-    transition: transform 0.2s;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s, background-color 0.2s;
 }
 
-.test-series-promo-card:hover {
-    transform: scale(1.01);
+.simple-promo-card:hover {
+    transform: translateY(-1px);
+    background-color: hsl(var(--primary-h), var(--primary-s), 92%);
 }
 
-.promo-content {
+.simple-promo-card i {
+    font-size: 16px;
+    color: var(--primary);
+}
+
+/* Vertical Compact List Stack */
+.vertical-list-stack {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px; /* minimal margins */
+    width: 100%;
 }
 
-.promo-content span {
-    font-size: 11px;
-    font-weight: 700;
-    opacity: 0.8;
-    letter-spacing: 1px;
+.compact-rect-item {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 8px 12px;
+    background-color: var(--surface-variant);
+    border-radius: var(--border-radius-md);
+    gap: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
 }
 
-.promo-content h2 {
-    font-size: 18px;
-    font-weight: 800;
+.compact-rect-item:hover {
+    background-color: var(--outline);
 }
 
-.promo-content p {
-    font-size: 12px;
-    opacity: 0.8;
+.compact-rect-item:active {
+    transform: scale(0.99);
 }
 
-.promo-action {
-    width: 44px;
-    height: 44px;
-    background-color: rgba(255, 255, 255, 0.2);
+.rect-icon-box {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
+}
+
+.compact-rect-item.pdf-note-subject .rect-icon-box {
+    color: var(--secondary);
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.rect-text-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.rect-text-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+}
+
+.rect-text-box span {
+    font-size: 11px;
+    color: var(--secondary);
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* -------------------------------------------------------------
-   Exams Screen Grid
+   Exams Screen List
 ------------------------------------------------------------- */
 .search-bar-wrapper {
     display: flex;
@@ -608,60 +651,6 @@ body {
     flex: 1;
     font-size: 14px;
     color: var(--on-surface);
-}
-
-.exams-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1f));
-    gap: 12px;
-}
-
-.exam-grid-card {
-    height: 140px;
-    background-color: var(--surface-variant);
-    border-radius: var(--border-radius-lg);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s, background-color 0.2s;
-}
-
-.exam-grid-card:hover {
-    transform: translateY(-3px);
-    background-color: var(--outline);
-}
-
-.exam-grid-icon-circle {
-    width: 48px;
-    height: 48px;
-    background-color: rgba(255, 255, 255, 0.7);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 20px;
-}
-
-.exam-grid-card h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--on-surface);
-}
-
-.exam-grid-card span {
-    font-size: 10px;
-    color: var(--secondary);
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
 }
 
 /* -------------------------------------------------------------
