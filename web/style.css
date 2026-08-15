@@ -2,7 +2,18 @@
    Design System & Variable Tokens
 ------------------------------------------------------------- */
 :root {
-    /* HSL Curated Palettes */
+    /* Global Layout & Dimensions */
+    --border-radius-lg: 16px;
+    --border-radius-md: 12px;
+    --border-radius-sm: 8px;
+    --header-height: 64px;
+    --footer-height: 72px;
+    --sidebar-width: 280px;
+    --transition-speed: 0.3s;
+}
+
+/* Default Ocean Blue Theme (Light) */
+:root, body[data-theme="ocean"] {
     --primary-h: 210;
     --primary-s: 100%;
     --primary-l: 50%;
@@ -25,19 +36,96 @@
     --danger: #e53935;
     --warning: #ffb300;
     
-    /* Gradients */
     --primary-gradient: linear-gradient(135deg, hsl(210, 100%, 50%), hsl(225, 100%, 60%));
-    
-    /* Layout & Shadows */
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    --border-radius-lg: 16px;
-    --border-radius-md: 12px;
-    --border-radius-sm: 8px;
-    --header-height: 64px;
-    --footer-height: 72px;
-    --sidebar-width: 280px;
-    --transition-speed: 0.3s;
+}
+
+/* Deep Charcoal (Dark Mode) */
+body[data-theme="charcoal"] {
+    --primary-h: 210;
+    --primary-s: 100%;
+    --primary-l: 60%;
+    
+    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+    --primary-container: hsl(var(--primary-h), var(--primary-s), 18%);
+    --on-primary-container: hsl(var(--primary-h), var(--primary-s), 90%);
+    
+    --secondary: hsl(210, 10%, 65%);
+    --surface-variant: hsl(210, 14%, 20%);
+    --on-surface-variant: hsl(210, 10%, 75%);
+    
+    --background: hsl(210, 18%, 10%);
+    --surface: hsl(210, 14%, 13%);
+    --on-background: #f1f2f4;
+    --on-surface: #f1f2f4;
+    --outline: hsl(210, 12%, 24%);
+    
+    --success: #66bb6a;
+    --danger: #ef5350;
+    --warning: #ffca28;
+    
+    --primary-gradient: linear-gradient(135deg, hsl(210, 100%, 60%), hsl(225, 100%, 70%));
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Forest Emerald (Greenish Light) */
+body[data-theme="emerald"] {
+    --primary-h: 150;
+    --primary-s: 80%;
+    --primary-l: 36%;
+    
+    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+    --primary-container: hsl(var(--primary-h), var(--primary-s), 94%);
+    --on-primary-container: hsl(var(--primary-h), var(--primary-s), 15%);
+    
+    --secondary: hsl(150, 10%, 40%);
+    --surface-variant: hsl(150, 8%, 93%);
+    --on-surface-variant: hsl(150, 8%, 30%);
+    
+    --background: hsl(150, 15%, 97%);
+    --surface: hsl(0, 0%, 100%);
+    --on-background: #142217;
+    --on-surface: #142217;
+    --outline: hsl(150, 8%, 85%);
+    
+    --success: #4caf50;
+    --danger: #e53935;
+    --warning: #ffb300;
+    
+    --primary-gradient: linear-gradient(135deg, hsl(150, 80%, 36%), hsl(165, 80%, 45%));
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Sunset Copper (Warm Amber Light) */
+body[data-theme="sunset"] {
+    --primary-h: 22;
+    --primary-s: 90%;
+    --primary-l: 48%;
+    
+    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+    --primary-container: hsl(var(--primary-h), var(--primary-s), 95%);
+    --on-primary-container: hsl(var(--primary-h), var(--primary-s), 18%);
+    
+    --secondary: hsl(22, 12%, 42%);
+    --surface-variant: hsl(22, 10%, 94%);
+    --on-surface-variant: hsl(22, 10%, 30%);
+    
+    --background: hsl(22, 15%, 98%);
+    --surface: hsl(0, 0%, 100%);
+    --on-background: #24140b;
+    --on-surface: #24140b;
+    --outline: hsl(22, 8%, 86%);
+    
+    --success: #4caf50;
+    --danger: #e53935;
+    --warning: #ffb300;
+    
+    --primary-gradient: linear-gradient(135deg, hsl(22, 90%, 48%), hsl(35, 90%, 55%));
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* -------------------------------------------------------------
@@ -1889,3 +1977,329 @@ body {
         display: none;
     }
 }
+
+/* -------------------------------------------------------------
+   Theme Selector Widget (Sidebar Bottom)
+------------------------------------------------------------- */
+.sidebar-theme-selector {
+    padding: 16px 20px;
+    border-top: 1px solid var(--outline);
+    margin-top: auto; /* Pin to the bottom of drawer */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.theme-selector-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--secondary);
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.theme-buttons-row {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.theme-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    outline: none;
+}
+
+.theme-btn:hover {
+    transform: scale(1.15);
+}
+
+.theme-btn.active {
+    border-color: var(--on-surface);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+}
+
+.theme-btn.ocean { background-color: #007aff; }
+.theme-btn.charcoal { background-color: #2e3440; }
+.theme-btn.emerald { background-color: #2e7d32; }
+.theme-btn.sunset { background-color: #d84315; }
+
+/* -------------------------------------------------------------
+   Admin Gate Passcode Login Screen
+------------------------------------------------------------- */
+.admin-login-card {
+    max-width: 360px;
+    margin: 60px auto;
+    padding: 24px;
+    background-color: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--hover-shadow);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-gate-icon {
+    font-size: 40px;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.admin-login-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.admin-login-card p {
+    font-size: 13px;
+    color: var(--secondary);
+    line-height: 18px;
+}
+
+/* -------------------------------------------------------------
+   Admin Panel Workspace Dashboard
+------------------------------------------------------------- */
+.admin-workspace-header {
+    padding: 16px 20px;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--outline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-user-title h3 {
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.admin-user-title span {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.admin-logout-btn {
+    padding: 6px 14px;
+    background: none;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-logout-btn:hover {
+    background-color: var(--danger);
+    color: #fff;
+}
+
+.admin-tabs-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    background-color: var(--surface-variant);
+    border-bottom: 1px solid var(--outline);
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.admin-tabs-row::-webkit-scrollbar {
+    display: none;
+}
+
+.admin-tab-btn {
+    padding: 6px 16px;
+    background-color: var(--surface);
+    color: var(--on-surface-variant);
+    border: 1px solid var(--outline);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-tab-btn.active {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.admin-tab-workspace {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.admin-tab-body {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-tab-body.active {
+    display: flex;
+}
+
+/* Forms */
+.admin-form {
+    background-color: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: var(--card-shadow);
+}
+
+.admin-form h4 {
+    font-size: 15px;
+    font-weight: 800;
+    border-left: 3px solid var(--primary);
+    padding-left: 8px;
+    margin-bottom: 4px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--secondary);
+}
+
+.form-input-field {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-sm);
+    padding: 0 12px;
+    font-size: 13px;
+    outline: none;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    transition: border-color 0.2s;
+}
+
+.form-input-field:focus {
+    border-color: var(--primary);
+}
+
+textarea.form-input-field {
+    height: auto;
+    padding: 10px 12px;
+}
+
+.admin-submit-btn {
+    height: 42px;
+    background-color: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.admin-submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Data Tables */
+.admin-data-list-section {
+    background-color: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: var(--card-shadow);
+}
+
+.admin-data-list-section h4 {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.admin-table-container {
+    overflow-x: auto;
+}
+
+.admin-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.admin-data-table th,
+.admin-data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--outline);
+    text-align: left;
+}
+
+.admin-data-table th {
+    font-weight: 700;
+    color: var(--secondary);
+    background-color: var(--surface-variant);
+}
+
+.admin-delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+}
+
+.admin-delete-btn:hover {
+    opacity: 0.7;
+}
+
+.admin-danger-action-btn {
+    padding: 6px 12px;
+    background-color: rgba(229, 57, 53, 0.1);
+    color: var(--danger);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-danger-action-btn:hover {
+    background-color: var(--danger);
+    color: #fff;
+}
+

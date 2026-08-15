@@ -1,8 +1,8 @@
 // -------------------------------------------------------------
-// App State & Database
+// App State & Database (Dynamic Load from LocalStorage)
 // -------------------------------------------------------------
 
-const DB = {
+const DEFAULT_DB = {
     exams: [
         { id: "ctet", title: "Central Teacher Eligibility Test", shortName: "CTET", iconName: "fa-school" },
         { id: "kvs_nvs", title: "KVS / NVS Recruitment Exam", shortName: "KVS/NVS", iconName: "fa-building-columns" },
@@ -67,6 +67,24 @@ function generateAnswerKey(total) {
     }
     return key;
 }
+
+// Global active database object loaded from local storage or defaults
+let DB = {};
+
+function initDatabase() {
+    DB.exams = JSON.parse(localStorage.getItem("adm_exams")) || [...DEFAULT_DB.exams];
+    DB.pdfNotes = JSON.parse(localStorage.getItem("adm_pdf_notes")) || [...DEFAULT_DB.pdfNotes];
+    DB.testSeries = JSON.parse(localStorage.getItem("adm_test_series")) || [...DEFAULT_DB.testSeries];
+    DB.updates = JSON.parse(localStorage.getItem("adm_updates")) || [...DEFAULT_DB.updates];
+    
+    // Save defaults back to storage if empty
+    if (!localStorage.getItem("adm_exams")) localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
+    if (!localStorage.getItem("adm_pdf_notes")) localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
+    if (!localStorage.getItem("adm_test_series")) localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
+    if (!localStorage.getItem("adm_updates")) localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
+}
+
+initDatabase();
 
 // -------------------------------------------------------------
 // State Management Variables
@@ -987,4 +1005,330 @@ document.addEventListener("DOMContentLoaded", () => {
         const qNum = state.currentQuestionIndex + 1;
         state.onlineReview[qNum] = this.checked;
     });
+
+    // -------------------------------------------------------------
+    // Multi-Theme Controller
+    // -------------------------------------------------------------
+    const activeTheme = localStorage.getItem("app_theme") || "ocean";
+    document.body.setAttribute("data-theme", activeTheme);
+    document.querySelectorAll(".theme-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("data-theme") === activeTheme) {
+            btn.classList.add("active");
+        }
+    });
+
+    document.querySelectorAll(".theme-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const theme = btn.getAttribute("data-theme");
+            document.body.setAttribute("data-theme", theme);
+            localStorage.setItem("app_theme", theme);
+            document.querySelectorAll(".theme-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+
+    // -------------------------------------------------------------
+    // Admin Security Gate & Login
+    // -------------------------------------------------------------
+    document.getElementById("admin-login-btn").addEventListener("click", () => {
+        verifyAdminPasscode();
+    });
+
+    document.getElementById("admin-passcode-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyAdminPasscode();
+    });
+
+    function verifyAdminPasscode() {
+        const code = document.getElementById("admin-passcode-input").value;
+        if (code === "12345") {
+            document.getElementById("admin-passcode-input").value = "";
+            navigateTo("admin");
+            renderAdminConsole();
+        } else {
+            alert("Incorrect admin passcode. Try '12345'.");
+        }
+    }
+
+    document.getElementById("admin-logout-btn").addEventListener("click", () => {
+        navigateTo("home");
+    });
+
+    // -------------------------------------------------------------
+    // Admin Panel Tab Switchers
+    // -------------------------------------------------------------
+    document.querySelectorAll(".admin-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tabName = btn.getAttribute("data-tab");
+            document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".admin-tab-body").forEach(b => b.classList.remove("active"));
+            
+            btn.classList.add("active");
+            document.getElementById(`tab-${tabName}`).classList.add("active");
+        });
+    });
+
+    // -------------------------------------------------------------
+    // Admin Console Renderers
+    // -------------------------------------------------------------
+    function renderAdminConsole() {
+        renderAdminExams();
+        renderAdminNotes();
+        renderAdminSeriesDropdowns();
+        renderAdminNews();
+        renderAdminLogs();
+    }
+
+    // A. Exams CRUD
+    function renderAdminExams() {
+        const tbody = document.getElementById("admin-exams-table-body");
+        tbody.innerHTML = "";
+        DB.exams.forEach((exam, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><i class="fa-solid ${exam.iconName}"></i></td>
+                <td><strong>${exam.shortName}</strong></td>
+                <td>${exam.title}</td>
+                <td><button class="admin-delete-btn" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button></td>
+            `;
+            tr.querySelector(".admin-delete-btn").addEventListener("click", () => {
+                if (confirm(`Delete exam ${exam.shortName}?`)) {
+                    DB.exams.splice(idx, 1);
+                    localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
+                    renderAdminExams();
+                    renderHomeExams();
+                    renderExamsGrid();
+                    renderAdminSeriesDropdowns();
+                }
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById("admin-add-exam-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const short = document.getElementById("adm-exam-short").value.trim().toUpperCase();
+        const title = document.getElementById("adm-exam-title").value.trim();
+        const icon = document.getElementById("adm-exam-icon").value;
+
+        if (DB.exams.some(ex => ex.shortName === short)) {
+            alert("An exam with this code already exists.");
+            return;
+        }
+
+        DB.exams.push({
+            id: short.toLowerCase().replace("/", "_"),
+            title: title,
+            shortName: short,
+            iconName: icon
+        });
+
+        localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
+        document.getElementById("admin-add-exam-form").reset();
+        
+        renderAdminExams();
+        renderHomeExams();
+        renderExamsGrid();
+        renderAdminSeriesDropdowns();
+        alert("Exam listing created successfully!");
+    });
+
+    // B. Notes CRUD
+    function renderAdminNotes() {
+        const tbody = document.getElementById("admin-notes-table-body");
+        tbody.innerHTML = "";
+        DB.pdfNotes.forEach((note, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span class="note-tag">${note.subject}</span></td>
+                <td><strong>${note.title}</strong></td>
+                <td>${note.sizeMb} MB</td>
+                <td><button class="admin-delete-btn" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button></td>
+            `;
+            tr.querySelector(".admin-delete-btn").addEventListener("click", () => {
+                if (confirm(`Delete note ${note.title}?`)) {
+                    DB.pdfNotes.splice(idx, 1);
+                    localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
+                    renderAdminNotes();
+                    renderPDFNotes();
+                }
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById("admin-add-note-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = document.getElementById("adm-note-title").value.trim();
+        const subject = document.getElementById("adm-note-subject").value;
+        const size = parseFloat(document.getElementById("adm-note-size").value);
+        const url = document.getElementById("adm-note-url").value.trim();
+
+        DB.pdfNotes.push({
+            id: "note_" + Math.random().toString(36).substring(2, 8),
+            title: title,
+            subject: subject,
+            sizeMb: size,
+            pdfUrl: url
+        });
+
+        localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
+        document.getElementById("admin-add-note-form").reset();
+        document.getElementById("adm-note-url").value = "https://example.com/mock.pdf";
+        
+        renderAdminNotes();
+        renderPDFNotes();
+        alert("Study note published!");
+    });
+
+    // C. Test Series & Keys Manager
+    function renderAdminSeriesDropdowns() {
+        const examSelect = document.getElementById("adm-series-exam");
+        const seriesSelect = document.getElementById("adm-test-series-id");
+        
+        examSelect.innerHTML = "";
+        DB.exams.forEach(ex => {
+            examSelect.innerHTML += `<option value="${ex.id}">${ex.shortName}</option>`;
+        });
+
+        seriesSelect.innerHTML = "";
+        DB.testSeries.forEach(ts => {
+            const exName = DB.exams.find(e => e.id === ts.examId)?.shortName || "Exam";
+            seriesSelect.innerHTML += `<option value="${ts.id}">[${exName}] ${ts.title}</option>`;
+        });
+    }
+
+    document.getElementById("admin-add-series-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const examId = document.getElementById("adm-series-exam").value;
+        const title = document.getElementById("adm-series-title").value.trim();
+        const desc = document.getElementById("adm-series-desc").value.trim();
+
+        DB.testSeries.push({
+            id: "ts_" + Math.random().toString(36).substring(2, 8),
+            examId: examId,
+            title: title,
+            description: desc,
+            numberOfTests: 0,
+            tests: []
+        });
+
+        localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
+        document.getElementById("admin-add-series-form").reset();
+        
+        renderAdminSeriesDropdowns();
+        renderTestSeriesCatalog();
+        alert("Test Series Group created!");
+    });
+
+    document.getElementById("admin-add-test-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const seriesId = document.getElementById("adm-test-series-id").value;
+        const title = document.getElementById("adm-test-title").value.trim();
+        const duration = parseInt(document.getElementById("adm-test-duration").value);
+        const qty = parseInt(document.getElementById("adm-test-qty").value);
+        const keysText = document.getElementById("adm-test-key").value.trim().toUpperCase();
+
+        const keysArray = keysText.split(",").map(k => k.trim());
+        if (keysArray.length !== qty) {
+            alert(`Error: The length of your answer key list (${keysArray.length}) must match the total questions count (${qty}).`);
+            return;
+        }
+
+        const answerKey = {};
+        keysArray.forEach((val, idx) => {
+            answerKey[idx + 1] = val;
+        });
+
+        const series = DB.testSeries.find(ts => ts.id === seriesId);
+        if (series) {
+            series.tests.push({
+                id: "test_" + Math.random().toString(36).substring(2, 8),
+                title: title,
+                durationMinutes: duration,
+                totalQuestions: qty,
+                answerKey: answerKey
+            });
+            series.numberOfTests = series.tests.length;
+
+            localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
+            document.getElementById("admin-add-test-form").reset();
+            
+            renderTestSeriesCatalog();
+            alert("Mock Test & Answer Key added successfully!");
+        }
+    });
+
+    // D. News CRUD
+    function renderAdminNews() {
+        const tbody = document.getElementById("admin-news-table-body");
+        tbody.innerHTML = "";
+        DB.updates.forEach((news, idx) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span style="font-size: 11px;">${news.dateString}</span></td>
+                <td><strong>${news.title}</strong></td>
+                <td><button class="admin-delete-btn" data-index="${idx}"><i class="fa-solid fa-trash-can"></i></button></td>
+            `;
+            tr.querySelector(".admin-delete-btn").addEventListener("click", () => {
+                if (confirm(`Delete update ${news.title}?`)) {
+                    DB.updates.splice(idx, 1);
+                    localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
+                    renderAdminNews();
+                    renderHomeUpdates();
+                }
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById("admin-add-update-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = document.getElementById("adm-upd-title").value.trim();
+        const content = document.getElementById("adm-upd-content").value.trim();
+        
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+
+        DB.updates.unshift({
+            id: "upd_" + Math.random().toString(36).substring(2, 8),
+            title: title,
+            content: content,
+            dateString: dateStr
+        });
+
+        localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
+        document.getElementById("admin-add-update-form").reset();
+        
+        renderAdminNews();
+        renderHomeUpdates();
+        alert("News Update posted!");
+    });
+
+    // E. Submissions Log
+    function renderAdminLogs() {
+        const tbody = document.getElementById("admin-logs-table-body");
+        tbody.innerHTML = "";
+        state.history.forEach(log => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span style="font-size: 10px; color: var(--secondary);">${log.dateString}</span></td>
+                <td><span class="mode-tag ${log.attemptType.toLowerCase()}">${log.attemptType}</span></td>
+                <td><strong>${log.testTitle}</strong></td>
+                <td class="text-success"><strong>${log.marksObtained}/${log.totalMarks}</strong></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById("admin-clear-logs-btn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to clear all student attempt histories? This cannot be undone.")) {
+            state.history = [];
+            localStorage.setItem("omr_test_history", JSON.stringify([]));
+            renderAdminLogs();
+            updateProfileStats();
+            alert("All attempt logs cleared.");
+        }
+    });
 });
+

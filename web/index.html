@@ -32,7 +32,17 @@
                 <a href="#" class="nav-item" data-screen="notes"><i class="fa-solid fa-file-pdf"></i> PDF Notes</a>
                 <a href="#" class="nav-item" data-screen="test-series-catalog"><i class="fa-solid fa-list-check"></i> Test Series</a>
                 <a href="#" class="nav-item" data-screen="profile"><i class="fa-solid fa-user-clock"></i> Attempt History</a>
+                <a href="#" class="nav-item" data-screen="admin-gate"><i class="fa-solid fa-user-gear"></i> Admin Dashboard</a>
             </nav>
+            <div class="sidebar-theme-selector">
+                <span class="theme-selector-label"><i class="fa-solid fa-palette"></i> Active Theme</span>
+                <div class="theme-buttons-row">
+                    <button class="theme-btn ocean active" data-theme="ocean" title="Ocean Blue"></button>
+                    <button class="theme-btn charcoal" data-theme="charcoal" title="Dark Mode"></button>
+                    <button class="theme-btn emerald" data-theme="emerald" title="Forest Emerald"></button>
+                    <button class="theme-btn sunset" data-theme="sunset" title="Sunset Copper"></button>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content Area -->
@@ -302,6 +312,245 @@
                         <h3>Attempt History</h3>
                         <div class="history-list" id="profile-history-list">
                             <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 11. Admin Gate Screen (Passcode Check) -->
+                <section id="screen-admin-gate" class="app-screen">
+                    <div class="admin-login-card">
+                        <i class="fa-solid fa-lock-open admin-gate-icon"></i>
+                        <h3>Admin Security Gate</h3>
+                        <p>Please enter the administrative passcode to access portal controls.</p>
+                        <input type="password" id="admin-passcode-input" placeholder="Enter admin code (Default: 12345)" class="form-input-field">
+                        <button id="admin-login-btn" class="primary-action-btn">Verify Passcode</button>
+                    </div>
+                </section>
+
+                <!-- 12. Admin Panel Workspace Screen -->
+                <section id="screen-admin" class="app-screen no-padding">
+                    <div class="admin-workspace-header">
+                        <div class="admin-user-title">
+                            <h3>Portal Management Console</h3>
+                            <span>Local Storage Mode</span>
+                        </div>
+                        <button id="admin-logout-btn" class="admin-logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Exit</button>
+                    </div>
+
+                    <!-- Admin Sub-Navigation Tabs -->
+                    <div class="admin-tabs-row horizontal-scroll">
+                        <button class="admin-tab-btn active" data-tab="exams">Exams</button>
+                        <button class="admin-tab-btn" data-tab="notes">PDF Notes</button>
+                        <button class="admin-tab-btn" data-tab="tests">Test Keys</button>
+                        <button class="admin-tab-btn" data-tab="news">News Updates</button>
+                        <button class="admin-tab-btn" data-tab="logs">Student Logs</button>
+                    </div>
+
+                    <!-- Admin Tab Bodies Workspace -->
+                    <div class="admin-tab-workspace">
+                        <!-- A. Manage Exams Tab -->
+                        <div class="admin-tab-body active" id="tab-exams">
+                            <form id="admin-add-exam-form" class="admin-form">
+                                <h4>Create New Exam Listing</h4>
+                                <div class="form-group">
+                                    <label>Exam Abbreviation</label>
+                                    <input type="text" id="adm-exam-short" placeholder="e.g. UPTET" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Exam Description Title</label>
+                                    <input type="text" id="adm-exam-title" placeholder="e.g. Uttar Pradesh TET" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Display Icon Type</label>
+                                    <select id="adm-exam-icon" class="form-input-field">
+                                        <option value="fa-school">School (Default)</option>
+                                        <option value="fa-building-columns">Building Columns</option>
+                                        <option value="fa-city">City Buildings</option>
+                                        <option value="fa-gavel">Gavel (Law)</option>
+                                        <option value="fa-book">Book</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="admin-submit-btn">Create Exam Card</button>
+                            </form>
+                            
+                            <div class="admin-data-list-section">
+                                <h4>Existing Exam Listings</h4>
+                                <div class="admin-table-container">
+                                    <table class="admin-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Icon</th>
+                                                <th>Code</th>
+                                                <th>Full Name</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-exams-table-body">
+                                            <!-- Dynamically injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- B. Manage PDF Notes Tab -->
+                        <div class="admin-tab-body" id="tab-notes">
+                            <form id="admin-add-note-form" class="admin-form">
+                                <h4>Add PDF Study Material</h4>
+                                <div class="form-group">
+                                    <label>Study Material Title</label>
+                                    <input type="text" id="adm-note-title" placeholder="e.g. Indian Freedom Struggle Revision" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Subject Category</label>
+                                    <select id="adm-note-subject" class="form-input-field">
+                                        <option value="History">History</option>
+                                        <option value="Geography">Geography</option>
+                                        <option value="Political S">Political S</option>
+                                        <option value="Hindi">Hindi</option>
+                                        <option value="Maths">Maths</option>
+                                        <option value="Science">Science</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>File Size (MB)</label>
+                                    <input type="number" step="0.1" id="adm-note-size" placeholder="e.g. 2.5" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>PDF Document Link (Mock URL)</label>
+                                    <input type="url" id="adm-note-url" placeholder="https://example.com/notes.pdf" value="https://example.com/mock.pdf" required class="form-input-field">
+                                </div>
+                                <button type="submit" class="admin-submit-btn">Publish Study Note</button>
+                            </form>
+
+                            <div class="admin-data-list-section">
+                                <h4>Existing PDF Notes</h4>
+                                <div class="admin-table-container">
+                                    <table class="admin-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Title</th>
+                                                <th>Size</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-notes-table-body">
+                                            <!-- Dynamically injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- C. Manage Test Series & Keys Tab -->
+                        <div class="admin-tab-body" id="tab-tests">
+                            <!-- Create Test Series -->
+                            <form id="admin-add-series-form" class="admin-form">
+                                <h4>Create Test Series Group</h4>
+                                <div class="form-group">
+                                    <label>Linked Exam</label>
+                                    <select id="adm-series-exam" class="form-input-field">
+                                        <!-- Dynamically injected -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Series Title</label>
+                                    <input type="text" id="adm-series-title" placeholder="e.g. Pedagogy Mock Tests" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Series Description</label>
+                                    <input type="text" id="adm-series-desc" placeholder="e.g. 10 Tests on Child psychology" required class="form-input-field">
+                                </div>
+                                <button type="submit" class="admin-submit-btn">Create Series Group</button>
+                            </form>
+
+                            <!-- Create Test & Key -->
+                            <form id="admin-add-test-form" class="admin-form" style="margin-top: 20px;">
+                                <h4>Add Test Card & Answer Key</h4>
+                                <div class="form-group">
+                                    <label>Target Series Group</label>
+                                    <select id="adm-test-series-id" class="form-input-field">
+                                        <!-- Dynamically injected -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Test Title Name</label>
+                                    <input type="text" id="adm-test-title" placeholder="e.g. Pedagogy - Test 01" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Time Duration (Minutes)</label>
+                                    <input type="number" id="adm-test-duration" placeholder="e.g. 30" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Questions</label>
+                                    <input type="number" id="adm-test-qty" placeholder="e.g. 30" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>Answer Key Options (Comma separated list, length matches questions)</label>
+                                    <input type="text" id="adm-test-key" placeholder="A,B,C,D,A,D..." required class="form-input-field">
+                                </div>
+                                <button type="submit" class="admin-submit-btn">Publish Test & Grading Key</button>
+                            </form>
+                        </div>
+
+                        <!-- D. Manage Updates Tab -->
+                        <div class="admin-tab-body" id="tab-news">
+                            <form id="admin-add-update-form" class="admin-form">
+                                <h4>Add Exam News Notification</h4>
+                                <div class="form-group">
+                                    <label>Notification Headline</label>
+                                    <input type="text" id="adm-upd-title" placeholder="e.g. CTET Registration Commenced" required class="form-input-field">
+                                </div>
+                                <div class="form-group">
+                                    <label>News Content Details</label>
+                                    <textarea id="adm-upd-content" placeholder="Enter registration requirements, links, and detailed notification details..." required class="form-input-field" rows="3"></textarea>
+                                </div>
+                                <button type="submit" class="admin-submit-btn">Post Notification</button>
+                            </form>
+
+                            <div class="admin-data-list-section">
+                                <h4>Active News Notifications</h4>
+                                <div class="admin-table-container">
+                                    <table class="admin-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Headline</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-news-table-body">
+                                            <!-- Dynamically injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E. View Submissions Logs Tab -->
+                        <div class="admin-tab-body" id="tab-logs">
+                            <div class="admin-data-list-section" style="margin-top: 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="margin: 0;">Student Scoring Submissions Log</h4>
+                                    <button id="admin-clear-logs-btn" class="admin-danger-action-btn"><i class="fa-solid fa-trash-can"></i> Purge Attempt Records</button>
+                                </div>
+                                <div class="admin-table-container">
+                                    <table class="admin-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Attempt</th>
+                                                <th>Test Title</th>
+                                                <th>Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-logs-table-body">
+                                            <!-- Dynamically injected -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
