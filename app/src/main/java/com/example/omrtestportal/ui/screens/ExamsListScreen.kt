@@ -101,7 +101,7 @@ fun RowScope.ExamListItem(exam: Exam, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .weight(1f)
-            .height(48.dp)
+            .height(52.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -114,7 +114,7 @@ fun RowScope.ExamListItem(exam: Exam, onClick: () -> Unit) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(32.dp)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -128,13 +128,13 @@ fun RowScope.ExamListItem(exam: Exam, onClick: () -> Unit) {
                     },
                     contentDescription = exam.shortName,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = exam.shortName,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

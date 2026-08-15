@@ -114,7 +114,7 @@ fun ExamsSection(
                         Card(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp)
+                                .height(52.dp)
                                 .clickable { onExamClick(exam) },
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
@@ -129,7 +129,7 @@ fun ExamsSection(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(28.dp)
+                                        .size(32.dp)
                                         .background(
                                             MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                             CircleShape
@@ -146,13 +146,13 @@ fun ExamsSection(
                                         },
                                         contentDescription = exam.shortName,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = exam.shortName,
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -254,7 +254,7 @@ fun PDFNotesSection(
                         Card(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp)
+                                .height(52.dp)
                                 .clickable { onSubjectClick(subject) },
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
@@ -269,7 +269,7 @@ fun PDFNotesSection(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(28.dp)
+                                        .size(32.dp)
                                         .background(
                                             MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
                                             CircleShape
@@ -288,13 +288,13 @@ fun PDFNotesSection(
                                         },
                                         contentDescription = subject,
                                         tint = MaterialTheme.colorScheme.secondary,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = subject,
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
