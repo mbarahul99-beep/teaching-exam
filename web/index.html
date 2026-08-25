@@ -31,7 +31,7 @@
                 <a href="#" class="nav-item" data-screen="exams"><i class="fa-solid fa-school"></i> My Exams</a>
                 <a href="#" class="nav-item" data-screen="notes"><i class="fa-solid fa-file-pdf"></i> PDF Notes</a>
                 <a href="#" class="nav-item" data-screen="test-series-catalog"><i class="fa-solid fa-list-check"></i> Test Series</a>
-                <a href="#" class="nav-item" data-screen="leaderboard"><i class="fa-solid fa-trophy"></i> Leaderboard</a>
+
                 <a href="#" class="nav-item" data-screen="profile"><i class="fa-solid fa-user-clock"></i> Attempt History</a>
                 <a href="#" class="nav-item" data-screen="admin-gate"><i class="fa-solid fa-user-gear"></i> Admin Dashboard</a>
             </nav>
@@ -346,18 +346,60 @@
                     </div>
                 </section>
 
-                <!-- 9C. Leaderboard Screen -->
-                <section id="screen-leaderboard" class="app-screen">
-                    <h2 class="section-center-title">Rankings & Leaderboard</h2>
-                    <div class="leaderboard-test-selector-container" style="margin-bottom: 16px;">
-                        <label for="leaderboard-test-select" style="font-size: 11px; font-weight: 700; color: var(--on-surface-variant); margin-bottom: 4px; display: block;">Active Mock Test Rankings</label>
-                        <select id="leaderboard-test-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--outline); background-color: var(--surface); color: var(--on-surface); font-weight: 600; font-size: 13px;">
-                            <!-- Options injected dynamically by JS -->
-                        </select>
+                <!-- 9C. Mock Test Details Screen -->
+                <section id="screen-test-details" class="app-screen">
+                    <div class="screen-header">
+                        <button class="icon-back-btn" id="details-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2>Mock Test Details</h2>
                     </div>
 
-                    <div id="leaderboard-unattempted-warning" style="background-color: #fce8e6; color: #c5221f; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; margin-bottom: 16px; display: none; border: 1.5px solid #fad2cf;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> You have not attempted this test yet. Showing simulated leaderboard.
+                    <!-- Test Info Card -->
+                    <div class="scorecard-hero" style="background: linear-gradient(135deg, var(--surface-variant) 0%, var(--surface) 100%); text-align: left; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+                        <h3 id="mock-detail-title" style="margin: 0 0 8px 0; color: var(--primary); font-size: 18px;">Mock Examination</h3>
+                        <p style="font-size: 12px; margin: 0 0 16px 0; color: var(--on-surface-variant); opacity: 0.85;">Syllabus Covered: Child Psychology, Developmental Stages, Pedagogy Principles, Hindi grammar concepts and Comprehension skills.</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background-color: var(--surface-variant); padding: 12px; border-radius: 8px; border: 1px solid var(--outline); text-align: center;">
+                            <div>
+                                <span style="font-size: 10px; color: var(--on-surface-variant); display: block; margin-bottom: 2px;">Duration</span>
+                                <strong id="mock-detail-duration" style="font-size: 13px;">30 Mins</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 10px; color: var(--on-surface-variant); display: block; margin-bottom: 2px;">Questions</span>
+                                <strong id="mock-detail-questions" style="font-size: 13px;">30 Qs</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 10px; color: var(--on-surface-variant); display: block; margin-bottom: 2px;">Total Marks</span>
+                                <strong id="mock-detail-marks" style="font-size: 13px;">30 Marks</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 10px; color: var(--on-surface-variant); display: block; margin-bottom: 2px;">Cutoff Score</span>
+                                <strong id="mock-detail-cutoff" style="font-size: 13px;">21 Marks</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preparation Options -->
+                    <div class="score-breakdown-card" style="margin-top: 16px; padding: 16px;">
+                        <h4 style="margin: 0 0 12px 0; color: var(--on-surface);">Attempt Preparation Options</h4>
+                        <div style="display: flex; gap: 12px; width: 100%;">
+                            <button id="detail-btn-omr" class="secondary-action-btn" style="flex: 1; margin: 0; background-color: transparent; border: 1.5px solid var(--outline); color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
+                            <button id="detail-btn-online" class="primary-action-btn" style="flex: 1; margin: 0;"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
+                        </div>
+                    </div>
+
+                    <!-- Past Attempts List -->
+                    <div class="score-breakdown-card" style="margin-top: 16px; padding: 16px;">
+                        <h4 style="margin: 0 0 12px 0; color: var(--on-surface);">Your Attempts History</h4>
+                        <div id="mock-detail-attempts-list" style="font-size: 12px;">
+                            <!-- Dynamically populated past attempts -->
+                        </div>
+                    </div>
+
+                    <!-- Inline Rankings Section -->
+                    <h3 style="margin: 24px 0 12px 0; font-size: 16px; font-weight: 800; color: var(--on-background);">Test Rankings & Leaderboard</h3>
+                    
+                    <div id="mock-detail-unattempted-warning" style="background-color: #fce8e6; color: #c5221f; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; margin-bottom: 16px; border: 1.5px solid #fad2cf; display: none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Take this test to calculate your official leaderboard percentile.
                     </div>
 
                     <!-- Top 3 Podium Layout -->
@@ -371,7 +413,7 @@
                     </div>
 
                     <!-- Sticky Bottom My Rank Bar -->
-                    <div class="my-rank-banner" id="leaderboard-my-rank-banner">
+                    <div class="my-rank-banner" id="leaderboard-my-rank-banner" style="position: sticky; bottom: 0; background-color: var(--primary-container); margin-top: 20px; z-index: 10;">
                         <!-- User's rank injected dynamically -->
                     </div>
                 </section>

@@ -201,14 +201,10 @@ function navigateTo(screenId) {
         "omr-scanner": "OMR Scanner Feed",
         "omr-result": "Grader Scorecard",
         "profile": "Student Dashboard",
-        "leaderboard": "Leaderboard & Rankings"
+        "test-details": "Mock Test Details"
     };
     
     document.getElementById("header-title").innerText = titleMap[screenId] || "OMR Prep Portal";
-
-    if (screenId === "leaderboard") {
-        renderLeaderboard("global");
-    }
 }
 
 // -------------------------------------------------------------
@@ -455,32 +451,21 @@ function renderTestSeriesDetails() {
     state.activeSeries.tests.forEach(test => {
         const card = document.createElement("div");
         card.className = "individual-test-card";
+        card.style.cursor = "pointer";
         card.innerHTML = `
-            <h4>${test.title}</h4>
-            <div class="test-stats-row">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0;">${test.title}</h4>
+                <i class="fa-solid fa-chevron-right text-primary"></i>
+            </div>
+            <div class="test-stats-row" style="margin-top: 8px;">
                 <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
                 <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
             </div>
-            <div class="test-divider"></div>
-            <div class="test-actions-row" style="display: flex; gap: 8px; width: 100%;">
-                <button class="btn-view-ranks" style="padding: 10px; border-radius: 8px; border: 1.5px solid var(--outline); background-color: transparent; color: var(--primary); font-weight: 700; width: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="View Rankings"><i class="fa-solid fa-star"></i></button>
-                <button class="btn-attempt-omr" style="flex: 1;"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
-                <button class="btn-attempt-online" style="flex: 1;"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
-            </div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--primary); margin-top: 10px;">View details, attempts & rankings</div>
         `;
 
-        card.querySelector(".btn-attempt-online").addEventListener("click", () => {
-            startOnlineTest(test);
-        });
-
-        card.querySelector(".btn-attempt-omr").addEventListener("click", () => {
-            openOmrPrep(test);
-        });
-
-        card.querySelector(".btn-view-ranks").addEventListener("click", () => {
-            state.selectedLeaderboardTestId = test.id;
-            renderLeaderboard();
-            navigateTo("leaderboard");
+        card.addEventListener("click", () => {
+            showTestDetails(test);
         });
 
         container.appendChild(card);
@@ -927,7 +912,75 @@ function getLeaderboardData() {
     }));
 }
 
-function renderLeaderboard() {
+function showTestDetails(test) {
+    state.activeTest = test;
+    state.selectedLeaderboardTestId = test.id;
+
+    // Fill metadata
+    document.getElementById("mock-detail-title").innerText = test.title;
+    document.getElementById("mock-detail-duration").innerText = `${test.durationMinutes} Mins`;
+    document.getElementById("mock-detail-questions").innerText = `${test.totalQuestions} Qs`;
+    document.getElementById("mock-detail-marks").innerText = `${test.totalQuestions} Marks`;
+    document.getElementById("mock-detail-cutoff").innerText = `${Math.round(test.totalQuestions * 0.7)} Marks`;
+
+    // Bind attempt buttons
+    const btnOmr = document.getElementById("detail-btn-omr");
+    const btnOnline = document.getElementById("detail-btn-online");
+
+    // Remove old listeners by cloning
+    const newBtnOmr = btnOmr.cloneNode(true);
+    const newBtnOnline = btnOnline.cloneNode(true);
+    btnOmr.parentNode.replaceChild(newBtnOmr, btnOmr);
+    btnOnline.parentNode.replaceChild(newBtnOnline, btnOnline);
+
+    newBtnOnline.addEventListener("click", () => {
+        startOnlineTest(test);
+    });
+
+    newBtnOmr.addEventListener("click", () => {
+        openOmrPrep(test);
+    });
+
+    // Populate attempts list
+    const attempts = state.attempts || [];
+    const testAttempts = attempts.filter(a => a.testId === test.id);
+    const attemptsContainer = document.getElementById("mock-detail-attempts-list");
+    attemptsContainer.innerHTML = "";
+
+    if (testAttempts.length === 0) {
+        attemptsContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65;">You haven't attempted this mock test yet. Take a test to view your scorecard log.</span>`;
+    } else {
+        testAttempts.forEach((attempt, index) => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.padding = "8px 0";
+            row.style.borderBottom = index < testAttempts.length - 1 ? "1px solid var(--outline)" : "none";
+            row.innerHTML = `
+                <div>
+                    <strong style="color: var(--on-surface);">Attempt #${testAttempts.length - index} (${attempt.attemptType})</strong>
+                    <div style="font-size: 10px; color: var(--on-surface-variant); opacity: 0.6;">${attempt.dateString}</div>
+                </div>
+                <strong style="color: ${attempt.marksObtained >= test.totalQuestions * 0.7 ? '#2e7d32' : '#c62828'};">${attempt.marksObtained} / ${attempt.totalMarks} Marks</strong>
+            `;
+            attemptsContainer.appendChild(row);
+        });
+    }
+
+    // Populate warning banner visibility
+    const warningEl = document.getElementById("mock-detail-unattempted-warning");
+    if (warningEl) {
+        warningEl.style.display = testAttempts.length > 0 ? "none" : "block";
+    }
+
+    // Render ranks inline
+    renderTestDetailsRankings();
+
+    navigateTo("test-details");
+}
+
+function renderTestDetailsRankings() {
+    const testId = state.selectedLeaderboardTestId;
     const allTests = [];
     DB.testSeries.forEach(series => {
         series.tests.forEach(test => {
@@ -935,34 +988,8 @@ function renderLeaderboard() {
         });
     });
 
-    if (!state.selectedLeaderboardTestId && allTests.length > 0) {
-        state.selectedLeaderboardTestId = allTests[0].id;
-    }
-
-    const testId = state.selectedLeaderboardTestId;
     const test = allTests.find(t => t.id === testId);
     const testTotal = test ? test.totalQuestions : 30;
-
-    // Populate dropdown options
-    const selectEl = document.getElementById("leaderboard-test-select");
-    if (selectEl) {
-        selectEl.innerHTML = "";
-        allTests.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t.id;
-            opt.text = t.title;
-            opt.selected = (t.id === testId);
-            selectEl.appendChild(opt);
-        });
-    }
-
-    // Show/hide unattempted warning banner
-    const attempts = state.attempts || [];
-    const userAttempt = attempts.find(a => a.testId === testId);
-    const warningEl = document.getElementById("leaderboard-unattempted-warning");
-    if (warningEl) {
-        warningEl.style.display = userAttempt ? "none" : "block";
-    }
 
     const data = getLeaderboardData();
 
@@ -1028,6 +1055,7 @@ function renderLeaderboard() {
     const myRankBanner = document.getElementById("leaderboard-my-rank-banner");
     if (myUser) {
         const myInitials = myUser.name.split(" ").map(n => n[0]).join("");
+        const userAttempt = (state.attempts || []).find(a => a.testId === testId);
         const scoreStr = userAttempt ? `${myUser.score} / ${testTotal} Marks` : "Not Attempted";
         myRankBanner.innerHTML = `
             <div class="my-rank-banner-info">
@@ -1633,14 +1661,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("result-leaderboard-btn").addEventListener("click", () => {
-        state.selectedLeaderboardTestId = state.activeTest ? state.activeTest.id : null;
-        renderLeaderboard();
-        navigateTo("leaderboard");
+        if (state.activeTest) {
+            showTestDetails(state.activeTest);
+        } else {
+            navigateTo("test-series-catalog");
+        }
     });
 
-    document.getElementById("leaderboard-test-select").addEventListener("change", (e) => {
-        state.selectedLeaderboardTestId = e.target.value;
-        renderLeaderboard();
+    document.getElementById("details-back-btn").addEventListener("click", () => {
+        navigateTo("test-series-details");
     });
 
     document.getElementById("review-back-btn").addEventListener("click", () => {
@@ -1654,14 +1683,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("close-review-pdf-btn").addEventListener("click", () => {
         document.getElementById("review-pdf-viewer-container").style.display = "none";
-    });
-
-    // Leaderboard Tab clicks
-    document.querySelectorAll(".leaderboard-tab").forEach(tab => {
-        tab.addEventListener("click", () => {
-            const filter = tab.getAttribute("data-filter");
-            renderLeaderboard(filter);
-        });
     });
 
     // Online Player Navigation controls
