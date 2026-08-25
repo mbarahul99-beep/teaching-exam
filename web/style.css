@@ -1202,7 +1202,20 @@ body {
     cursor: pointer;
 }
 
-/* -------------------------------------------------------------
+#screen-online-test-player {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1500;
+    background-color: var(--background);
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ------------------------------------------------------------- */
    OMR Prep Screen
 ------------------------------------------------------------- */
 .instructions-card {
