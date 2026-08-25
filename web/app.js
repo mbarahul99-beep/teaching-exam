@@ -778,8 +778,16 @@ function stopProctoring() {
     if (proctorBlurListener) window.removeEventListener("blur", proctorBlurListener);
     if (proctorFullscreenListener) document.removeEventListener("fullscreenchange", proctorFullscreenListener);
     
-    if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => console.log(err));
+    try {
+        const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+        if (isFull) {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (exit) {
+                exit.call(document).catch(err => console.log("Exit fullscreen error:", err));
+            }
+        }
+    } catch (e) {
+        console.log("Exit fullscreen catch:", e);
     }
 }
 
@@ -947,7 +955,8 @@ function submitTest(attemptType) {
         correctAnswers: correct,
         incorrectAnswers: incorrect,
         skippedAnswers: skipped,
-        doubleMarkedAnswers: doubleMarked
+        doubleMarkedAnswers: doubleMarked,
+        answers: { ...state.onlineAnswers }
     };
 
     saveAttempt(record);
@@ -956,6 +965,48 @@ function submitTest(attemptType) {
 
 function showScorecard(record) {
     stopProctoring();
+
+    // Restore activeTest reference matching record
+    if (record.testId) {
+        let foundTest = null;
+        for (let series of (DB.testSeries || [])) {
+            for (let t of (series.tests || [])) {
+                if (t.id === record.testId) {
+                    foundTest = t;
+                    break;
+                }
+            }
+            if (foundTest) break;
+        }
+        if (foundTest) {
+            state.activeTest = foundTest;
+        }
+    }
+
+    // Restore onlineAnswers state for detailed review mode
+    if (record.answers) {
+        state.onlineAnswers = record.answers;
+    } else {
+        // Fallback: populate simulated answers based on correct/incorrect counts
+        const test = state.activeTest || { totalQuestions: record.totalMarks || 30, answerKey: {} };
+        const simulated = {};
+        let correctLeft = record.correctAnswers || 0;
+        let incorrectLeft = record.incorrectAnswers || 0;
+        const options = ["A", "B", "C", "D"];
+        for (let q = 1; q <= test.totalQuestions; q++) {
+            const correctAns = test.answerKey[q] || "A";
+            if (correctLeft > 0) {
+                simulated[q] = correctAns;
+                correctLeft--;
+            } else if (incorrectLeft > 0) {
+                simulated[q] = options.find(o => o !== correctAns);
+                incorrectLeft--;
+            } else {
+                simulated[q] = "";
+            }
+        }
+        state.onlineAnswers = simulated;
+    }
 
     document.getElementById("result-test-title").innerText = record.testTitle;
     document.getElementById("result-score-value").innerText = `${record.marksObtained} / ${record.totalMarks}`;

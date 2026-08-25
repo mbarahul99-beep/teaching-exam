@@ -1770,7 +1770,7 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 200;
+    z-index: 2000;
     padding: 16px;
 }
 
