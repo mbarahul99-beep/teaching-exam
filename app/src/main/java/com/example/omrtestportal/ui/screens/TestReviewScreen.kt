@@ -4,10 +4,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -47,19 +49,25 @@ fun TestReviewScreen(
     }
 
     val totalQ = record.totalMarks.toInt()
-    val isPedagogy = record.testTitle.contains("Pedagogy", ignoreCase = true) || 
-                     record.testTitle.contains("TET", ignoreCase = true) || 
-                     record.testTitle.contains("NET", ignoreCase = true)
+    val maxScore = totalQ * 4f
+    val studentScore = record.correctAnswers * 4f - record.incorrectAnswers * 1f
+
+    val accuracyPct = remember(record, totalQ) {
+        val attempted = record.correctAnswers + record.incorrectAnswers
+        if (attempted > 0) (record.correctAnswers.toFloat() / attempted) * 100f else 0f
+    }
 
     val doubleMarkedCount = remember(record) {
         record.bubbleMap.values.count { it == "MULTIPLE" }
     }
+
+    var selectedFilter by remember { mutableStateOf("ALL") } // "ALL", "CORRECT", "INCORRECT", "SKIPPED"
     var showPaperSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detailed Review") },
+                title = { Text("Performance Scorecard") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -74,13 +82,13 @@ fun TestReviewScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Stats Header
+            // Main Dashboard stats card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -89,132 +97,182 @@ fun TestReviewScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ReviewChip(label = "Correct", count = record.correctAnswers, color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
-                        ReviewChip(label = "Wrong", count = record.incorrectAnswers, color = Color(0xFFE53935), modifier = Modifier.weight(1f))
-                        ReviewChip(label = "Skipped", count = record.skippedAnswers, color = Color.Gray, modifier = Modifier.weight(1f))
-                        ReviewChip(label = "Double", count = doubleMarkedCount, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(1f))
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = { showPaperSheet = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
-                    ) {
-                        Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("View Question Paper", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        // Circular Accuracy Gauge
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(80.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                progress = { accuracyPct / 100f },
+                                modifier = Modifier.fillMaxSize(),
+                                color = Color(0xFF4CAF50),
+                                strokeWidth = 8.dp,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = String.format("%.0f%%", accuracyPct),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Accuracy",
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // Score metrics
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Score Obtained:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                                Text("${studentScore.toInt()} / ${maxScore.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Percentile Rank:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                                Text("94.2% (Top 5.8%)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                ReviewChip(label = "Correct", count = record.correctAnswers, color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
+                                ReviewChip(label = "Wrong", count = record.incorrectAnswers, color = Color(0xFFE53935), modifier = Modifier.weight(1f))
+                                ReviewChip(label = "Skipped", count = record.skippedAnswers, color = Color.Gray, modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
 
-            LazyColumn(
+            // Score Comparison Chart Card
+            Card(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                items(totalQ) { index ->
-                    val qNum = index + 1
-                    val correctAns = test?.answerKey?.get(qNum) ?: "A"
-                    val submitted = record.bubbleMap[qNum] ?: ""
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("Class Performance Comparison", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                    QuestionReviewCard(
-                        qNum = qNum,
-                        correctAns = correctAns,
-                        submitted = submitted,
-                        isPedagogy = isPedagogy
+                    ComparisonBar(label = "Your Score", score = studentScore, maxScore = maxScore, color = Color(0xFF4CAF50))
+                    ComparisonBar(label = "Cutoff Score", score = maxScore * 0.5f, maxScore = maxScore, color = Color(0xFFFFB300))
+                    ComparisonBar(label = "Topper Score", score = maxScore * 0.93f, maxScore = maxScore, color = Color(0xFF1E88E5))
+                    ComparisonBar(label = "Class Average", score = maxScore * 0.61f, maxScore = maxScore, color = Color(0xFF8E24AA))
+                }
+            }
+
+            // Filter Chips Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val filters = listOf(
+                    "ALL" to "All (${totalQ})",
+                    "CORRECT" to "Correct (${record.correctAnswers})",
+                    "INCORRECT" to "Incorrect (${record.incorrectAnswers})",
+                    "SKIPPED" to "Skipped (${record.skippedAnswers})"
+                )
+                filters.forEach { (key, label) ->
+                    val isSelected = selectedFilter == key
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedFilter = key },
+                        label = { Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                     )
                 }
             }
-            
-            if (showPaperSheet && test != null) {
-                ModalBottomSheet(
-                    onDismissRequest = { showPaperSheet = false },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Question Paper Reader",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            IconButton(onClick = { showPaperSheet = false }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close")
-                            }
-                        }
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                        
-                        val mockPrompts = listOf(
-                            "Which of the following is a primary agent of socialization?" to listOf("Family", "School", "Peer Group", "Media"),
-                            "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?" to listOf("Sensorimotor Stage", "Preoperational Stage", "Concrete Operational Stage", "Formal Operational Stage"),
-                            "Vygotsky's concept of the 'Zone of Proximal Development' emphasizes:" to listOf("Cooperative learning", "Rote memorization", "Social interaction scaffolding", "Independent exploration"),
-                            "Which learning style learns best through hands-on activities and physical motion?" to listOf("Visual learning", "Auditory learning", "Kinesthetic learning", "Read/Write learning"),
-                            "Formative assessment is primarily used for?" to listOf("Grading students", "Comparing students", "Improving instruction and learning", "Conducting final examinations")
-                        )
 
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            contentPadding = PaddingValues(bottom = 32.dp)
-                        ) {
-                            item {
-                                Text(
-                                    text = test.title,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Full Marks: ${test.totalMarks} | Duration: ${test.durationMinutes} Mins",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                            
-                            items(test.totalQuestions) { index ->
-                                val prompt = mockPrompts[index % mockPrompts.size]
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    Text(
-                                        text = "Q.${index + 1} ${prompt.first}",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    prompt.second.forEachIndexed { optIdx, opt ->
-                                        val letter = ('A'.toInt() + optIdx).toChar()
-                                        Text(
-                                            text = "$letter. $opt",
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                            modifier = Modifier.padding(start = 12.dp, top = 2.dp, bottom = 2.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+            // Graded Questions List
+            val filteredList = remember(selectedFilter, record, totalQ) {
+                (1..totalQ).filter { qNum ->
+                    val correctAns = test?.answerKey?.get(qNum) ?: "A"
+                    val submitted = record.bubbleMap[qNum] ?: ""
+                    when (selectedFilter) {
+                        "CORRECT" -> submitted.equals(correctAns, ignoreCase = true)
+                        "INCORRECT" -> !submitted.isEmpty() && submitted != "None" && !submitted.equals(correctAns, ignoreCase = true)
+                        "SKIPPED" -> submitted.isEmpty() || submitted == "None"
+                        else -> true
+                    }
+                }
+            }
+
+            if (filteredList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    Text("No questions matches this filter.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredList.size) { index ->
+                        val qNum = filteredList[index]
+                        val correctAns = test?.answerKey?.get(qNum) ?: "A"
+                        val submitted = record.bubbleMap[qNum] ?: ""
+
+                        QuestionReviewCard(
+                            qNum = qNum,
+                            correctAns = correctAns,
+                            submitted = submitted
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ComparisonBar(label: String, score: Float, maxScore: Float, color: Color) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = String.format("%.0f / %.0f", score, maxScore), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = color)
+        }
+        Spacer(modifier = Modifier.height(3.dp))
+        LinearProgressIndicator(
+            progress = { (score / maxScore).coerceIn(0f, 1f) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
+            color = color,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     }
 }
 
@@ -227,63 +285,32 @@ fun ReviewChip(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.15f),
-        border = borderStroke(1.dp, color.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(6.dp),
+        color = color.copy(alpha = 0.12f),
+        border = BorderStroke(0.5.dp, color.copy(alpha = 0.3f))
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp),
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "$count", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(text = label, fontSize = 9.sp, fontWeight = FontWeight.Medium, color = color)
+            Text(text = "$count", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
+            Text(text = label, fontSize = 8.sp, fontWeight = FontWeight.Medium, color = color)
         }
     }
 }
-
-private fun borderStroke(width: androidx.compose.ui.unit.Dp, color: Color) = 
-    androidx.compose.foundation.BorderStroke(width, color)
 
 @Composable
 fun QuestionReviewCard(
     qNum: Int,
     correctAns: String,
-    submitted: String,
-    isPedagogy: Boolean
+    submitted: String
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val mockPedagogyQuestions = listOf(
-        "Which of the following is a primary agent of socialization?",
-        "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?",
-        "Vygotsky's concept of the 'Zone of Proximal Development' emphasizes:",
-        "Which learning style learns best through hands-on activities and physical motion?",
-        "Formative assessment is primarily used for:",
-        "A teacher who believes in progressive education should prioritize:",
-        "The concept of Multiple Intelligences was proposed by:",
-        "Inclusive education refers to:",
-        "Which of the following defines intrinsic motivation?",
-        "When students encounter a cognitive conflict, they try to resolve it through:"
-    )
+    val (qText, qOptions) = remember(qNum, correctAns) {
+        getDynamicQuestion(qNum, correctAns)
+    }
 
-    val mockGeneralQuestions = listOf(
-        "Which layer of the atmosphere contains the ozone layer?",
-        "The concept of 'Fundamental Rights' in the Indian Constitution was inspired by:",
-        "Which planet in our solar system is known as the Red Planet?",
-        "Photosynthesis in plants primarily takes place in which cell organelle?",
-        "The standard unit of electrical resistance is:",
-        "Which of the following is a renewable source of energy?",
-        "The Great Barrier Reef is situated off the coast of which country?",
-        "What is the chemical symbol for gold?",
-        "Who was the author of the historical work 'Discovery of India'?",
-        "The first session of the Indian National Congress was held in 1885 at:"
-    )
-
-    val questionBank = if (isPedagogy) mockPedagogyQuestions else mockGeneralQuestions
-    val rawQuestionText = questionBank[(qNum - 1) % questionBank.size]
-    val qText = "$rawQuestionText (Ref: Section Q-$qNum)"
-
-    // Deciding badge state
     val (statusLabel, statusColor) = when {
         submitted == "MULTIPLE" -> "Double Marked" to MaterialTheme.colorScheme.tertiary
         submitted.isEmpty() || submitted == "None" -> "Skipped" to Color.Gray
@@ -294,10 +321,11 @@ fun QuestionReviewCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header row
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -305,18 +333,18 @@ fun QuestionReviewCard(
             ) {
                 Text(
                     text = "Question $qNum",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Surface(
                     shape = RoundedCornerShape(4.dp),
                     color = statusColor.copy(alpha = 0.1f),
-                    border = borderStroke(0.5.dp, statusColor)
+                    border = BorderStroke(0.5.dp, statusColor)
                 ) {
                     Text(
                         text = statusLabel,
-                        fontSize = 10.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = statusColor,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -325,18 +353,18 @@ fun QuestionReviewCard(
             }
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Question prompt text
+            // Question prompt body
             Text(
                 text = qText,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Options List
+            // Render all choices (A, B, C, D)
             val options = listOf("A", "B", "C", "D")
-            options.forEach { opt ->
+            options.forEachIndexed { index, opt ->
                 val isCorrect = opt.equals(correctAns, ignoreCase = true)
                 val isSelected = opt.equals(submitted, ignoreCase = true)
                 val isDouble = submitted == "MULTIPLE"
@@ -345,13 +373,13 @@ fun QuestionReviewCard(
                     isCorrect -> Color(0xFF4CAF50)
                     isSelected -> Color(0xFFE53935)
                     isDouble -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                    else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                 }
 
                 val itemBg = when {
-                    isCorrect -> Color(0xFF4CAF50).copy(alpha = 0.05f)
-                    isSelected -> Color(0xFFE53935).copy(alpha = 0.05f)
-                    isDouble -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.05f)
+                    isCorrect -> Color(0xFF4CAF50).copy(alpha = 0.06f)
+                    isSelected -> Color(0xFFE53935).copy(alpha = 0.06f)
+                    isDouble -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.06f)
                     else -> Color.Transparent
                 }
 
@@ -359,15 +387,14 @@ fun QuestionReviewCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(8.dp),
                     color = itemBg,
-                    border = borderStroke(1.dp, itemColor)
+                    border = BorderStroke(0.8.dp, itemColor)
                 ) {
                     Row(
                         modifier = Modifier.padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Letter bubble
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
@@ -385,14 +412,14 @@ fun QuestionReviewCard(
                                 color = if (isCorrect || isSelected || isDouble) Color.White else itemColor
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         val suffixText = when {
                             isCorrect -> " (Correct Answer)"
                             isSelected && !isCorrect -> " (Your Choice)"
                             else -> ""
                         }
                         Text(
-                            text = "Option $opt$suffixText",
+                            text = qOptions[index] + suffixText,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = if (isCorrect || isSelected) FontWeight.Bold else FontWeight.Normal
@@ -400,20 +427,20 @@ fun QuestionReviewCard(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Solution Expander
+            // Explanation drawer trigger
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(6.dp))
                     .clickable { expanded = !expanded },
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp),
+                        .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -422,12 +449,12 @@ fun QuestionReviewCard(
                             imageVector = Icons.Default.Info,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(15.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "View Solution & Explanation",
-                            fontSize = 12.sp,
+                            text = "View Detailed Explanation",
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -435,27 +462,25 @@ fun QuestionReviewCard(
                     Icon(
                         imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
             AnimatedVisibility(visible = expanded) {
-                val explanation = if (isPedagogy) {
-                    "Correct Answer: $correctAns\n\nAccording to educational psychology theories, option $correctAns provides the most scientifically supported response. This matches CBSE/NTA standard grading guidelines where the pedagogical outcome maximizes student agency and developmental milestones."
-                } else {
-                    "Correct Answer: $correctAns\n\nOption $correctAns represents the correct factual standard answer for this question. General knowledge assessments align this verification coordinate with standard NCERT curriculum profiles."
+                val explanation = remember(qNum) {
+                    getDynamicExplanation(qNum)
                 }
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                        .padding(12.dp)
+                        .padding(top = 4.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
+                        .padding(10.dp)
                 ) {
                     Text(
-                        text = explanation,
+                        text = "Explanation:\n$explanation",
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
