@@ -96,7 +96,7 @@ fun ExamsSection(
                 onClick = onViewAllClick,
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                Text("View All")
+                Text("State Exams")
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

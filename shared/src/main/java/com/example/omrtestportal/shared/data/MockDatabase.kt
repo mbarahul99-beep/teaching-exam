@@ -10,8 +10,14 @@ object MockDatabase {
         Exam("ctet", "Central Teacher Eligibility Test", "CTET", "school"),
         Exam("kvs_nvs", "KVS / NVS Recruitment Exam", "KVS/NVS", "domain"),
         Exam("dsssb", "DSSSB Teacher Recruitment", "DSSSB", "location_city"),
-        Exam("uptet", "Uttar Pradesh Teacher Eligibility Test", "UPTET", "gavel"),
+        Exam("ugc_net", "University Grants Commission National Eligibility Test", "UGC NET", "school"),
         Exam("emrs", "Eklavya Model Resident School", "EMRS", "home")
+    )
+
+    val stateExams = listOf(
+        Exam("uptet", "Uttar Pradesh Teacher Eligibility Test", "UP TET", "gavel"),
+        Exam("bihar_stet", "Bihar Secondary Teacher Eligibility Test", "BIHAR STET", "school"),
+        Exam("reet", "Rajasthan Eligibility Examination for Teacher", "REET", "location_city")
     )
 
     val pdfNotes = listOf(

@@ -7,8 +7,14 @@ const DEFAULT_DB = {
         { id: "ctet", title: "Central Teacher Eligibility Test", shortName: "CTET", iconName: "fa-school" },
         { id: "kvs_nvs", title: "KVS / NVS Recruitment Exam", shortName: "KVS/NVS", iconName: "fa-building-columns" },
         { id: "dsssb", title: "DSSSB Teacher Recruitment", shortName: "DSSSB", iconName: "fa-city" },
-        { id: "uptet", title: "Uttar Pradesh Teacher Eligibility Test", shortName: "UPTET", iconName: "fa-gavel" },
+        { id: "ugc_net", title: "University Grants Commission National Eligibility Test", shortName: "UGC NET", iconName: "fa-school" },
         { id: "emrs", title: "Eklavya Model Resident School", shortName: "EMRS", iconName: "fa-house-user" }
+    ],
+
+    stateExams: [
+        { id: "uptet", title: "Uttar Pradesh Teacher Eligibility Test", shortName: "UP TET", iconName: "fa-gavel" },
+        { id: "bihar_stet", title: "Bihar Secondary Teacher Eligibility Test", shortName: "BIHAR STET", iconName: "fa-school" },
+        { id: "reet", title: "Rajasthan Eligibility Examination for Teacher", shortName: "REET", iconName: "fa-city" }
     ],
 
     pdfNotes: [
@@ -72,7 +78,15 @@ function generateAnswerKey(total) {
 let DB = {};
 
 function initDatabase() {
+    // Migration: Update defaults to swap UP TET with UGC NET and add State Exams
+    if (!localStorage.getItem("migration_ugc_net_v2")) {
+        localStorage.removeItem("adm_exams");
+        localStorage.removeItem("adm_state_exams");
+        localStorage.setItem("migration_ugc_net_v2", "done");
+    }
+
     DB.exams = JSON.parse(localStorage.getItem("adm_exams")) || [...DEFAULT_DB.exams];
+    DB.stateExams = JSON.parse(localStorage.getItem("adm_state_exams")) || [...DEFAULT_DB.stateExams];
     DB.pdfNotes = JSON.parse(localStorage.getItem("adm_pdf_notes")) || [...DEFAULT_DB.pdfNotes];
     DB.testSeries = JSON.parse(localStorage.getItem("adm_test_series")) || [...DEFAULT_DB.testSeries];
     DB.updates = JSON.parse(localStorage.getItem("adm_updates")) || [...DEFAULT_DB.updates];
@@ -80,6 +94,7 @@ function initDatabase() {
     
     // Save defaults back to storage if empty
     if (!localStorage.getItem("adm_exams")) localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
+    if (!localStorage.getItem("adm_state_exams")) localStorage.setItem("adm_state_exams", JSON.stringify(DB.stateExams));
     if (!localStorage.getItem("adm_pdf_notes")) localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
     if (!localStorage.getItem("adm_test_series")) localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
     if (!localStorage.getItem("adm_updates")) localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
@@ -293,7 +308,7 @@ function renderExamsGrid() {
     container.innerHTML = "";
 
     const query = state.examSearchQuery.toLowerCase();
-    const filtered = DB.exams.filter(exam => 
+    const filtered = DB.stateExams.filter(exam => 
         exam.title.toLowerCase().includes(query) || 
         exam.shortName.toLowerCase().includes(query)
     );

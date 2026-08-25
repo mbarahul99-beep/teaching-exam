@@ -30,7 +30,7 @@ fun ExamsListScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val filteredExams = remember(searchQuery) {
-        MockDatabase.exams.filter {
+        MockDatabase.stateExams.filter {
             it.title.contains(searchQuery, ignoreCase = true) ||
             it.shortName.contains(searchQuery, ignoreCase = true)
         }
@@ -39,10 +39,10 @@ fun ExamsListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Available Exams") },
+                title = { Text("State Exams") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
