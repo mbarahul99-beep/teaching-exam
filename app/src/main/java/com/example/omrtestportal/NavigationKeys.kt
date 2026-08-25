@@ -37,5 +37,5 @@ data object ProfileHistory : NavKey
 data class TestReview(val attemptId: String) : NavKey
 
 @Serializable
-data object Leaderboard : NavKey
+data class Leaderboard(val testId: String? = null) : NavKey
 

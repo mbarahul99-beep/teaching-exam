@@ -2,6 +2,7 @@ package com.example.omrtestportal.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,68 +25,62 @@ import com.example.omrtestportal.shared.data.MockDatabase
 
 data class LeaderboardUser(
     val name: String,
-    val score: Double,
-    val attempted: Int,
+    val score: Double, // Marks obtained
     val group: String,
-    val isCurrentUser: Boolean = false
+    val isCurrentUser: Boolean = false,
+    val isAttempted: Boolean = true
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(
+    testId: String? = null,
     onNavigate: (NavKey) -> Unit,
     onBack: () -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabTitles = listOf("Global", "CTET", "UGC NET")
-    val filterGroups = listOf("global", "ctet", "ugc-net")
+    val allTests = remember { MockDatabase.testSeries.flatMap { it.tests } }
+    var selectedTestId by remember { mutableStateOf(testId ?: (allTests.firstOrNull()?.id ?: "")) }
+    val selectedTest = remember(selectedTestId) { allTests.firstOrNull { it.id == selectedTestId } }
+    
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
-    // Retrieve active user's stats dynamically
+    // Retrieve active user's attempts
     val attempts = MockDatabase.attemptHistory
-    val count = attempts.size
-    val correctCount = attempts.sumOf { it.correctAnswers }
-    val amitXP = (count * 100) + (correctCount * 10) + (if (count > 0) 1200 else 850)
-
-    // Leaderboard dataset
-    val mockUsers = remember(amitXP, count) {
-        mutableStateListOf(
-            LeaderboardUser("Pooja Sharma", 3040.0, 28, "ctet"),
-            LeaderboardUser("Rahul Verma", 3280.0, 30, "ugc-net"),
-            LeaderboardUser("Siddharth Rao", 2680.0, 25, "ctet"),
-            LeaderboardUser("Vikram Malhotra", 2350.0, 22, "ctet"),
-            LeaderboardUser("Neha Deshmukh", 2910.0, 27, "ugc-net"),
-            LeaderboardUser("Aditya Roy", 2120.0, 20, "ctet"),
-            LeaderboardUser("Meera Nair", 2560.0, 24, "ugc-net"),
-            LeaderboardUser("Suresh Patil", 1890.0, 18, "ugc-net"),
-            LeaderboardUser("Kirti Sen", 1560.0, 15, "ctet"),
-            LeaderboardUser(
-                name = "Amit Sharma",
-                score = amitXP.toDouble(),
-                attempted = if (count > 0) count else 12,
-                group = "ctet",
-                isCurrentUser = true
-            )
-        )
+    val userAttempt = remember(selectedTestId, attempts) {
+        attempts.firstOrNull { it.testId == selectedTestId }
     }
 
-    // Filter and sort
-    val filteredUsers = remember(selectedTab, mockUsers) {
-        val groupFilter = filterGroups[selectedTab]
-        val list = if (groupFilter == "global") {
-            mockUsers.toList()
+    val testTotal = selectedTest?.totalQuestions ?: 30
+
+    // Leaderboard dataset for the selected mock test
+    val testRankings = remember(selectedTestId, userAttempt) {
+        val list = mutableListOf(
+            LeaderboardUser("Pooja Sharma", (testTotal * 0.96).toInt().toDouble(), "ctet"),
+            LeaderboardUser("Rahul Verma", (testTotal * 0.93).toInt().toDouble(), "ugc-net"),
+            LeaderboardUser("Siddharth Rao", (testTotal * 0.90).toInt().toDouble(), "ctet"),
+            LeaderboardUser("Vikram Malhotra", (testTotal * 0.86).toInt().toDouble(), "ctet"),
+            LeaderboardUser("Neha Deshmukh", (testTotal * 0.83).toInt().toDouble(), "ugc-net"),
+            LeaderboardUser("Aditya Roy", (testTotal * 0.80).toInt().toDouble(), "ctet"),
+            LeaderboardUser("Meera Nair", (testTotal * 0.76).toInt().toDouble(), "ugc-net"),
+            LeaderboardUser("Suresh Patil", (testTotal * 0.70).toInt().toDouble(), "ugc-net"),
+            LeaderboardUser("Kirti Sen", (testTotal * 0.63).toInt().toDouble(), "ctet")
+        )
+        if (userAttempt != null) {
+            list.add(LeaderboardUser("Amit Sharma", userAttempt.marksObtained, "ctet", isCurrentUser = true, isAttempted = true))
         } else {
-            mockUsers.filter { it.group == groupFilter || it.isCurrentUser }
+            // Unattempted state showing simulated potential rank
+            list.add(LeaderboardUser("Amit Sharma", (testTotal * 0.73).toInt().toDouble(), "ctet", isCurrentUser = true, isAttempted = false))
         }
         list.sortedByDescending { it.score }
     }
 
-    val myUserIndex = filteredUsers.indexOfFirst { it.isCurrentUser }
+    val myUserIndex = testRankings.indexOfFirst { it.isCurrentUser }
     val myRank = if (myUserIndex != -1) myUserIndex + 1 else 10
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rankings & Leaderboard") },
+                title = { Text("Mock Test Rankings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -101,14 +96,69 @@ fun LeaderboardScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Tab Selection Row
-                TabRow(selectedTabIndex = selectedTab) {
-                    tabTitles.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+                // Test Selection Dropdown Header
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    ExposedDropdownMenuBox(
+                        expanded = dropdownExpanded,
+                        onExpandedChange = { dropdownExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedTest?.title ?: "Select Mock Test",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Active Mock Test Rankings") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors()
                         )
+                        ExposedDropdownMenu(
+                            expanded = dropdownExpanded,
+                            onDismissRequest = { dropdownExpanded = false }
+                        ) {
+                            allTests.forEach { t ->
+                                DropdownMenuItem(
+                                    text = { Text(t.title, fontSize = 13.sp) },
+                                    onClick = {
+                                        selectedTestId = t.id
+                                        dropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Show warning banner if Amit hasn't taken the test
+                if (userAttempt == null) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "You have not attempted this test yet. Showing simulated leaderboard.",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 
@@ -120,14 +170,14 @@ fun LeaderboardScreen(
                 ) {
                     // Podium layout for Ranks 1, 2, 3
                     item {
-                        PodiumLayout(filteredUsers.take(3))
+                        PodiumLayout(testRankings.take(3), testTotal)
                     }
 
                     // Table items for Ranks 4+
-                    if (filteredUsers.size > 3) {
-                        items(filteredUsers.drop(3)) { user ->
-                            val rank = filteredUsers.indexOf(user) + 1
-                            RankRowItem(rank = rank, user = user)
+                    if (testRankings.size > 3) {
+                        items(testRankings.drop(3)) { user ->
+                            val rank = testRankings.indexOf(user) + 1
+                            RankRowItem(rank = rank, user = user, totalQuestions = testTotal)
                         }
                     }
                 }
@@ -177,15 +227,19 @@ fun LeaderboardScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            val userCount = if (count > 0) count else 12
+                            val scoreStr = if (userAttempt != null) {
+                                "${userAttempt.marksObtained.toInt()} / $testTotal Marks"
+                            } else {
+                                "Not Attempted"
+                            }
                             Text(
-                                text = "Total Score: ${amitXP} XP | $userCount Tests",
+                                text = scoreStr,
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                         }
                     }
-                    val percentile = Math.round((myRank.toDouble() / filteredUsers.size.toDouble()) * 100)
+                    val percentile = Math.round(((testRankings.size - myRank + 1).toDouble() / testRankings.size.toDouble()) * 100)
                     Text(
                         text = "Top $percentile%",
                         fontSize = 16.sp,
@@ -199,7 +253,7 @@ fun LeaderboardScreen(
 }
 
 @Composable
-fun PodiumLayout(podiumUsers: List<LeaderboardUser>) {
+fun PodiumLayout(podiumUsers: List<LeaderboardUser>, totalQuestions: Int) {
     if (podiumUsers.isEmpty()) return
 
     Row(
@@ -211,19 +265,19 @@ fun PodiumLayout(podiumUsers: List<LeaderboardUser>) {
     ) {
         // Second Place
         if (podiumUsers.size > 1) {
-            PodiumCol(user = podiumUsers[1], rank = 2, height = 90.dp, color = Color(0xFFC0C0C0), modifier = Modifier.weight(1f))
+            PodiumCol(user = podiumUsers[1], rank = 2, height = 90.dp, color = Color(0xFFC0C0C0), totalQuestions = totalQuestions, modifier = Modifier.weight(1f))
         } else {
             Spacer(modifier = Modifier.weight(1f))
         }
 
         // First Place
         if (podiumUsers.isNotEmpty()) {
-            PodiumCol(user = podiumUsers[0], rank = 1, height = 120.dp, color = Color(0xFFFFD700), modifier = Modifier.weight(1.2f))
+            PodiumCol(user = podiumUsers[0], rank = 1, height = 120.dp, color = Color(0xFFFFD700), totalQuestions = totalQuestions, modifier = Modifier.weight(1.2f))
         }
 
         // Third Place
         if (podiumUsers.size > 2) {
-            PodiumCol(user = podiumUsers[2], rank = 3, height = 75.dp, color = Color(0xFFCD7F32), modifier = Modifier.weight(1f))
+            PodiumCol(user = podiumUsers[2], rank = 3, height = 75.dp, color = Color(0xFFCD7F32), totalQuestions = totalQuestions, modifier = Modifier.weight(1f))
         } else {
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -236,6 +290,7 @@ fun PodiumCol(
     rank: Int,
     height: androidx.compose.ui.unit.Dp,
     color: Color,
+    totalQuestions: Int,
     modifier: Modifier = Modifier
 ) {
     val initials = user.name.split(" ").map { it[0] }.joinToString("")
@@ -284,7 +339,7 @@ fun PodiumCol(
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "${user.score.toInt()} XP",
+            text = "${user.score.toInt()} / $totalQuestions",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             fontWeight = FontWeight.SemiBold
@@ -310,7 +365,7 @@ fun PodiumCol(
 }
 
 @Composable
-fun RankRowItem(rank: Int, user: LeaderboardUser) {
+fun RankRowItem(rank: Int, user: LeaderboardUser, totalQuestions: Int) {
     val initials = user.name.split(" ").map { it[0] }.joinToString("")
     val cardBg = if (user.isCurrentUser) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
@@ -367,15 +422,20 @@ fun RankRowItem(rank: Int, user: LeaderboardUser) {
                         fontWeight = if (user.isCurrentUser) FontWeight.Bold else FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    val statusText = if (user.isCurrentUser && !user.isAttempted) {
+                        "Not Attempted"
+                    } else {
+                        "Attempted"
+                    }
                     Text(
-                        text = "${user.attempted} tests attempted",
+                        text = statusText,
                         fontSize = 10.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
             }
             Text(
-                text = "${user.score.toInt()} XP",
+                text = "${user.score.toInt()} / $totalQuestions",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary

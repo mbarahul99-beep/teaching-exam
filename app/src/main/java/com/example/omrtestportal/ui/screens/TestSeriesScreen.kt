@@ -206,7 +206,8 @@ fun TestSeriesDetailsScreen(
                 IndividualTestCard(
                     test = test,
                     onAttemptOnline = { onNavigate(OnlineTestPlayer(test.id)) },
-                    onAttemptOMR = { onNavigate(OMRScanPrep(test.id)) }
+                    onAttemptOMR = { onNavigate(OMRScanPrep(test.id)) },
+                    onViewLeaderboard = { onNavigate(Leaderboard(test.id)) }
                 )
             }
         }
@@ -217,7 +218,8 @@ fun TestSeriesDetailsScreen(
 fun IndividualTestCard(
     test: Test,
     onAttemptOnline: () -> Unit,
-    onAttemptOMR: () -> Unit
+    onAttemptOMR: () -> Unit,
+    onViewLeaderboard: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -252,12 +254,26 @@ fun IndividualTestCard(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                OutlinedIconButton(
+                    onClick = onViewLeaderboard,
+                    modifier = Modifier.size(40.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "View rankings",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
                 OutlinedButton(
                     onClick = onAttemptOMR,
                     modifier = Modifier.weight(1f),
@@ -266,10 +282,10 @@ fun IndividualTestCard(
                     Icon(
                         imageVector = Icons.Default.QrCodeScanner,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Attempt OMR", fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Attempt OMR", fontSize = 11.sp)
                 }
 
                 Button(
@@ -280,10 +296,10 @@ fun IndividualTestCard(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Attempt Online", fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Attempt Online", fontSize = 11.sp)
                 }
             }
         }

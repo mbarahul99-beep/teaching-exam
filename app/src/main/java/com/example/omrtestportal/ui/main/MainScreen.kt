@@ -98,7 +98,7 @@ fun MainScreen(
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
-                        onNavigate(Leaderboard)
+                        onNavigate(Leaderboard(null))
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )

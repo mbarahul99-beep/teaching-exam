@@ -661,6 +661,18 @@ fun OMRResultScreen(
                     Text("Review Detailed Answers", fontSize = 16.sp)
                 }
 
+                OutlinedButton(
+                    onClick = { onNavigate(com.example.omrtestportal.Leaderboard(record.testId)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("View Test Leaderboard", fontSize = 16.sp)
+                }
+
                 Button(
                     onClick = { onNavigate(Main) },
                     modifier = Modifier

@@ -307,6 +307,7 @@
                     </div>
 
                     <button id="result-review-btn" class="secondary-action-btn" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-square-poll-vertical"></i> Review Detailed Answers</button>
+                    <button id="result-leaderboard-btn" class="secondary-action-btn" style="margin-top: 10px; width: 100%; border: 1.5px solid var(--outline); background-color: transparent; color: var(--primary);"><i class="fa-solid fa-star"></i> View Test Leaderboard</button>
                     <button id="result-home-btn" class="primary-action-btn">Return to Home</button>
                 </section>
 
@@ -348,10 +349,15 @@
                 <!-- 9C. Leaderboard Screen -->
                 <section id="screen-leaderboard" class="app-screen">
                     <h2 class="section-center-title">Rankings & Leaderboard</h2>
-                    <div class="leaderboard-tabs">
-                        <button class="leaderboard-tab active" data-filter="global">Global</button>
-                        <button class="leaderboard-tab" data-filter="ctet">CTET</button>
-                        <button class="leaderboard-tab" data-filter="ugc-net">UGC NET</button>
+                    <div class="leaderboard-test-selector-container" style="margin-bottom: 16px;">
+                        <label for="leaderboard-test-select" style="font-size: 11px; font-weight: 700; color: var(--on-surface-variant); margin-bottom: 4px; display: block;">Active Mock Test Rankings</label>
+                        <select id="leaderboard-test-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--outline); background-color: var(--surface); color: var(--on-surface); font-weight: 600; font-size: 13px;">
+                            <!-- Options injected dynamically by JS -->
+                        </select>
+                    </div>
+
+                    <div id="leaderboard-unattempted-warning" style="background-color: #fce8e6; color: #c5221f; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: 600; margin-bottom: 16px; display: none; border: 1.5px solid #fad2cf;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> You have not attempted this test yet. Showing simulated leaderboard.
                     </div>
 
                     <!-- Top 3 Podium Layout -->

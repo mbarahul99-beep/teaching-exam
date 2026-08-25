@@ -104,8 +104,9 @@ fun MainNavigation() {
             onBack = { backStack.removeLastOrNull() }
           )
         }
-        entry<Leaderboard> {
+        entry<Leaderboard> { key ->
           LeaderboardScreen(
+            testId = key.testId,
             onNavigate = { navKey -> backStack.add(navKey) },
             onBack = { backStack.removeLastOrNull() }
           )

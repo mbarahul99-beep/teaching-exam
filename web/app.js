@@ -462,9 +462,10 @@ function renderTestSeriesDetails() {
                 <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
             </div>
             <div class="test-divider"></div>
-            <div class="test-actions-row">
-                <button class="btn-attempt-omr"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
-                <button class="btn-attempt-online"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
+            <div class="test-actions-row" style="display: flex; gap: 8px; width: 100%;">
+                <button class="btn-view-ranks" style="padding: 10px; border-radius: 8px; border: 1.5px solid var(--outline); background-color: transparent; color: var(--primary); font-weight: 700; width: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="View Rankings"><i class="fa-solid fa-star"></i></button>
+                <button class="btn-attempt-omr" style="flex: 1;"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
+                <button class="btn-attempt-online" style="flex: 1;"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
             </div>
         `;
 
@@ -474,6 +475,12 @@ function renderTestSeriesDetails() {
 
         card.querySelector(".btn-attempt-omr").addEventListener("click", () => {
             openOmrPrep(test);
+        });
+
+        card.querySelector(".btn-view-ranks").addEventListener("click", () => {
+            state.selectedLeaderboardTestId = test.id;
+            renderLeaderboard();
+            navigateTo("leaderboard");
         });
 
         container.appendChild(card);
@@ -858,72 +865,112 @@ function renderTestReview() {
     }
 }
 
-function getLeaderboardData(filter = "global") {
-    // 1. Calculate active user's Study XP
-    const attempts = state.attempts || [];
-    const count = attempts.length;
-    let correctSum = attempts.reduce((acc, curr) => acc + (curr.correctAnswers || 0), 0);
-    
-    // XP rules: 100 XP per test taken, 10 XP per correct answer
-    const amitXP = (count * 100) + (correctSum * 10) + (count > 0 ? 1200 : 850); // fallback mock base
-
-    // 2. Base list of other mock users with Study XP
-    const mockUsers = [
-        { name: "Pooja Sharma", score: 3040, attempted: 28, group: "ctet" },
-        { name: "Rahul Verma", score: 3280, attempted: 30, group: "ugc-net" },
-        { name: "Siddharth Rao", score: 2680, attempted: 25, group: "ctet" },
-        { name: "Vikram Malhotra", score: 2350, attempted: 22, group: "ctet" },
-        { name: "Neha Deshmukh", score: 2910, attempted: 27, group: "ugc-net" },
-        { name: "Aditya Roy", score: 2120, attempted: 20, group: "ctet" },
-        { name: "Meera Nair", score: 2560, attempted: 24, group: "ugc-net" },
-        { name: "Suresh Patil", score: 1890, attempted: 18, group: "ugc-net" },
-        { name: "Kirti Sen", score: 1560, attempted: 15, group: "ctet" }
-    ];
-
-    // Add active user
-    mockUsers.push({
-        name: "Amit Sharma",
-        score: amitXP,
-        attempted: count || 12,
-        group: "ctet",
-        isCurrentUser: true
+function getLeaderboardData() {
+    const allTests = [];
+    DB.testSeries.forEach(series => {
+        series.tests.forEach(test => {
+            allTests.push(test);
+        });
     });
 
-    // 3. Filter by group
-    let filtered = mockUsers;
-    if (filter !== "global") {
-        filtered = mockUsers.filter(u => u.group === filter || u.isCurrentUser);
+    if (!state.selectedLeaderboardTestId && allTests.length > 0) {
+        state.selectedLeaderboardTestId = allTests[0].id;
     }
 
-    // 4. Sort by score (XP) descending
-    filtered.sort((a, b) => b.score - a.score);
+    const testId = state.selectedLeaderboardTestId;
+    const test = allTests.find(t => t.id === testId);
+    const testTotal = test ? test.totalQuestions : 30;
 
-    // 5. Add rank numbers
-    return filtered.map((user, idx) => ({
+    // Find active user's attempts for this specific test
+    const attempts = state.attempts || [];
+    const userAttempt = attempts.find(a => a.testId === testId);
+
+    // Generate test-specific ranks
+    const mockUsers = [
+        { name: "Pooja Sharma", score: Math.round(testTotal * 0.96), group: "ctet", isAttempted: true },
+        { name: "Rahul Verma", score: Math.round(testTotal * 0.93), group: "ugc-net", isAttempted: true },
+        { name: "Siddharth Rao", score: Math.round(testTotal * 0.90), group: "ctet", isAttempted: true },
+        { name: "Vikram Malhotra", score: Math.round(testTotal * 0.86), group: "ctet", isAttempted: true },
+        { name: "Neha Deshmukh", score: Math.round(testTotal * 0.83), group: "ugc-net", isAttempted: true },
+        { name: "Aditya Roy", score: Math.round(testTotal * 0.80), group: "ctet", isAttempted: true },
+        { name: "Meera Nair", score: Math.round(testTotal * 0.76), group: "ugc-net", isAttempted: true },
+        { name: "Suresh Patil", score: Math.round(testTotal * 0.70), group: "ugc-net", isAttempted: true },
+        { name: "Kirti Sen", score: Math.round(testTotal * 0.63), group: "ctet", isAttempted: true }
+    ];
+
+    if (userAttempt) {
+        mockUsers.push({
+            name: "Amit Sharma",
+            score: userAttempt.marksObtained,
+            group: "ctet",
+            isCurrentUser: true,
+            isAttempted: true
+        });
+    } else {
+        // Show simulated rank for current user
+        mockUsers.push({
+            name: "Amit Sharma",
+            score: Math.round(testTotal * 0.73),
+            group: "ctet",
+            isCurrentUser: true,
+            isAttempted: false
+        });
+    }
+
+    // Sort descending
+    mockUsers.sort((a, b) => b.score - a.score);
+
+    // Add rank numbers
+    return mockUsers.map((user, idx) => ({
         ...user,
         rank: idx + 1
     }));
 }
 
-function renderLeaderboard(filter = "global") {
-    // Update active tab button style
-    document.querySelectorAll(".leaderboard-tab").forEach(tab => {
-        if (tab.getAttribute("data-filter") === filter) {
-            tab.classList.add("active");
-        } else {
-            tab.classList.remove("active");
-        }
+function renderLeaderboard() {
+    const allTests = [];
+    DB.testSeries.forEach(series => {
+        series.tests.forEach(test => {
+            allTests.push(test);
+        });
     });
 
-    const data = getLeaderboardData(filter);
+    if (!state.selectedLeaderboardTestId && allTests.length > 0) {
+        state.selectedLeaderboardTestId = allTests[0].id;
+    }
+
+    const testId = state.selectedLeaderboardTestId;
+    const test = allTests.find(t => t.id === testId);
+    const testTotal = test ? test.totalQuestions : 30;
+
+    // Populate dropdown options
+    const selectEl = document.getElementById("leaderboard-test-select");
+    if (selectEl) {
+        selectEl.innerHTML = "";
+        allTests.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.text = t.title;
+            opt.selected = (t.id === testId);
+            selectEl.appendChild(opt);
+        });
+    }
+
+    // Show/hide unattempted warning banner
+    const attempts = state.attempts || [];
+    const userAttempt = attempts.find(a => a.testId === testId);
+    const warningEl = document.getElementById("leaderboard-unattempted-warning");
+    if (warningEl) {
+        warningEl.style.display = userAttempt ? "none" : "block";
+    }
+
+    const data = getLeaderboardData();
 
     // 1. Render podium (Ranks 1, 2, 3)
     const podiumContainer = document.getElementById("leaderboard-podium");
     podiumContainer.innerHTML = "";
 
     const podiumUsers = data.slice(0, 3);
-    
-    // Standard order on podium: 2nd, 1st, 3rd
     const podiumOrder = [];
     const secondUser = podiumUsers.find(u => u.rank === 2);
     const firstUser = podiumUsers.find(u => u.rank === 1);
@@ -947,7 +994,7 @@ function renderLeaderboard(filter = "global") {
                 <span>${initials}</span>
             </div>
             <div class="podium-name">${user.name}</div>
-            <div class="podium-score" style="font-weight:800; color: var(--primary);">${user.score} XP</div>
+            <div class="podium-score" style="font-weight:800; color: var(--primary);">${user.score} / ${testTotal} Marks</div>
             <div class="podium-pill">${user.rank}</div>
         `;
         podiumContainer.appendChild(podiumDiv);
@@ -969,9 +1016,9 @@ function renderLeaderboard(filter = "global") {
             <div class="rank-avatar">${initials}</div>
             <div class="rank-details">
                 <div class="rank-name">${user.name} ${user.isCurrentUser ? '<span class="badge self" style="background-color: var(--primary); color: #fff; font-size:9px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">You</span>' : ''}</div>
-                <div class="rank-sub-details">${user.attempted} tests attempted</div>
+                <div class="rank-sub-details">${user.isAttempted ? 'Attempted' : 'Not Attempted'}</div>
             </div>
-            <div class="rank-score-val" style="font-weight: 800; color: var(--primary);">${user.score} XP</div>
+            <div class="rank-score-val" style="font-weight: 800; color: var(--primary);">${user.score} / ${testTotal}</div>
         `;
         listContainer.appendChild(row);
     });
@@ -981,15 +1028,16 @@ function renderLeaderboard(filter = "global") {
     const myRankBanner = document.getElementById("leaderboard-my-rank-banner");
     if (myUser) {
         const myInitials = myUser.name.split(" ").map(n => n[0]).join("");
+        const scoreStr = userAttempt ? `${myUser.score} / ${testTotal} Marks` : "Not Attempted";
         myRankBanner.innerHTML = `
             <div class="my-rank-banner-info">
                 <div class="rank-avatar" style="background-color: var(--primary); color: #fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">${myInitials}</div>
                 <div class="my-rank-banner-details" style="margin-left: 10px;">
                     <h4 style="margin:0; font-size:13px; color: var(--on-primary-container);">Amit Sharma (Rank #${myUser.rank})</h4>
-                    <span style="font-size:10px; color: var(--on-primary-container); opacity:0.8;">Total Score: ${myUser.score} XP | Attempts: ${myUser.attempted}</span>
+                    <span style="font-size:10px; color: var(--on-primary-container); opacity:0.8;">Score: ${scoreStr}</span>
                 </div>
             </div>
-            <div class="rank-score-val" style="font-size: 16px; color: var(--on-primary-container);">Top ${Math.round((myUser.rank / data.length) * 100)}%</div>
+            <div class="rank-score-val" style="font-size: 16px; color: var(--on-primary-container);">Top ${Math.round(((data.length - myUser.rank + 1) / data.length) * 100)}%</div>
         `;
     }
 }
@@ -1582,6 +1630,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("result-review-btn").addEventListener("click", () => {
         renderTestReview();
         navigateTo("test-review");
+    });
+
+    document.getElementById("result-leaderboard-btn").addEventListener("click", () => {
+        state.selectedLeaderboardTestId = state.activeTest ? state.activeTest.id : null;
+        renderLeaderboard();
+        navigateTo("leaderboard");
+    });
+
+    document.getElementById("leaderboard-test-select").addEventListener("change", (e) => {
+        state.selectedLeaderboardTestId = e.target.value;
+        renderLeaderboard();
     });
 
     document.getElementById("review-back-btn").addEventListener("click", () => {
