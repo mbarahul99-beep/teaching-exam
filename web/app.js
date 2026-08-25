@@ -4,6 +4,7 @@
 
 const DEFAULT_DB = {
     exams: [
+        { id: "neet", title: "National Eligibility cum Entrance Test", shortName: "NEET", iconName: "fa-stethoscope" },
         { id: "ctet", title: "Central Teacher Eligibility Test", shortName: "CTET", iconName: "fa-school" },
         { id: "kvs_nvs", title: "KVS / NVS Recruitment Exam", shortName: "KVS/NVS", iconName: "fa-building-columns" },
         { id: "dsssb", title: "DSSSB Teacher Recruitment", shortName: "DSSSB", iconName: "fa-city" },
@@ -31,7 +32,7 @@ const DEFAULT_DB = {
     testSeries: [
         {
             id: "ts_neet_demo",
-            examId: "ugc_net",
+            examId: "neet",
             title: "NEET/JEE 180-Question Mock Test Series",
             description: "Standard full length mock test matching NEET format (180 questions).",
             numberOfTests: 1,
@@ -96,9 +97,10 @@ function initDatabase() {
     }
     
     // Migration: Add NEET 180 questions test series
-    if (!localStorage.getItem("migration_neet_v1")) {
+    if (!localStorage.getItem("migration_neet_v2")) {
+        localStorage.removeItem("adm_exams");
         localStorage.removeItem("adm_test_series");
-        localStorage.setItem("migration_neet_v1", "done");
+        localStorage.setItem("migration_neet_v2", "done");
     }
 
     DB.exams = JSON.parse(localStorage.getItem("adm_exams")) || [...DEFAULT_DB.exams];
