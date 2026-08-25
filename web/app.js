@@ -1219,18 +1219,19 @@ function renderTestReview() {
         
         let paperHtml = `<div style="text-align:center; border-bottom:1.5px solid var(--outline); padding-bottom:12px; margin-bottom:16px;">
             <h3 style="margin:0; font-size:14px; color:var(--primary); font-weight:700;">Question Paper: ${test.title}</h3>
-            <span style="font-size:10px; color:var(--on-surface-variant); opacity:0.8;">Full Marks: ${test.totalMarks} | Duration: ${test.durationMins} Mins</span>
+            <span style="font-size:10px; color:var(--on-surface-variant); opacity:0.8;">Full Marks: ${test.totalQuestions} | Duration: ${test.durationMinutes} Mins</span>
         </div>`;
         
         for (let i = 1; i <= test.totalQuestions; i++) {
-            const prompt = questionBank[(i - 1) % questionBank.length];
+            const correctAns = test.answerKey[i] || "A";
+            const qData = getDynamicQuestionWeb(i, correctAns);
             paperHtml += `<div style="margin-bottom:16px; border-bottom: 1px dashed var(--outline); padding-bottom:10px;">
-                <p style="font-weight:700; margin:0 0 6px 0; color: var(--on-surface);">Q.${i} ${prompt}</p>
+                <p style="font-weight:700; margin:0 0 6px 0; color: var(--on-surface);">${qData.text}</p>
                 <ul style="margin:0; padding-left:20px; list-style-type: upper-alpha; color: var(--on-surface-variant); font-size:11px;">
-                    <li style="margin-bottom:2px;">Choice A</li>
-                    <li style="margin-bottom:2px;">Choice B</li>
-                    <li style="margin-bottom:2px;">Choice C</li>
-                    <li style="margin-bottom:2px;">Choice D</li>
+                    <li style="margin-bottom:2px;">${qData.options[0]}</li>
+                    <li style="margin-bottom:2px;">${qData.options[1]}</li>
+                    <li style="margin-bottom:2px;">${qData.options[2]}</li>
+                    <li style="margin-bottom:2px;">${qData.options[3]}</li>
                 </ul>
             </div>`;
         }
