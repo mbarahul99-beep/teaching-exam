@@ -187,9 +187,12 @@
                 <!-- 6. Online Test Player Screen -->
                 <section id="screen-online-test-player" class="app-screen no-padding">
                     <div class="player-header">
-                        <div class="player-title-box">
-                            <h3 id="player-test-title">Mock Test</h3>
-                            <span id="player-timer" class="player-timer">Time Left: 30:00</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button id="player-exit-btn" style="background: none; border: none; font-size: 18px; color: var(--on-surface); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="player-title-box">
+                                <h3 id="player-test-title" style="margin: 0;">Mock Test</h3>
+                                <span id="player-timer" class="player-timer">Time Left: 30:00</span>
+                            </div>
                         </div>
                         <button id="player-palette-btn" class="palette-toggle-btn"><i class="fa-solid fa-grid-2"></i> Palette</button>
                     </div>

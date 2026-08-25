@@ -1869,6 +1869,17 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("review-pdf-viewer-container").style.display = "none";
     });
 
+    document.getElementById("player-exit-btn").addEventListener("click", () => {
+        const exit = confirm("Exit Mock Test? Your progress on this attempt will be lost.");
+        if (exit) {
+            if (state.activeTest) {
+                showTestDetails(state.activeTest);
+            } else {
+                navigateTo("home");
+            }
+        }
+    });
+
     // Online Player Navigation controls
     document.getElementById("player-prev-btn").addEventListener("click", () => {
         if (state.currentQuestionIndex > 0) {
