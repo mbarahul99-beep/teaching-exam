@@ -20,6 +20,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import com.example.omrtestportal.Main
 import com.example.omrtestportal.OMRResult
 import com.example.omrtestportal.OMRScanner
@@ -322,13 +325,31 @@ fun OMRScannerScreen(
 
     var isScanning by remember { mutableStateOf(false) }
     var scanStatusText by remember { mutableStateOf("Ready to scan OMR") }
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            if (uri != null) {
+                selectedImageUri = uri
+                isScanning = true
+            }
+        }
+    )
 
     LaunchedEffect(isScanning) {
         if (isScanning) {
-            scanStatusText = "Analyzing OMR sheet coordinates..."
-            delay(1000)
-            scanStatusText = "Finding anchor points (4 corners)..."
-            delay(1000)
+            if (selectedImageUri != null) {
+                scanStatusText = "Reading OMR image file..."
+                delay(800)
+                scanStatusText = "Aligning document corners..."
+                delay(900)
+            } else {
+                scanStatusText = "Analyzing OMR sheet coordinates..."
+                delay(1000)
+                scanStatusText = "Finding anchor points (4 corners)..."
+                delay(1000)
+            }
             scanStatusText = "Extracting bubble fill ratios..."
             delay(1200)
             scanStatusText = "Evaluating scorecard..."
@@ -409,14 +430,29 @@ fun OMRScannerScreen(
                 }
 
                 if (!isScanning) {
-                    Text(
-                        text = "Position OMR paper inside the box\nEnsure good lighting",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    if (selectedImageUri != null) {
+                        Text(
+                            text = "OMR Image Selected\nTap scan to process file",
+                            color = Color.Green,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
+                        Text(
+                            text = "Position OMR paper inside the box\nEnsure good lighting",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 } else {
-                    CircularProgressIndicator(color = Color.Green)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color.Green)
+                        if (selectedImageUri != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Processing File...", color = Color.Green, fontSize = 12.sp)
+                        }
+                    }
                 }
             }
 
@@ -443,15 +479,31 @@ fun OMRScannerScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     if (!isScanning) {
-                        Button(
-                            onClick = { isScanning = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Green, contentColor = Color.Black),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(Icons.Default.QrCodeScanner, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Capture & Scan OMR", fontWeight = FontWeight.Bold)
+                            Button(
+                                onClick = { isScanning = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Green, contentColor = Color.Black),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Capture & Scan", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { launcher.launch("image/*") },
+                                border = BorderStroke(1.dp, Color.White),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.CloudUpload, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Upload OMR", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
                         }
                     }
                 }

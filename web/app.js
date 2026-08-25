@@ -2078,6 +2078,75 @@ document.addEventListener("DOMContentLoaded", () => {
         simulateOmrScan();
     });
 
+    // OMR Upload scanner binding
+    document.getElementById("upload-scan-btn").addEventListener("click", () => {
+        document.getElementById("omr-file-input").click();
+    });
+
+    document.getElementById("omr-file-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = async function() {
+                const progressRow = document.getElementById("scan-progress-bar");
+                const progressFill = document.getElementById("scan-progress-fill");
+                const statusText = document.getElementById("scanner-status-text");
+                const overlay = document.getElementById("scanner-overlay");
+                const scanBtn = document.getElementById("capture-scan-btn");
+
+                // Navigate to scanner screen so they see alignment progress
+                navigateTo("omr-scanner");
+                
+                scanBtn.style.display = "none";
+                progressRow.style.display = "block";
+                overlay.classList.add("active");
+                progressFill.style.width = "25%";
+                statusText.innerText = "Processing uploaded image...";
+
+                try {
+                    // Draw image onto a canvas for OpenCV scanning
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+
+                    progressFill.style.width = "50%";
+                    statusText.innerText = "Aligning corner anchors & perspective warp...";
+                    await new Promise(r => setTimeout(r, 200));
+
+                    const test = state.activeTest;
+                    const totalQ = test.totalQuestions;
+
+                    // Execute OMR OpenCV detection!
+                    const result = await window.scanOMRSheet(canvas, totalQ, 3, 1, []);
+
+                    progressFill.style.width = "85%";
+                    statusText.innerText = "Grading bubble marks...";
+                    await new Promise(r => setTimeout(r, 200));
+
+                    const submission = {};
+                    for (let q = 1; q <= totalQ; q++) {
+                        submission[q] = result.answers[q] || null;
+                    }
+
+                    state.onlineAnswers = submission;
+                    progressFill.style.width = "100%";
+                    submitTest("OMR");
+                } catch (err) {
+                    console.error("OpenCV Upload OMR Scan failed:", err);
+                    alert("OMR Sheet Scan Error: Alignment Failed. Please ensure the 4 black square corner markers are fully visible, clear of shadows, and centered in the image frame.");
+                    navigateTo("omr-scan-prep");
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
     // Scorecard completion trigger
     document.getElementById("result-home-btn").addEventListener("click", () => {
         navigateTo("home");

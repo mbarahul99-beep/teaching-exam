@@ -292,7 +292,11 @@
                         </div>
                     </div>
 
-                    <button id="start-scan-btn" class="primary-action-btn" style="margin-top: 16px;"><i class="fa-solid fa-camera"></i> Open OMR Camera Scanner</button>
+                    <div style="display: flex; gap: 12px; margin-top: 16px; width: 100%;">
+                        <button id="start-scan-btn" class="primary-action-btn" style="flex: 1; margin: 0;"><i class="fa-solid fa-camera"></i> Open Camera Scanner</button>
+                        <button id="upload-scan-btn" class="secondary-action-btn" style="flex: 1; margin: 0; background-color: transparent; border: 1.5px solid var(--outline); color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-upload"></i> Upload OMR Image</button>
+                    </div>
+                    <input type="file" id="omr-file-input" accept="image/*" style="display: none;" />
                 </section>
 
                 <!-- 8. Live OMR Scanner Screen (Camera Access) -->
