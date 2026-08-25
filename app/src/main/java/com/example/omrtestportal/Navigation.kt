@@ -97,6 +97,13 @@ fun MainNavigation() {
             onBack = { backStack.removeLastOrNull() }
           )
         }
+        entry<TestReview> { key ->
+          TestReviewScreen(
+            attemptId = key.attemptId,
+            onNavigate = { navKey -> backStack.add(navKey) },
+            onBack = { backStack.removeLastOrNull() }
+          )
+        }
       },
   )
 }

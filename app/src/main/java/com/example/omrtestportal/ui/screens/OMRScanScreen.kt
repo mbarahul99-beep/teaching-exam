@@ -534,14 +534,31 @@ fun OMRResultScreen(
                 }
             }
 
-            Button(
-                onClick = { onNavigate(Main) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(10.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Return to Home", fontSize = 16.sp)
+                OutlinedButton(
+                    onClick = { onNavigate(com.example.omrtestportal.TestReview(record.id)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Assignment, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Review Detailed Answers", fontSize = 16.sp)
+                }
+
+                Button(
+                    onClick = { onNavigate(Main) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Return to Home", fontSize = 16.sp)
+                }
             }
         }
     }

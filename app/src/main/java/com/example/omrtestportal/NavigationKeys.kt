@@ -33,3 +33,6 @@ data class OMRResult(val attemptId: String) : NavKey
 @Serializable
 data object ProfileHistory : NavKey
 
+@Serializable
+data class TestReview(val attemptId: String) : NavKey
+

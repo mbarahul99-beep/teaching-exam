@@ -286,7 +286,28 @@
                         <span id="result-timestamp">Exam Date: 2026-08-15 17:40</span>
                     </div>
 
+                    <button id="result-review-btn" class="secondary-action-btn" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-square-poll-vertical"></i> Review Detailed Answers</button>
                     <button id="result-home-btn" class="primary-action-btn">Return to Home</button>
+                </section>
+
+                <!-- 9B. Detailed Test Review Screen -->
+                <section id="screen-test-review" class="app-screen">
+                    <div class="screen-header">
+                        <button class="icon-back-btn" id="review-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2>Detailed Review</h2>
+                    </div>
+                    <div class="review-summary-box">
+                        <h3 id="review-title">Mock Examination</h3>
+                        <div class="review-stats-chips">
+                            <span class="review-chip correct"><i class="fa-solid fa-check"></i> <span id="rev-correct-count">0</span> Correct</span>
+                            <span class="review-chip incorrect"><i class="fa-solid fa-xmark"></i> <span id="rev-incorrect-count">0</span> Wrong</span>
+                            <span class="review-chip skipped"><i class="fa-solid fa-minus"></i> <span id="rev-skipped-count">0</span> Skipped</span>
+                            <span class="review-chip double"><i class="fa-solid fa-exclamation"></i> <span id="rev-double-count">0</span> Double</span>
+                        </div>
+                    </div>
+                    <div class="review-questions-container" id="review-questions-list">
+                        <!-- Dynamically injected card list -->
+                    </div>
                 </section>
 
                 <!-- 10. Profile & History Screen -->

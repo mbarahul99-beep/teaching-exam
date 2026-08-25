@@ -657,6 +657,168 @@ function showScorecard(record) {
     navigateTo("omr-result");
 }
 
+function renderTestReview() {
+    const test = state.activeTest;
+    if (!test) return;
+
+    // Set stats & title
+    document.getElementById("review-title").innerText = test.title;
+    
+    // Count stats again from state.onlineAnswers
+    let correct = 0;
+    let incorrect = 0;
+    let skipped = 0;
+    let doubleMarked = 0;
+
+    for (let q = 1; q <= test.totalQuestions; q++) {
+        const submitted = state.onlineAnswers[q];
+        const correctAns = test.answerKey[q];
+        if (!submitted || submitted === '') {
+            skipped++;
+        } else if (submitted === 'MULTIPLE') {
+            doubleMarked++;
+            incorrect++;
+        } else if (submitted.toUpperCase() === correctAns.toUpperCase()) {
+            correct++;
+        } else {
+            incorrect++;
+        }
+    }
+
+    document.getElementById("rev-correct-count").innerText = correct;
+    document.getElementById("rev-incorrect-count").innerText = incorrect;
+    document.getElementById("rev-skipped-count").innerText = skipped;
+    document.getElementById("rev-double-count").innerText = doubleMarked;
+
+    const listContainer = document.getElementById("review-questions-list");
+    listContainer.innerHTML = "";
+
+    // Generate dynamic mock questions
+    const mockPedagogyQuestions = [
+        "Which of the following is a primary agent of socialization?",
+        "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?",
+        "Vygotsky's concept of the 'Zone of Proximal Development' emphasizes:",
+        "Which learning style learns best through hands-on activities and physical motion?",
+        "Formative assessment is primarily used for:",
+        "A teacher who believes in progressive education should prioritize:",
+        "The concept of Multiple Intelligences was proposed by:",
+        "Inclusive education refers to:",
+        "Which of the following defines intrinsic motivation?",
+        "When students encounter a cognitive conflict, they try to resolve it through:"
+    ];
+
+    const mockGeneralQuestions = [
+        "Which layer of the atmosphere contains the ozone layer?",
+        "The concept of 'Fundamental Rights' in the Indian Constitution was inspired by:",
+        "Which planet in our solar system is known as the Red Planet?",
+        "Photosynthesis in plants primarily takes place in which cell organelle?",
+        "The standard unit of electrical resistance is:",
+        "Which of the following is a renewable source of energy?",
+        "The Great Barrier Reef is situated off the coast of which country?",
+        "What is the chemical symbol for gold?",
+        "Who was the author of the historical work 'Discovery of India'?",
+        "The first session of the Indian National Congress was held in 1885 at:"
+    ];
+
+    const isPedagogy = test.title.toLowerCase().includes("pedagogy") || test.title.toLowerCase().includes("tet") || test.title.toLowerCase().includes("net");
+    const questionBank = isPedagogy ? mockPedagogyQuestions : mockGeneralQuestions;
+
+    for (let q = 1; q <= test.totalQuestions; q++) {
+        const correctAns = test.answerKey[q] || "A";
+        const submitted = state.onlineAnswers[q] || "";
+        
+        let qText = questionBank[(q - 1) % questionBank.length];
+        // Append question index to differentiate
+        qText = `${qText} (Ref: Section Q-${q})`;
+
+        // Status badge
+        let badgeClass = "skipped";
+        let badgeText = "Skipped";
+        if (submitted === 'MULTIPLE') {
+            badgeClass = "double";
+            badgeText = "Double Marked";
+        } else if (submitted !== "") {
+            if (submitted.toUpperCase() === correctAns.toUpperCase()) {
+                badgeClass = "correct";
+                badgeText = "Correct";
+            } else {
+                badgeClass = "incorrect";
+                badgeText = "Incorrect";
+            }
+        }
+
+        // Explanations
+        let explanation = "";
+        if (isPedagogy) {
+            explanation = `<strong>Correct Answer: ${correctAns}</strong><br>According to educational psychology theories, option ${correctAns} provides the most scientifically supported response. This matches CBSE/NTA standard grading guidelines where the pedagogical outcome maximizes student agency and developmental milestones.`;
+        } else {
+            explanation = `<strong>Correct Answer: ${correctAns}</strong><br>Option ${correctAns} represents the correct factual standard answer for this question. General knowledge assessments align this verification coordinate with standard NCERT curriculum profiles.`;
+        }
+
+        // Options
+        const optionsList = ["A", "B", "C", "D"];
+        let optionsHTML = "";
+        optionsList.forEach(opt => {
+            let optClass = "";
+            let optText = `Option ${opt} description text`;
+
+            if (opt === correctAns) {
+                optClass = "correct-answer";
+            }
+            if (submitted !== 'MULTIPLE' && opt === submitted && submitted !== correctAns) {
+                optClass = "wrong-selected";
+            }
+            if (submitted === 'MULTIPLE') {
+                optClass = "double-selected";
+            }
+
+            optionsHTML += `
+                <div class="review-option-item ${optClass}">
+                    <span class="review-opt-letter">${opt}</span>
+                    <span>${optText}</span>
+                </div>
+            `;
+        });
+
+        const card = document.createElement("div");
+        card.className = "review-q-card";
+        card.innerHTML = `
+            <div class="review-q-header">
+                <span class="review-q-num">Question ${q}</span>
+                <span class="review-status-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="review-q-text">${qText}</div>
+            <div class="review-options-list">
+                ${optionsHTML}
+            </div>
+            <button class="review-explanation-btn" data-q="${q}">
+                <span><i class="fa-solid fa-circle-info"></i> View Solution & Explanation</span>
+                <i class="fa-solid fa-chevron-down" style="transition: transform 0.2s;"></i>
+            </button>
+            <div class="review-explanation-content" id="exp-content-${q}">
+                ${explanation}
+            </div>
+        `;
+        listContainer.appendChild(card);
+    }
+
+    // Bind expansion toggles
+    document.querySelectorAll(".review-explanation-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const qNum = btn.getAttribute("data-q");
+            const expContent = document.getElementById(`exp-content-${qNum}`);
+            const arrow = btn.querySelector(".fa-chevron-down");
+            if (expContent.classList.contains("active")) {
+                expContent.classList.remove("active");
+                arrow.style.transform = "rotate(0deg)";
+            } else {
+                expContent.classList.add("active");
+                arrow.style.transform = "rotate(180deg)";
+            }
+        });
+    });
+}
+
 // -------------------------------------------------------------
 // OMR Attempt Mode (Prep, Scanner, Cam Access)
 // -------------------------------------------------------------
@@ -1043,6 +1205,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Scorecard completion trigger
     document.getElementById("result-home-btn").addEventListener("click", () => {
         navigateTo("home");
+    });
+
+    document.getElementById("result-review-btn").addEventListener("click", () => {
+        renderTestReview();
+        navigateTo("test-review");
+    });
+
+    document.getElementById("review-back-btn").addEventListener("click", () => {
+        navigateTo("omr-result");
     });
 
     // Online Player Navigation controls
