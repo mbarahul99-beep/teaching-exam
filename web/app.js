@@ -698,6 +698,91 @@ function stopCamera() {
 
 // Simulating the OMR Scanning progress bar
 function simulateOmrScan() {
+    const video = document.getElementById("webcam-feed");
+    const scanBtn = document.getElementById("capture-scan-btn");
+    const progressRow = document.getElementById("scan-progress-bar");
+    const progressFill = document.getElementById("scan-progress-fill");
+    const statusText = document.getElementById("scanner-status-text");
+    const overlay = document.getElementById("scanner-overlay");
+
+    // Failsafe: Run simulator if no active camera stream is detected
+    if (!video || !state.videoStream || video.readyState < 2) {
+        console.log("No active webcam stream found. Running simulation fallback...");
+        runMockOmrScan();
+        return;
+    }
+
+    // Failsafe: Run simulator if OpenCV is not loaded yet
+    if (!window.cv || typeof window.cv !== 'object') {
+        console.warn("OpenCV.js not loaded. Running simulation fallback...");
+        runMockOmrScan();
+        return;
+    }
+
+    // Begin real camera frame capture & computer vision analysis
+    captureAndScanOMR(video, scanBtn, progressRow, progressFill, statusText, overlay);
+}
+
+async function captureAndScanOMR(video, scanBtn, progressRow, progressFill, statusText, overlay) {
+    scanBtn.style.display = "none";
+    progressRow.style.display = "block";
+    overlay.classList.add("active");
+    progressFill.style.width = "15%";
+    statusText.innerText = "Snapping webcam frame...";
+
+    // Briefly wait for camera buffer
+    await new Promise(r => setTimeout(r, 150));
+
+    try {
+        const vW = video.videoWidth || 640;
+        const vH = video.videoHeight || 480;
+        
+        const snapCanvas = document.createElement("canvas");
+        snapCanvas.width = vW;
+        snapCanvas.height = vH;
+        const sCtx = snapCanvas.getContext("2d");
+        sCtx.drawImage(video, 0, 0, vW, vH);
+
+        progressFill.style.width = "50%";
+        statusText.innerText = "Aligning corner anchors & perspective warp...";
+        await new Promise(r => setTimeout(r, 100));
+
+        const test = state.activeTest;
+        const totalQ = test.totalQuestions;
+
+        // Call the compiled OpenCV scanner!
+        const result = await window.scanOMRSheet(snapCanvas, totalQ, 3, 1, []);
+        
+        progressFill.style.width = "85%";
+        statusText.innerText = "Reading bubble density & grading paper...";
+        await new Promise(r => setTimeout(r, 200));
+
+        stopCamera();
+
+        // Extract CV results
+        const submission = {};
+        for (let q = 1; q <= totalQ; q++) {
+            submission[q] = result.answers[q] || null;
+        }
+
+        state.onlineAnswers = submission;
+        progressFill.style.width = "100%";
+        
+        // Log attempts
+        submitTest("OMR");
+    } catch (err) {
+        console.error("OpenCV OMR Scan failed:", err);
+        statusText.innerText = "Alignment failed. Align the OMR sheet and try again.";
+        scanBtn.style.display = "block";
+        progressRow.style.display = "none";
+        overlay.classList.remove("active");
+        
+        // Let the user know corner marks were not detected
+        alert("OMR Sheet Scan Error: Alignment Failed. Please ensure the 4 black square corner markers are fully visible, clear of shadows, and centered in the viewport.");
+    }
+}
+
+function runMockOmrScan() {
     const progressRow = document.getElementById("scan-progress-bar");
     const progressFill = document.getElementById("scan-progress-fill");
     const scanBtn = document.getElementById("capture-scan-btn");
@@ -730,9 +815,9 @@ function simulateOmrScan() {
                 const correctAns = test.answerKey[q];
                 const roll = Math.floor(Math.random() * 100) + 1;
                 
-                if (roll <= 80) {
-                    submission[q] = correctAns; // 80% correct
-                } else if (roll <= 95) {
+                if (roll <= 85) {
+                    submission[q] = correctAns; // 85% correct
+                } else if (roll <= 96) {
                     submission[q] = options.filter(o => o !== correctAns && o !== null)[Math.floor(Math.random() * 3)]; // Incorrect
                 } else {
                     submission[q] = null; // Skipped
