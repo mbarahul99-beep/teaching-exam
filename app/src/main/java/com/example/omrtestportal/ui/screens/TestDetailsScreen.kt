@@ -303,3 +303,203 @@ fun DetailStatItem(label: String, value: String) {
         )
     }
 }
+
+data class LeaderboardUser(
+    val name: String,
+    val score: Double,
+    val group: String,
+    val isCurrentUser: Boolean = false,
+    val isAttempted: Boolean = true
+)
+
+@Composable
+fun PodiumLayout(podiumUsers: List<LeaderboardUser>, totalQuestions: Int) {
+    if (podiumUsers.isEmpty()) return
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp, horizontal = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        // Second Place
+        if (podiumUsers.size > 1) {
+            PodiumCol(user = podiumUsers[1], rank = 2, height = 90.dp, color = Color(0xFFC0C0C0), totalQuestions = totalQuestions, modifier = Modifier.weight(1f))
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // First Place
+        if (podiumUsers.isNotEmpty()) {
+            PodiumCol(user = podiumUsers[0], rank = 1, height = 120.dp, color = Color(0xFFFFD700), totalQuestions = totalQuestions, modifier = Modifier.weight(1.2f))
+        }
+
+        // Third Place
+        if (podiumUsers.size > 2) {
+            PodiumCol(user = podiumUsers[2], rank = 3, height = 75.dp, color = Color(0xFFCD7F32), totalQuestions = totalQuestions, modifier = Modifier.weight(1f))
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+fun PodiumCol(
+    user: LeaderboardUser,
+    rank: Int,
+    height: androidx.compose.ui.unit.Dp,
+    color: Color,
+    totalQuestions: Int,
+    modifier: Modifier = Modifier
+) {
+    val initials = user.name.split(" ").map { it[0] }.joinToString("")
+    val highlightBorder = if (user.isCurrentUser) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(contentAlignment = Alignment.TopCenter) {
+            if (rank == 1) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = Color(0xFFFFD700),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .offset(y = (-14).dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(if (rank == 1) 64.dp else 52.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
+                    .border(2.dp, color, CircleShape)
+                    .then(highlightBorder),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initials,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = if (rank == 1) 18.sp else 15.sp,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = user.name,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(80.dp),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = "${user.score.toInt()} / $totalQuestions",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            color = color.copy(alpha = 0.8f)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = "$rank",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RankRowItem(rank: Int, user: LeaderboardUser, totalQuestions: Int) {
+    val initials = user.name.split(" ").map { it[0] }.joinToString("")
+    val cardBg = if (user.isCurrentUser) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val borderMod = if (user.isCurrentUser) {
+        Modifier.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+    } else {
+        Modifier
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .then(borderMod),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "$rank",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.width(28.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = initials,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = user.name + if (user.isCurrentUser) " (You)" else "",
+                        fontSize = 13.sp,
+                        fontWeight = if (user.isCurrentUser) FontWeight.Bold else FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val statusText = if (user.isCurrentUser && !user.isAttempted) {
+                        "Not Attempted"
+                    } else {
+                        "Attempted"
+                    }
+                    Text(
+                        text = statusText,
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+            Text(
+                text = "${user.score.toInt()} / $totalQuestions",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
