@@ -2756,3 +2756,63 @@ textarea.form-input-field {
     opacity: 0.8;
 }
 
+/* ==========================================================================
+   13. Performance Analytics SVG Styles
+   ========================================================================== */
+.chart-grid-line {
+    stroke: var(--outline);
+    stroke-opacity: 0.5;
+    stroke-dasharray: 4,4;
+}
+
+.chart-axis-line {
+    stroke: var(--on-surface-variant);
+    stroke-width: 1.5;
+}
+
+.chart-line {
+    stroke: var(--primary);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    transition: all 0.3s;
+}
+
+.chart-line-shadow {
+    stroke: var(--primary);
+    stroke-width: 8;
+    fill: none;
+    stroke-linecap: round;
+    opacity: 0.1;
+}
+
+.chart-point {
+    fill: var(--primary);
+    stroke: var(--surface);
+    stroke-width: 2.5;
+    cursor: pointer;
+    transition: r 0.2s;
+}
+
+.chart-point:hover {
+    r: 7;
+}
+
+.chart-label {
+    fill: var(--on-surface-variant);
+    font-size: 10px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.chart-bar {
+    fill: var(--primary);
+    rx: 4;
+    transition: width 0.5s ease-out;
+}
+
+.chart-bar-bg {
+    fill: var(--surface-variant);
+    rx: 4;
+}
+

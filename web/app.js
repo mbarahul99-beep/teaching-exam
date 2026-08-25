@@ -1220,6 +1220,155 @@ function updateProfileStats() {
         });
         container.appendChild(card);
     });
+
+    // Draw SVG charts
+    drawAnalyticsCharts();
+}
+
+function drawAnalyticsCharts() {
+    const trendSvg = document.getElementById("trend-line-chart");
+    const barSvg = document.getElementById("subject-bar-chart");
+    if (!trendSvg || !barSvg) return;
+
+    trendSvg.innerHTML = "";
+    barSvg.innerHTML = "";
+
+    const history = state.history || [];
+    
+    // --- 1. Draw Score Trend Line Chart ---
+    const trendData = [...history].reverse().slice(-5);
+    const points = trendData.length > 0 ? trendData.map(h => (h.marksObtained / h.totalMarks) * 100) : [60, 70, 65, 80, 75];
+    const labels = trendData.length > 0 ? trendData.map((_, i) => `T-${i+1}`) : ["T-1", "T-2", "T-3", "T-4", "T-5"];
+
+    const padding = 30;
+    const chartW = 500;
+    const chartH = 200;
+    const usableW = chartW - 2 * padding;
+    const usableH = chartH - 2 * padding;
+
+    // Draw Y-axis grid lines
+    const yTicks = [0, 25, 50, 75, 100];
+    yTicks.forEach(tick => {
+        const y = padding + usableH - (tick / 100) * usableH;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", padding);
+        line.setAttribute("y1", y);
+        line.setAttribute("x2", chartW - padding);
+        line.setAttribute("y2", y);
+        line.setAttribute("class", "chart-grid-line");
+        trendSvg.appendChild(line);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", padding - 8);
+        text.setAttribute("y", y + 4);
+        text.setAttribute("text-anchor", "end");
+        text.setAttribute("class", "chart-label");
+        text.textContent = `${tick}%`;
+        trendSvg.appendChild(text);
+    });
+
+    // Calculate Coordinates
+    const xStep = points.length > 1 ? usableW / (points.length - 1) : usableW;
+    const coords = points.map((p, i) => {
+        const x = padding + i * xStep;
+        const y = padding + usableH - (p / 100) * usableH;
+        return { x, y, val: p, label: labels[i] };
+    });
+
+    // Draw Path
+    if (coords.length > 0) {
+        let pathD = `M ${coords[0].x} ${coords[0].y}`;
+        for (let i = 1; i < coords.length; i++) {
+            pathD += ` L ${coords[i].x} ${coords[i].y}`;
+        }
+
+        const shadowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        shadowPath.setAttribute("d", pathD);
+        shadowPath.setAttribute("class", "chart-line-shadow");
+        trendSvg.appendChild(shadowPath);
+
+        const linePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        linePath.setAttribute("d", pathD);
+        linePath.setAttribute("class", "chart-line");
+        trendSvg.appendChild(linePath);
+    }
+
+    // Draw Points & X Labels
+    coords.forEach(pt => {
+        const circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circ.setAttribute("cx", pt.x);
+        circ.setAttribute("cy", pt.y);
+        circ.setAttribute("r", 5);
+        circ.setAttribute("class", "chart-point");
+        
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `${pt.val.toFixed(1)}%`;
+        circ.appendChild(title);
+        trendSvg.appendChild(circ);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", pt.x);
+        text.setAttribute("y", chartH - padding + 16);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("class", "chart-label");
+        text.textContent = pt.label;
+        trendSvg.appendChild(text);
+    });
+
+    // --- 2. Draw Subject Accuracy Bar Chart ---
+    const subjects = [
+        { name: "Pedagogy", accuracy: 84 },
+        { name: "Hindi", accuracy: 78 },
+        { name: "English", accuracy: 68 },
+        { name: "Maths", accuracy: 72 },
+        { name: "Science", accuracy: 65 }
+    ];
+
+    const barPaddingLeft = 90;
+    const barPaddingRight = 40;
+    const barPaddingTop = 15;
+    const barPaddingBottom = 15;
+    const barUsableW = chartW - barPaddingLeft - barPaddingRight;
+    const barUsableH = chartH - barPaddingTop - barPaddingBottom;
+    const barStepY = barUsableH / subjects.length;
+
+    subjects.forEach((subj, idx) => {
+        const y = barPaddingTop + idx * barStepY + (barStepY / 2);
+        
+        const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        labelText.setAttribute("x", barPaddingLeft - 10);
+        labelText.setAttribute("y", y + 4);
+        labelText.setAttribute("text-anchor", "end");
+        labelText.setAttribute("class", "chart-label");
+        labelText.setAttribute("style", "font-weight: 600;");
+        labelText.textContent = subj.name;
+        barSvg.appendChild(labelText);
+
+        const barBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        barBg.setAttribute("x", barPaddingLeft);
+        barBg.setAttribute("y", y - 6);
+        barBg.setAttribute("width", barUsableW);
+        barBg.setAttribute("height", 12);
+        barBg.setAttribute("class", "chart-bar-bg");
+        barSvg.appendChild(barBg);
+
+        const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        bar.setAttribute("x", barPaddingLeft);
+        bar.setAttribute("y", y - 6);
+        bar.setAttribute("width", (subj.accuracy / 100) * barUsableW);
+        bar.setAttribute("height", 12);
+        bar.setAttribute("class", "chart-bar");
+        bar.setAttribute("style", "fill: var(--primary);");
+        barSvg.appendChild(bar);
+
+        const valText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        valText.setAttribute("x", barPaddingLeft + (subj.accuracy / 100) * barUsableW + 8);
+        valText.setAttribute("y", y + 4);
+        valText.setAttribute("class", "chart-label");
+        valText.setAttribute("style", "font-weight: 700; fill: var(--primary);");
+        valText.textContent = `${subj.accuracy}%`;
+        barSvg.appendChild(valText);
+    });
 }
 
 // -------------------------------------------------------------
