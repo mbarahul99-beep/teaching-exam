@@ -23,7 +23,6 @@ import com.example.omrtestportal.shared.model.Exam
 import com.example.omrtestportal.shared.model.PDFNote
 import com.example.omrtestportal.shared.model.Test
 import com.example.omrtestportal.TestDetails
-import com.example.omrtestportal.PDFNoteCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
