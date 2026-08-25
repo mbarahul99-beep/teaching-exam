@@ -82,7 +82,7 @@ fun ExamsListScreen(
                         ) {
                             rowExams.forEach { exam ->
                                 ExamListItem(exam = exam, onClick = {
-                                    onNavigate(TestSeriesCatalog)
+                                    onNavigate(com.example.omrtestportal.ExamDetails(exam.id))
                                 })
                             }
                             if (rowExams.size < 2) {

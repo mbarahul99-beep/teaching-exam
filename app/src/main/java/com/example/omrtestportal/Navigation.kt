@@ -111,6 +111,13 @@ fun MainNavigation() {
             onBack = { backStack.removeLastOrNull() }
           )
         }
+        entry<ExamDetails> { key ->
+          ExamDetailsScreen(
+            examId = key.examId,
+            onNavigate = { navKey -> backStack.add(navKey) },
+            onBack = { backStack.removeLastOrNull() }
+          )
+        }
       },
   )
 }

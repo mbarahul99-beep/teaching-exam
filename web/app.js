@@ -201,7 +201,8 @@ function navigateTo(screenId) {
         "omr-scanner": "OMR Scanner Feed",
         "omr-result": "Grader Scorecard",
         "profile": "Student Dashboard",
-        "test-details": "Mock Test Details"
+        "test-details": "Mock Test Details",
+        "exam-details": state.activeExam ? state.activeExam.shortName + " Exam Details" : "Exam Details"
     };
     
     document.getElementById("header-title").innerText = titleMap[screenId] || "OMR Prep Portal";
@@ -227,9 +228,7 @@ function renderHomeExams() {
             </div>
         `;
         div.addEventListener("click", () => {
-            state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];
-            navigateTo("test-series-details");
-            renderTestSeriesDetails();
+            showExamDetails(exam);
         });
         container.appendChild(div);
     });
@@ -329,12 +328,169 @@ function renderExamsGrid() {
             </div>
         `;
         card.addEventListener("click", () => {
-            state.activeSeries = DB.testSeries.find(ts => ts.examId === exam.id) || DB.testSeries[0];
-            navigateTo("test-series-details");
-            renderTestSeriesDetails();
+            showExamDetails(exam);
         });
         container.appendChild(card);
     });
+}
+
+function showExamDetails(exam) {
+    state.activeExam = exam;
+    
+    // Fill title
+    document.getElementById("exam-details-title").innerText = exam.title;
+
+    // Get tab content elements
+    const tabMocks = document.getElementById("exam-tab-mocks");
+    const tabNotes = document.getElementById("exam-tab-notes");
+    const tabPyqs = document.getElementById("exam-tab-pyqs");
+
+    // Default to mocks tab
+    document.querySelectorAll(".exam-sub-tab").forEach(btn => {
+        const isMocks = btn.getAttribute("data-tab") === "mocks";
+        btn.className = `exam-sub-tab ${isMocks ? 'active' : ''}`;
+        btn.style.backgroundColor = isMocks ? "var(--surface)" : "transparent";
+        btn.style.color = isMocks ? "var(--primary)" : "var(--on-surface-variant)";
+    });
+    
+    tabMocks.style.display = "block";
+    tabNotes.style.display = "none";
+    tabPyqs.style.display = "none";
+
+    // 1. Render Mock Tests for this exam
+    const mocksContainer = document.getElementById("exam-details-mocks-list");
+    mocksContainer.innerHTML = "";
+    
+    // Find all tests of any test series belonging to this exam
+    const examSeriesList = DB.testSeries.filter(ts => ts.examId === exam.id);
+    let testsCount = 0;
+    
+    examSeriesList.forEach(series => {
+        series.tests.forEach(test => {
+            testsCount++;
+            const card = document.createElement("div");
+            card.className = "individual-test-card";
+            card.style.cursor = "pointer";
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
+                    <i class="fa-solid fa-chevron-right text-primary"></i>
+                </div>
+                <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
+                    <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
+                    <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
+                </div>
+            `;
+            card.addEventListener("click", () => {
+                showTestDetails(test);
+            });
+            mocksContainer.appendChild(card);
+        });
+    });
+
+    if (testsCount === 0) {
+        mocksContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No mock tests currently available for this exam.</span>`;
+    }
+
+    // 2. Render PDF Notes for this exam
+    const notesContainer = document.getElementById("exam-details-notes-list");
+    notesContainer.innerHTML = "";
+    
+    // Filter notes matching exam subjects
+    let relatedNotes = [];
+    if (exam.id === "ctet") {
+        relatedNotes = DB.pdfNotes.filter(n => ["Hindi", "History"].includes(n.subject));
+    } else if (exam.id === "ugc_net" || exam.id === "ugc-net") {
+        relatedNotes = DB.pdfNotes.filter(n => ["Political Science", "Maths", "Science"].includes(n.subject));
+    } else {
+        relatedNotes = DB.pdfNotes.filter(n => ["History", "Geography", "Hindi"].includes(n.subject));
+    }
+
+    if (relatedNotes.length === 0) {
+        notesContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px; grid-column: span 2;">No study notes currently available for this exam.</span>`;
+    } else {
+        relatedNotes.forEach(note => {
+            const isDownloaded = state.downloadedNotes[note.id];
+            const card = document.createElement("div");
+            card.className = "note-item-card";
+            card.style.margin = "0"; // Reset margins for grid spacing
+            
+            const btnHtml = isDownloaded 
+                ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-book-open"></i> View</button>`
+                : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-download"></i></button>`;
+
+            card.innerHTML = `
+                <div class="note-info" style="flex: 1;">
+                    <h4 style="font-size: 13px; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${note.title}</h4>
+                    <div class="note-metadata" style="display: flex; gap: 8px; font-size: 10px;">
+                        <span class="note-tag" style="background-color: var(--surface-variant); color: var(--primary); padding: 2px 6px; border-radius: 4px;">${note.subject}</span>
+                        <span class="note-size">${note.sizeMb} MB</span>
+                    </div>
+                </div>
+                <div class="note-action" style="margin-left: 8px;">
+                    ${btnHtml}
+                </div>
+            `;
+
+            const actionBtn = card.querySelector("button");
+            actionBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (isDownloaded) {
+                    openPdfReader(note);
+                } else {
+                    actionBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                    actionBtn.disabled = true;
+                    setTimeout(() => {
+                        state.downloadedNotes[note.id] = true;
+                        showExamDetails(exam); // refresh list
+                    }, 1200);
+                }
+            });
+            notesContainer.appendChild(card);
+        });
+    }
+
+    // 3. Render PYQs for this exam
+    const pyqsContainer = document.getElementById("exam-details-pyqs-list");
+    pyqsContainer.innerHTML = "";
+    
+    // We treat one of the mock tests (e.g. the last test or test-03) as the PYQ solved paper
+    let pyqCount = 0;
+    examSeriesList.forEach(series => {
+        series.tests.forEach((test, idx) => {
+            // For CTET, let's treat Test 03 as PYQ. For others, let's treat the second test as PYQ!
+            if ((exam.id === "ctet" && idx === 2) || (exam.id !== "ctet" && idx === 1)) {
+                pyqCount++;
+                const card = document.createElement("div");
+                card.className = "individual-test-card";
+                card.style.cursor = "pointer";
+                
+                // Add a badge indicating it's a solved paper
+                const pyqYear = exam.id === "ctet" ? "2024 Solved" : "2023 Solved";
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title.replace("Test 03", "PYQ " + pyqYear).replace("Test 02", "PYQ " + pyqYear)}</h4>
+                        <i class="fa-solid fa-chevron-right text-primary"></i>
+                    </div>
+                    <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
+                        <span style="background-color: #e6f4ea; color: #137333; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Solved PYQ</span>
+                        <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
+                        <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
+                    </div>
+                `;
+                card.addEventListener("click", () => {
+                    showTestDetails(test);
+                });
+                pyqsContainer.appendChild(card);
+            }
+        });
+    });
+
+    if (pyqCount === 0) {
+        pyqsContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No Previous Year Papers solved sets available for this exam.</span>`;
+    }
+
+    navigateTo("exam-details");
 }
 
 // Render PDF Notes Library
@@ -1669,7 +1825,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("details-back-btn").addEventListener("click", () => {
-        navigateTo("test-series-details");
+        if (state.activeExam) {
+            showExamDetails(state.activeExam);
+        } else {
+            navigateTo("home");
+        }
+    });
+
+    document.getElementById("exam-details-back-btn").addEventListener("click", () => {
+        navigateTo("home");
+    });
+
+    // Sub tab switching
+    document.querySelectorAll(".exam-sub-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            const activeTab = tab.getAttribute("data-tab");
+            
+            // Toggle active tabs buttons style
+            document.querySelectorAll(".exam-sub-tab").forEach(btn => {
+                const isSelected = btn.getAttribute("data-tab") === activeTab;
+                btn.className = `exam-sub-tab ${isSelected ? 'active' : ''}`;
+                btn.style.backgroundColor = isSelected ? "var(--surface)" : "transparent";
+                btn.style.color = isSelected ? "var(--primary)" : "var(--on-surface-variant)";
+            });
+
+            // Toggle active lists
+            document.getElementById("exam-tab-mocks").style.display = activeTab === "mocks" ? "block" : "none";
+            document.getElementById("exam-tab-notes").style.display = activeTab === "notes" ? "block" : "none";
+            document.getElementById("exam-tab-pyqs").style.display = activeTab === "pyqs" ? "block" : "none";
+        });
     });
 
     document.getElementById("review-back-btn").addEventListener("click", () => {

@@ -126,6 +126,42 @@
                     </div>
                 </section>
 
+                <!-- Exam Details Screen with tabs: Mock Tests, Notes, PYQs -->
+                <section id="screen-exam-details" class="app-screen">
+                    <div class="screen-header">
+                        <button class="icon-back-btn" id="exam-details-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                        <h2 id="exam-details-title">Exam Details</h2>
+                    </div>
+                    
+                    <!-- Tab options bar -->
+                    <div class="exam-sub-tabs" style="display: flex; background-color: var(--surface-variant); border-radius: 8px; padding: 4px; border: 1px solid var(--outline);">
+                        <button class="exam-sub-tab active" data-tab="mocks" style="flex: 1; padding: 10px; border: none; background-color: var(--surface); color: var(--primary); font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s;">Mock Tests</button>
+                        <button class="exam-sub-tab" data-tab="notes" style="flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 6px; cursor: pointer; color: var(--on-surface-variant); font-size: 13px; transition: all 0.2s;">Notes</button>
+                        <button class="exam-sub-tab" data-tab="pyqs" style="flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 6px; cursor: pointer; color: var(--on-surface-variant); font-size: 13px; transition: all 0.2s;">PYQs</button>
+                    </div>
+
+                    <!-- Mock Tests List Section -->
+                    <div id="exam-tab-mocks" class="exam-tab-content">
+                        <div class="tests-list" id="exam-details-mocks-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Notes List Section -->
+                    <div id="exam-tab-notes" class="exam-tab-content" style="display: none;">
+                        <div class="notes-grid" id="exam-details-notes-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- PYQs List Section -->
+                    <div id="exam-tab-pyqs" class="exam-tab-content" style="display: none;">
+                        <div class="tests-list" id="exam-details-pyqs-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 4. Test Series Catalog Screen -->
                 <section id="screen-test-series-catalog" class="app-screen">
                     <div class="screen-header">

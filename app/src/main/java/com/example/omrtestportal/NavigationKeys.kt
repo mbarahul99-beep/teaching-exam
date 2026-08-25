@@ -39,3 +39,6 @@ data class TestReview(val attemptId: String) : NavKey
 @Serializable
 data class TestDetails(val testId: String) : NavKey
 
+@Serializable
+data class ExamDetails(val examId: String) : NavKey
+

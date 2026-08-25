@@ -43,7 +43,7 @@ fun HomeScreen(
             ExamsSection(
                 exams = MockDatabase.exams,
                 onExamClick = { exam ->
-                    onNavigate(TestSeriesCatalog)
+                    onNavigate(ExamDetails(exam.id))
                 },
                 onViewAllClick = { onNavigate(ExamsList) }
             )
