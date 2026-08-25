@@ -43,29 +43,24 @@ fun LeaderboardScreen(
     // Retrieve active user's stats dynamically
     val attempts = MockDatabase.attemptHistory
     val count = attempts.size
-    val avg = if (count > 0) {
-        val totalM = attempts.sumOf { it.totalMarks }
-        val marksO = attempts.sumOf { it.marksObtained }
-        if (totalM > 0) (marksO / totalM) * 100 else 74.2
-    } else {
-        74.2
-    }
+    val correctCount = attempts.sumOf { it.correctAnswers }
+    val amitXP = (count * 100) + (correctCount * 10) + (if (count > 0) 1200 else 850)
 
     // Leaderboard dataset
-    val mockUsers = remember(avg, count) {
+    val mockUsers = remember(amitXP, count) {
         mutableStateListOf(
-            LeaderboardUser("Pooja Sharma", 96.5, 28, "ctet"),
-            LeaderboardUser("Rahul Verma", 94.2, 30, "ugc-net"),
-            LeaderboardUser("Siddharth Rao", 91.0, 25, "ctet"),
-            LeaderboardUser("Vikram Malhotra", 88.5, 22, "ctet"),
-            LeaderboardUser("Neha Deshmukh", 85.0, 27, "ugc-net"),
-            LeaderboardUser("Aditya Roy", 82.3, 20, "ctet"),
-            LeaderboardUser("Meera Nair", 79.8, 24, "ugc-net"),
-            LeaderboardUser("Suresh Patil", 72.0, 18, "ugc-net"),
-            LeaderboardUser("Kirti Sen", 68.4, 15, "ctet"),
+            LeaderboardUser("Pooja Sharma", 3040.0, 28, "ctet"),
+            LeaderboardUser("Rahul Verma", 3280.0, 30, "ugc-net"),
+            LeaderboardUser("Siddharth Rao", 2680.0, 25, "ctet"),
+            LeaderboardUser("Vikram Malhotra", 2350.0, 22, "ctet"),
+            LeaderboardUser("Neha Deshmukh", 2910.0, 27, "ugc-net"),
+            LeaderboardUser("Aditya Roy", 2120.0, 20, "ctet"),
+            LeaderboardUser("Meera Nair", 2560.0, 24, "ugc-net"),
+            LeaderboardUser("Suresh Patil", 1890.0, 18, "ugc-net"),
+            LeaderboardUser("Kirti Sen", 1560.0, 15, "ctet"),
             LeaderboardUser(
                 name = "Amit Sharma",
-                score = Math.round(avg * 10.0) / 10.0,
+                score = amitXP.toDouble(),
                 attempted = if (count > 0) count else 12,
                 group = "ctet",
                 isCurrentUser = true
@@ -184,7 +179,7 @@ fun LeaderboardScreen(
                             )
                             val userCount = if (count > 0) count else 12
                             Text(
-                                text = String.format("Avg Accuracy: %.1f%% | %d Tests", avg, userCount),
+                                text = "Total Score: ${amitXP} XP | $userCount Tests",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
@@ -289,7 +284,7 @@ fun PodiumCol(
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "${user.score}%",
+            text = "${user.score.toInt()} XP",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             fontWeight = FontWeight.SemiBold
@@ -380,7 +375,7 @@ fun RankRowItem(rank: Int, user: LeaderboardUser) {
                 }
             }
             Text(
-                text = "${user.score}%",
+                text = "${user.score.toInt()} XP",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary

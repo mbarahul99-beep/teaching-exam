@@ -11,11 +11,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
@@ -255,7 +258,7 @@ fun ProfileAnalyticsSection(attempts: List<AttemptRecord>) {
     // Scores percentages
     val scores = remember(trendData) {
         if (trendData.isNotEmpty()) {
-            trendData.map { (it.marksObtained / it.totalMarks) * 100 }
+            trendData.map { record: AttemptRecord -> (record.marksObtained / record.totalMarks) * 100 }
         } else {
             listOf(60.0, 70.0, 65.0, 80.0, 75.0) // mock defaults
         }
@@ -308,8 +311,8 @@ fun ProfileAnalyticsSection(attempts: List<AttemptRecord>) {
                         val y = padding + usableH - (tick / 100f) * usableH
                         drawLine(
                             color = outlineColor,
-                            start = androidx.compose.ui.geometry.Offset(padding, y),
-                            end = androidx.compose.ui.geometry.Offset(w - padding, y),
+                            start = Offset(padding, y),
+                            end = Offset(w - padding, y),
                             strokeWidth = 1f,
                             pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                         )
@@ -317,10 +320,10 @@ fun ProfileAnalyticsSection(attempts: List<AttemptRecord>) {
                     
                     // Coordinates mapping
                     val xStep = if (scores.size > 1) usableW / (scores.size - 1) else usableW
-                    val coords = scores.mapIndexed { idx, pct ->
+                    val coords = scores.mapIndexed { idx: Int, pct: Double ->
                         val x = padding + idx * xStep
                         val y = padding + usableH - (pct.toFloat() / 100f) * usableH
-                        androidx.compose.ui.geometry.Offset(x, y)
+                        Offset(x, y)
                     }
                     
                     // Draw Line Path
@@ -342,7 +345,7 @@ fun ProfileAnalyticsSection(attempts: List<AttemptRecord>) {
                     }
                     
                     // Draw Points
-                    coords.forEach { pt ->
+                    coords.forEach { pt: Offset ->
                         drawCircle(
                             color = primaryColor,
                             center = pt,

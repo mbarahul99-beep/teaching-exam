@@ -202,7 +202,10 @@
                                 <i class="fa-solid fa-file-pdf"></i>
                                 <span>Question Paper PDF</span>
                             </div>
-                            <button id="btn-download-paper" class="btn-download"><i class="fa-solid fa-download"></i></button>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="btn-preview-paper" class="btn-download" style="background-color: var(--primary-container); color: var(--primary);" title="Preview In-App"><i class="fa-solid fa-eye"></i></button>
+                                <button id="btn-download-paper" class="btn-download"><i class="fa-solid fa-download"></i></button>
+                            </div>
                         </div>
                         <div class="download-row">
                             <div class="download-info">
@@ -212,7 +215,21 @@
                             <button id="btn-download-omr" class="btn-download"><i class="fa-solid fa-download"></i></button>
                         </div>
                     </div>
-                    <button id="start-scan-btn" class="primary-action-btn"><i class="fa-solid fa-camera"></i> Open OMR Camera Scanner</button>
+
+                    <!-- Inline PDF Viewer Container -->
+                    <div id="omr-pdf-viewer-container" class="pdf-viewer-pane" style="display: none; margin-top: 16px; border: 1px solid var(--outline); border-radius: var(--border-radius-md); overflow: hidden; background-color: var(--surface);">
+                        <div style="background-color: var(--surface-variant); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline);">
+                            <span style="font-weight: 700; font-size: 13px; color: var(--on-surface-variant);"><i class="fa-solid fa-file-pdf text-primary"></i> Question Paper Reader</span>
+                            <button id="close-pdf-viewer-btn" style="background: none; border: none; font-size: 16px; cursor: pointer; color: var(--on-surface-variant);"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div id="pdf-viewer-frame-box" style="height: 300px; width: 100%;">
+                            <div id="pdf-mock-viewer" style="height: 100%; overflow-y: scroll; padding: 16px; font-size: 13px; line-height: 1.6; color: var(--on-surface); background-color: var(--surface-variant); text-align: left;">
+                                <!-- Questions list injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="start-scan-btn" class="primary-action-btn" style="margin-top: 16px;"><i class="fa-solid fa-camera"></i> Open OMR Camera Scanner</button>
                 </section>
 
                 <!-- 8. Live OMR Scanner Screen (Camera Access) -->
@@ -257,7 +274,9 @@
                         <span class="score-label">Score Obtained</span>
                         <h1 id="result-score-value" class="score-display">24 / 30</h1>
                         <span id="result-percentage" class="percentage-display">Percentage: 80.0%</span>
-                        <span id="result-mode-badge" class="mode-badge">OMR Attempt</span>
+                        <div id="result-percentile-box" style="font-size: 12px; font-weight: 700; color: var(--primary); margin-top: 8px; background-color: var(--primary-container); padding: 4px 12px; border-radius: 12px; display: inline-block; border: 1px solid var(--outline);">Percentile: 92.4% (Top 7.6%)</div>
+                        <br>
+                        <span id="result-mode-badge" class="mode-badge" style="margin-top: 8px; display: inline-block;">OMR Attempt</span>
                     </div>
 
                     <div class="score-breakdown-card">
@@ -305,7 +324,22 @@
                             <span class="review-chip skipped"><i class="fa-solid fa-minus"></i> <span id="rev-skipped-count">0</span> Skipped</span>
                             <span class="review-chip double"><i class="fa-solid fa-exclamation"></i> <span id="rev-double-count">0</span> Double</span>
                         </div>
+                        <button id="btn-review-preview-paper" class="primary-action-btn" style="margin-top: 12px; font-size: 12px; padding: 8px 12px; background-color: var(--primary-container); color: var(--primary);"><i class="fa-solid fa-file-pdf"></i> View Question Paper</button>
                     </div>
+
+                    <!-- Toggleable Question Paper Reader inside Review Mode -->
+                    <div id="review-pdf-viewer-container" style="display: none; margin-bottom: 16px; border: 1px solid var(--outline); border-radius: var(--border-radius-md); overflow: hidden; background-color: var(--surface);">
+                        <div style="background-color: var(--surface-variant); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline);">
+                            <span style="font-weight: 700; font-size: 13px; color: var(--on-surface-variant);"><i class="fa-solid fa-file-pdf text-primary"></i> Question Paper Reader</span>
+                            <button id="close-review-pdf-btn" style="background: none; border: none; font-size: 16px; cursor: pointer; color: var(--on-surface-variant);"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div style="height: 300px; width: 100%;">
+                            <div id="review-pdf-mock-viewer" style="height: 100%; overflow-y: scroll; padding: 16px; font-size: 13px; line-height: 1.6; color: var(--on-surface); background-color: var(--surface-variant); text-align: left;">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="review-questions-container" id="review-questions-list">
                         <!-- Dynamically injected card list -->
                     </div>

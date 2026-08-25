@@ -54,6 +54,7 @@ fun TestReviewScreen(
     val doubleMarkedCount = remember(record) {
         record.bubbleMap.values.count { it == "MULTIPLE" }
     }
+    var showPaperSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -98,6 +99,17 @@ fun TestReviewScreen(
                         ReviewChip(label = "Skipped", count = record.skippedAnswers, color = Color.Gray, modifier = Modifier.weight(1f))
                         ReviewChip(label = "Double", count = doubleMarkedCount, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(1f))
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { showPaperSheet = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                    ) {
+                        Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("View Question Paper", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
@@ -119,6 +131,87 @@ fun TestReviewScreen(
                         submitted = submitted,
                         isPedagogy = isPedagogy
                     )
+                }
+            }
+            
+            if (showPaperSheet && test != null) {
+                ModalBottomSheet(
+                    onDismissRequest = { showPaperSheet = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Question Paper Reader",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            IconButton(onClick = { showPaperSheet = false }) {
+                                Icon(Icons.Default.Close, contentDescription = "Close")
+                            }
+                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        
+                        val mockPrompts = listOf(
+                            "Which of the following is a primary agent of socialization?" to listOf("Family", "School", "Peer Group", "Media"),
+                            "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?" to listOf("Sensorimotor Stage", "Preoperational Stage", "Concrete Operational Stage", "Formal Operational Stage"),
+                            "Vygotsky's concept of the 'Zone of Proximal Development' emphasizes:" to listOf("Cooperative learning", "Rote memorization", "Social interaction scaffolding", "Independent exploration"),
+                            "Which learning style learns best through hands-on activities and physical motion?" to listOf("Visual learning", "Auditory learning", "Kinesthetic learning", "Read/Write learning"),
+                            "Formative assessment is primarily used for?" to listOf("Grading students", "Comparing students", "Improving instruction and learning", "Conducting final examinations")
+                        )
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(bottom = 32.dp)
+                        ) {
+                            item {
+                                Text(
+                                    text = test.title,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Full Marks: ${test.totalMarks} | Duration: ${test.durationMinutes} Mins",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            
+                            items(test.totalQuestions) { index ->
+                                val prompt = mockPrompts[index % mockPrompts.size]
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Text(
+                                        text = "Q.${index + 1} ${prompt.first}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    prompt.second.forEachIndexed { optIdx, opt ->
+                                        val letter = ('A'.toInt() + optIdx).toChar()
+                                        Text(
+                                            text = "$letter. $opt",
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                            modifier = Modifier.padding(start = 12.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -293,10 +386,16 @@ fun QuestionReviewCard(
                             )
                         }
                         Spacer(modifier = Modifier.width(12.dp))
+                        val suffixText = when {
+                            isCorrect -> " (Correct Answer)"
+                            isSelected && !isCorrect -> " (Your Choice)"
+                            else -> ""
+                        }
                         Text(
-                            text = "Option $opt description text",
+                            text = "Option $opt$suffixText",
                             fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = if (isCorrect || isSelected) FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 }

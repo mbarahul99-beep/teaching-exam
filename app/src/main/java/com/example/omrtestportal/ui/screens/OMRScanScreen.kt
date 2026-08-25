@@ -51,6 +51,7 @@ fun OMRScanPrepScreen(
 
     var isPaperDownloaded by remember { mutableStateOf(false) }
     var isOmrDownloaded by remember { mutableStateOf(false) }
+    var showPaperSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -115,7 +116,8 @@ fun OMRScanPrepScreen(
                 DownloadRow(
                     title = "Question Paper PDF",
                     isDownloaded = isPaperDownloaded,
-                    onDownload = { isPaperDownloaded = true }
+                    onDownload = { isPaperDownloaded = true },
+                    onPreview = { showPaperSheet = true }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 DownloadRow(
@@ -136,6 +138,87 @@ fun OMRScanPrepScreen(
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Open OMR Camera Scanner", fontSize = 16.sp)
+            }
+        }
+
+        if (showPaperSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showPaperSheet = false },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Question Paper Reader",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        IconButton(onClick = { showPaperSheet = false }) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    
+                    val mockPrompts = listOf(
+                        "Which of the following is a primary agent of socialization for children?" to listOf("Family", "School", "Peer Group", "Media"),
+                        "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?" to listOf("Sensorimotor Stage", "Preoperational Stage", "Concrete Operational Stage", "Formal Operational Stage"),
+                        "In the context of progressive education, which of the following statements is correct?" to listOf("Students should be active problem solvers.", "Classrooms should be democratic.", "Emphasis is on rote memory.", "Both A and B"),
+                        "A child learns that a dog has four legs, fur, and barks. When he sees a cat, he calls it a dog. This is an example of:" to listOf("Assimilation", "Accommodation", "Schema", "Conservation"),
+                        "Which learning theorist proposed the concept of 'Zone of Proximal Development' (ZPD)?" to listOf("Lev Vygotsky", "B.F. Skinner", "Albert Bandura", "Jerome Bruner")
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 32.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = test.title,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Full Marks: ${test.totalMarks} | Duration: ${test.durationMins} Mins",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        
+                        items(test.totalQuestions) { index ->
+                            val prompt = mockPrompts[index % mockPrompts.size]
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = "Q.${index + 1} ${prompt.first}",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                prompt.second.forEachIndexed { optIdx, opt ->
+                                    val letter = ('A'.toInt() + optIdx).toChar()
+                                    Text(
+                                        text = "$letter. $opt",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                        modifier = Modifier.padding(start = 12.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -171,7 +254,8 @@ fun StepItem(number: Int, text: String) {
 fun DownloadRow(
     title: String,
     isDownloaded: Boolean,
-    onDownload: () -> Unit
+    onDownload: () -> Unit,
+    onPreview: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -185,7 +269,10 @@ fun DownloadRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
                     imageVector = if (isDownloaded) Icons.Default.CheckCircle else Icons.Default.Description,
                     contentDescription = null,
@@ -194,11 +281,19 @@ fun DownloadRow(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
-            if (isDownloaded) {
-                Text("Downloaded", fontSize = 12.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
-            } else {
-                IconButton(onClick = onDownload) {
-                    Icon(Icons.Default.Download, contentDescription = "Download")
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onPreview != null) {
+                    IconButton(onClick = onPreview) {
+                        Icon(Icons.Default.Visibility, contentDescription = "Preview", tint = MaterialTheme.colorScheme.primary)
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                if (isDownloaded) {
+                    Text("Downloaded", fontSize = 12.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                } else {
+                    IconButton(onClick = onDownload) {
+                        Icon(Icons.Default.Download, contentDescription = "Download")
+                    }
                 }
             }
         }
@@ -461,12 +556,28 @@ fun OMRResultScreen(
                             )
                             
                             val scorePct = (record.marksObtained / record.totalMarks) * 100
+                            val percentile = (scorePct * 0.95 + 4.2).coerceIn(12.4, 99.6)
+                            val topPercent = 100.0 - percentile
                             Text(
                                 text = String.format("Percentage: %.1f%%", scorePct),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            ) {
+                                Text(
+                                    text = String.format("Percentile: %.1f%% (Top %.1f%%)", percentile, topPercent),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
                             Spacer(modifier = Modifier.height(10.dp))
                             SuggestionChip(
                                 onClick = {},
