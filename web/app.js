@@ -1548,6 +1548,139 @@ function renderMockQuestionPaper(test) {
 }
 
 // Camera Access Setup
+let stableFrames = 0;
+let lockStartTime = null;
+let prevCorners = null;
+let isAnalysisRunning = false;
+let analysisFrameId = null;
+
+function runCameraAnalysisLoop() {
+    if (!state.videoStream) {
+        isAnalysisRunning = false;
+        return;
+    }
+
+    const video = document.getElementById("webcam-feed");
+    const canvas = document.getElementById("scanner-canvas");
+    if (!video || !canvas) {
+        analysisFrameId = requestAnimationFrame(runCameraAnalysisLoop);
+        return;
+    }
+
+    if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+        const vW = video.videoWidth;
+        const vH = video.videoHeight;
+
+        if (canvas.width !== vW || canvas.height !== vH) {
+            canvas.width = vW;
+            canvas.height = vH;
+        }
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+            ctx.clearRect(0, 0, vW, vH);
+
+            // Run OMR corner detection if OpenCV and helper are loaded
+            if (window.cv && typeof window.cv === 'object' && typeof window.findOMRSheetCornersLive === 'function') {
+                try {
+                    const corners = window.findOMRSheetCornersLive(video);
+                    if (corners && corners.length === 4) {
+                        // 1. Draw bounding green OMR sheet polygon
+                        ctx.beginPath();
+                        ctx.moveTo(corners[0].x, corners[0].y);
+                        ctx.lineTo(corners[1].x, corners[1].y);
+                        ctx.lineTo(corners[2].x, corners[2].y);
+                        ctx.lineTo(corners[3].x, corners[3].y);
+                        ctx.closePath();
+                        
+                        ctx.strokeStyle = '#10b981'; // glowing emerald green
+                        ctx.lineWidth = 6;
+                        ctx.lineJoin = 'round';
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+                        ctx.fill();
+                        
+                        // 2. Draw 4 corner tracker dots
+                        corners.forEach(pt => {
+                            ctx.beginPath();
+                            ctx.arc(pt.x, pt.y, 12, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#10b981';
+                            ctx.fill();
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.lineWidth = 3;
+                            ctx.stroke();
+                        });
+
+                        // 3. Motion stability evaluation
+                        let isMoving = false;
+                        if (prevCorners && prevCorners.length === 4) {
+                            let totalDistance = 0;
+                            for (let i = 0; i < 4; i++) {
+                                const dx = corners[i].x - prevCorners[i].x;
+                                const dy = corners[i].y - prevCorners[i].y;
+                                totalDistance += Math.sqrt(dx * dx + dy * dy);
+                            }
+                            const avgDistance = totalDistance / 4;
+                            if (avgDistance > 6) {
+                                isMoving = true;
+                            }
+                        }
+                        prevCorners = corners;
+
+                        if (isMoving) {
+                            stableFrames = 0;
+                            lockStartTime = null;
+                            document.getElementById("scanner-status-text").innerText = "Hold steady... scanning";
+                        } else {
+                            if (lockStartTime === null) {
+                                lockStartTime = Date.now();
+                            }
+
+                            const elapsed = Date.now() - lockStartTime;
+                            const progress = Math.min(1.0, elapsed / 1000); // 1-second hold lock
+
+                            // Render circular progress countdown inside viewport center
+                            const cx = vW / 2;
+                            const cy = vH / 2;
+                            const r = 40;
+
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                            ctx.lineWidth = 8;
+                            ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + progress * 2 * Math.PI);
+                            ctx.strokeStyle = '#10b981';
+                            ctx.lineWidth = 8;
+                            ctx.lineCap = 'round';
+                            ctx.stroke();
+
+                            if (progress >= 1.0) {
+                                // Auto-capture lock!
+                                lockStartTime = null;
+                                prevCorners = null;
+                                stopCamera();
+                                simulateOmrScan(); // grade scanned frames
+                                return;
+                            }
+                        }
+                    } else {
+                        lockStartTime = null;
+                        document.getElementById("scanner-status-text").innerText = "Align the 4 corner marks in frame";
+                    }
+                } catch (err) {
+                    console.warn("Live OMR tracker exception:", err);
+                }
+            }
+        }
+    }
+
+    analysisFrameId = requestAnimationFrame(runCameraAnalysisLoop);
+}
+
 async function startCamera() {
     const video = document.getElementById("webcam-feed");
     if (!video) return;
@@ -1562,6 +1695,14 @@ async function startCamera() {
         video.setAttribute("playsinline", true);
         video.play();
         document.getElementById("scanner-status-text").innerText = "Webcam aligned. Position OMR sheet.";
+        
+        // Start live scanner analysis loop
+        if (!isAnalysisRunning) {
+            isAnalysisRunning = true;
+            lockStartTime = null;
+            prevCorners = null;
+            analysisFrameId = requestAnimationFrame(runCameraAnalysisLoop);
+        }
     } catch (err) {
         console.error("Camera access error:", err);
         // Fallback for developer simulation without camera hardware:
@@ -1576,6 +1717,20 @@ function stopCamera() {
     }
     const video = document.getElementById("webcam-feed");
     if (video) video.srcObject = null;
+    
+    // Stop corner tracking loops
+    if (analysisFrameId) {
+        cancelAnimationFrame(analysisFrameId);
+        analysisFrameId = null;
+    }
+    isAnalysisRunning = false;
+    
+    // Clear overlay canvas
+    const canvas = document.getElementById("scanner-canvas");
+    if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
 // Simulating the OMR Scanning progress bar
