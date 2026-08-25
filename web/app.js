@@ -76,6 +76,7 @@ function initDatabase() {
     DB.pdfNotes = JSON.parse(localStorage.getItem("adm_pdf_notes")) || [...DEFAULT_DB.pdfNotes];
     DB.testSeries = JSON.parse(localStorage.getItem("adm_test_series")) || [...DEFAULT_DB.testSeries];
     DB.updates = JSON.parse(localStorage.getItem("adm_updates")) || [...DEFAULT_DB.updates];
+    DB.defaultAttempts = [...DEFAULT_DB.defaultAttempts];
     
     // Save defaults back to storage if empty
     if (!localStorage.getItem("adm_exams")) localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
@@ -120,7 +121,7 @@ function initAppState() {
     if (stored) {
         state.history = JSON.parse(stored);
     } else {
-        state.history = [...DB.defaultAttempts];
+        state.history = [...(DB.defaultAttempts || DEFAULT_DB.defaultAttempts || [])];
         localStorage.setItem("omr_test_history", JSON.stringify(state.history));
     }
 }
