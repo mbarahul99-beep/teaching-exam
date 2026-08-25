@@ -181,6 +181,16 @@ function navigateTo(screenId) {
 
     state.currentScreen = screenId;
     
+    // Toggle main sticky app-footer visibility on full screen views
+    const appFooter = document.querySelector(".app-footer");
+    if (appFooter) {
+        if (screenId === "omr-scanner" || screenId === "online-test-player") {
+            appFooter.style.setProperty("display", "none", "important");
+        } else {
+            appFooter.style.setProperty("display", "flex", "important");
+        }
+    }
+
     // Toggle active screen visibility
     document.querySelectorAll(".app-screen").forEach(screen => {
         screen.classList.remove("active");
