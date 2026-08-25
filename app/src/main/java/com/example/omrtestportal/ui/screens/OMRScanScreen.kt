@@ -241,15 +241,16 @@ fun OMRScannerScreen(
 
             // Simulate student filling answers:
             // 80% answered correct, some incorrect, some skipped.
-            val options = listOf("A", "B", "C", "D", "None")
+            val options = listOf("A", "B", "C", "D", "None", "MULTIPLE")
             val submission = test.answerKey.mapValues { (qNo, correctOpt) ->
                 val roll = (1..100).random()
                 when {
                     roll <= 75 -> correctOpt // Correct
-                    roll <= 92 -> {
+                    roll <= 90 -> {
                         // Incorrect option
-                        options.filter { it != correctOpt && it != "None" }.random()
+                        options.filter { it != correctOpt && it != "None" && it != "MULTIPLE" }.random()
                     }
+                    roll <= 95 -> "MULTIPLE" // Double marked / Smudge!
                     else -> "None" // Skipped
                 }
             }
@@ -388,6 +389,9 @@ fun OMRResultScreen(
     val record = remember(attemptId) {
         MockDatabase.attemptHistory.firstOrNull { it.id == attemptId }
     }
+    val doubleMarkedCount = remember(record) {
+        record?.bubbleMap?.values?.count { it == "MULTIPLE" } ?: 0
+    }
 
     if (record == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -506,6 +510,13 @@ fun OMRResultScreen(
                                 value = "${record.skippedAnswers}",
                                 color = Color.Gray,
                                 icon = Icons.Default.RemoveCircle
+                            )
+                            Divider(modifier = Modifier.padding(vertical = 8.dp))
+                            ScoreStatRow(
+                                label = "Double Marked (Smudge)",
+                                value = "$doubleMarkedCount",
+                                color = MaterialTheme.colorScheme.tertiary,
+                                icon = Icons.Default.Warning
                             )
                         }
                     }

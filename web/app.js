@@ -601,14 +601,18 @@ function submitTest(attemptType) {
     let correct = 0;
     let incorrect = 0;
     let skipped = 0;
+    let doubleMarked = 0;
     const test = state.activeTest;
 
     for (let q = 1; q <= test.totalQuestions; q++) {
         const submitted = state.onlineAnswers[q];
         const correctAns = test.answerKey[q];
         
-        if (!submitted) {
+        if (!submitted || submitted === '') {
             skipped++;
+        } else if (submitted === 'MULTIPLE') {
+            doubleMarked++;
+            incorrect++;
         } else if (submitted.toUpperCase() === correctAns.toUpperCase()) {
             correct++;
         } else {
@@ -629,7 +633,8 @@ function submitTest(attemptType) {
         totalMarks: test.totalQuestions,
         correctAnswers: correct,
         incorrectAnswers: incorrect,
-        skippedAnswers: skipped
+        skippedAnswers: skipped,
+        doubleMarkedAnswers: doubleMarked
     };
 
     saveAttempt(record);
@@ -646,6 +651,7 @@ function showScorecard(record) {
     document.getElementById("result-correct-count").innerText = record.correctAnswers;
     document.getElementById("result-incorrect-count").innerText = record.incorrectAnswers;
     document.getElementById("result-skipped-count").innerText = record.skippedAnswers;
+    document.getElementById("result-double-count").innerText = record.doubleMarkedAnswers || 0;
     document.getElementById("result-timestamp").innerText = `Exam Date: ${record.dateString}`;
     
     navigateTo("omr-result");
