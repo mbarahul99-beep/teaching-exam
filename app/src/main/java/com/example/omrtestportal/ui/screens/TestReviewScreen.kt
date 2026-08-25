@@ -205,7 +205,7 @@ fun TestReviewScreen(
                                             text = "$letter. $opt",
                                             fontSize = 13.sp,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                            modifier = Modifier.padding(start = 12.dp, vertical = 2.dp)
+                                            modifier = Modifier.padding(start = 12.dp, top = 2.dp, bottom = 2.dp)
                                         )
                                     }
                                 }
