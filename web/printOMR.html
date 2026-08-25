@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             background-color: #f1f5f9;
-            font-family: 'Outfit', sans-serif;
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,6 +31,7 @@
             margin: 0;
             font-size: 16px;
             color: #0f172a;
+            font-family: 'Outfit', sans-serif;
         }
         .print-btn {
             background-color: #dc0045;
@@ -45,6 +46,7 @@
             align-items: center;
             gap: 6px;
             box-shadow: 0 2px 4px rgba(220,0,69,0.25);
+            font-family: 'Outfit', sans-serif;
         }
         .print-btn:hover {
             background-color: #b50039;
@@ -129,7 +131,7 @@
             ]
         };
 
-        // Build SVG Document
+        // Build SVG Document in the OMR-Theme color (#dc0045)
         let svg = `<svg viewBox="0 0 1000 1414" xmlns="http://www.w3.org/2000/svg">
             <!-- 4 Corner Black Squares Anchors (36x36px centered on anchors coordinates) -->
             <rect x="${anchors.tl.x - 18}" y="${anchors.tl.y - 18}" width="36" height="36" fill="black" />
@@ -137,38 +139,38 @@
             <rect x="${anchors.bl.x - 18}" y="${anchors.bl.y - 18}" width="36" height="36" fill="black" />
             <rect x="${anchors.br.x - 18}" y="${anchors.br.y - 18}" width="36" height="36" fill="black" />
 
-            <!-- Outer Margin Frame -->
-            <rect x="70" y="75" width="860" height="1240" fill="none" stroke="#000" stroke-width="1.5" />
+            <!-- Outer Margin Frame (Styled in signature #dc0045) -->
+            <rect x="70" y="75" width="860" height="1240" fill="none" stroke="#dc0045" stroke-width="1.5" />
 
             <!-- Institution Brand Header -->
-            <text x="500" y="62" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="20" font-weight="900" fill="#dc0045" letter-spacing="1">APEX ASSESSMENT PORTAL</text>
-            <text x="500" y="80" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="600" fill="#64748b" letter-spacing="0.5">OFFICIAL SHUFFLED BUBBLE SHEET</text>
-            <text x="500" y="108" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="12" font-weight="900" fill="#0f172a">TEST: ${title.toUpperCase()}</text>
+            <text x="500" y="62" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="22" font-weight="900" fill="#dc0045" letter-spacing="1">INSTITUTE APEX</text>
+            <text x="500" y="78" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9.5" font-weight="800" fill="#dc0045" letter-spacing="0.5">OFFICIAL BUBBLE SHEET</text>
+            <text x="500" y="108" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="12" font-weight="900" fill="#0f172a">CLASS: NEET &nbsp;|&nbsp; TEST: ${title.toUpperCase()}</text>
 
-            <!-- Decorative Border Cards (Boxes) -->
+            <!-- Decorative Border Cards (Boxes) with Crimson Header and stroke -->
             <!-- 1. ROLL NUMBER BOX -->
-            <rect x="70" y="130" width="150" height="260" fill="none" stroke="#cbd5e1" stroke-width="1.2" rx="4" />
-            <rect x="70" y="130" width="150" height="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
-            <text x="145" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#475569">ROLL NUMBER</text>
+            <rect x="70" y="130" width="150" height="260" fill="none" stroke="#dc0045" stroke-width="1.2" rx="4" />
+            <rect x="70" y="130" width="150" height="22" fill="#dc0045" stroke="#dc0045" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
+            <text x="145" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="800" fill="#ffffff">ROLL NUMBER</text>
 
             <!-- 2. BOOKLET SET BOX -->
-            <rect x="235" y="130" width="150" height="100" fill="none" stroke="#cbd5e1" stroke-width="1.2" rx="4" />
-            <rect x="235" y="130" width="150" height="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
-            <text x="310" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#475569">BOOKLET SET</text>
+            <rect x="235" y="130" width="150" height="100" fill="none" stroke="#dc0045" stroke-width="1.2" rx="4" />
+            <rect x="235" y="130" width="150" height="22" fill="#dc0045" stroke="#dc0045" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
+            <text x="310" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="800" fill="#ffffff">BOOKLET SET</text>
 
             <!-- 3. SCANNING INSTRUCTIONS BOX -->
-            <rect x="235" y="245" width="695" height="145" fill="none" stroke="#cbd5e1" stroke-width="1.2" rx="4" />
-            <rect x="235" y="245" width="695" height="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
-            <text x="582" y="260" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#475569">IMPORTANT SCANNING RULES</text>
+            <rect x="235" y="245" width="695" height="145" fill="none" stroke="#dc0045" stroke-width="1.2" rx="4" />
+            <rect x="235" y="245" width="695" height="22" fill="#dc0045" stroke="#dc0045" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
+            <text x="582" y="260" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="800" fill="#ffffff">IMPORTANT SCANNING RULES</text>
 
             <!-- 4. SIGNATURE BOX -->
-            <rect x="400" y="130" width="530" height="100" fill="none" stroke="#cbd5e1" stroke-width="1.2" rx="4" />
-            <rect x="400" y="130" width="530" height="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
-            <text x="665" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#475569">CANDIDATE SIGNATURE</text>
+            <rect x="400" y="130" width="530" height="100" fill="none" stroke="#dc0045" stroke-width="1.2" rx="4" />
+            <rect x="400" y="130" width="530" height="22" fill="#dc0045" stroke="#dc0045" stroke-width="1.2" clip-path="inset(0 0 1px 0)" />
+            <text x="665" y="145" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="800" fill="#ffffff">CANDIDATE SIGNATURE</text>
             <text x="665" y="190" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" fill="#94a3b8">Sign inside this box in running hand before starting</text>
 
             <!-- Instructions bullets -->
-            <g font-family="'Outfit', sans-serif" font-size="8.5" font-weight="500" fill="#334155">
+            <g font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" fill="#dc0045">
                 <circle cx="260" cy="290" r="2.5" fill="#dc0045" />
                 <text x="272" y="293">Use blue or black ballpoint pen to fill bubbles completely.</text>
                 
@@ -183,19 +185,19 @@
             </g>
         `;
 
-        // Generate Roll Number digit input boxes and bubbles
+        // Generate Roll Number digit input boxes and bubbles in Crimson OMR Theme
         for (let col = 0; col < studentId.numDigits; col++) {
             const x = studentId.xStart + col * studentId.xStep;
             // Draw input box
-            svg += `<rect x="${x - 12}" y="162" width="24" height="20" fill="none" stroke="#64748b" stroke-width="1" />`;
+            svg += `<rect x="${x - 12}" y="162" width="24" height="20" fill="none" stroke="#dc0045" stroke-width="1" />`;
             
             // Draw bubbles for digits 1 to 9, then 0
             const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
             digits.forEach((digit, idx) => {
                 const y = studentId.yStart + idx * studentId.yStep;
                 svg += `
-                    <circle cx="${x}" cy="${y}" r="6.5" stroke="#475569" stroke-width="0.8" fill="none" />
-                    <text x="${x}" y="${y + 2.5}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="700" fill="#475569">${digit}</text>
+                    <circle cx="${x}" cy="${y}" r="6.8" stroke="#dc0045" stroke-width="0.9" fill="none" />
+                    <text x="${x}" y="${y + 2.5}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="900" fill="rgba(220,0,69,0.3)">${digit}</text>
                 `;
             });
         }
@@ -206,32 +208,44 @@
             const x = bookletSet.xStart + idx * bookletSet.xStep;
             const y = bookletSet.yStart;
             svg += `
-                <circle cx="${x}" cy="${y}" r="8" stroke="#475569" stroke-width="0.8" fill="none" />
-                <text x="${x}" y="${y + 3}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#475569">${set}</text>
+                <circle cx="${x}" cy="${y}" r="8" stroke="#dc0045" stroke-width="0.9" fill="none" />
+                <text x="${x}" y="${y + 3}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="9.5" font-weight="900" fill="rgba(220,0,69,0.35)">${set}</text>
             `;
         });
 
         // Generate Questions Option Grid (up to qCount)
         const options = ["A", "B", "C", "D"];
         questions.columns.forEach(col => {
+            // Draw column header labels
+            if (col.qStart <= qCount) {
+                const headY = col.yStart - 20;
+                svg += `<text x="${col.xLabel}" y="${headY + 3}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="900" fill="#dc0045">Q.No</text>`;
+                options.forEach((opt, oIdx) => {
+                    svg += `<text x="${col.xOptions[oIdx]}" y="${headY + 3}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="900" fill="#dc0045">${opt}</text>`;
+                });
+            }
+
             for (let q = col.qStart; q <= col.qEnd; q++) {
                 if (q > qCount) break;
 
                 const y = col.yStart + (q - col.qStart) * 19; // yStep = 19
                 
-                // Draw Q Number label
-                svg += `<text x="${col.xLabel}" y="${y + 3.5}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" fill="#334155">${String(q).padStart(3, '0')}</text>`;
+                // Draw Q Number label (rendered in bold black for clear OCR segmentation contrast)
+                svg += `<text x="${col.xLabel}" y="${y + 3}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="8" font-weight="900" fill="#000000">${String(q).padStart(3, '0')}</text>`;
 
-                // Draw option bubbles A, B, C, D
+                // Draw option bubbles A, B, C, D in Crimson Red with translucent lettering
                 options.forEach((opt, idx) => {
                     const cx = col.xOptions[idx];
                     svg += `
-                        <circle cx="${cx}" cy="${y}" r="5.5" stroke="#475569" stroke-width="0.8" fill="none" />
-                        <text x="${cx}" y="${y + 2.5}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="7" font-weight="800" fill="#475569">${opt}</text>
+                        <circle cx="${cx}" cy="${y}" r="5.8" stroke="#dc0045" stroke-width="0.8" fill="none" />
+                        <text x="${cx}" y="${y + 2.5}" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="7" font-weight="900" fill="rgba(220,0,69,0.3)">${opt}</text>
                     `;
                 });
             }
         });
+
+        // Bottom disclaimer
+        svg += `<text x="500" y="1332" text-anchor="middle" font-family="'Outfit', sans-serif" font-size="6.5" font-weight="800" fill="#dc0045">DO NOT BEND OR WRINKLE THIS SHEET. COMPUTER GRADING ALIGNMENT MARKS MUST REMAIN CLEAN AND DISCOLORATION FREE.</text>`;
 
         svg += `</svg>`;
         document.getElementById("omr-container").innerHTML = svg;
