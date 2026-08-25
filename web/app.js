@@ -660,37 +660,190 @@ function updatePdfPageContent() {
 // -------------------------------------------------------------
 // Online Test Player Logic
 // -------------------------------------------------------------
+const genericQuestionsWeb = [
+    {
+        text: "Which of the following physical quantities has the same dimensional formula as that of impulse?",
+        options: ["Force", "Linear Momentum", "Torque", "Pressure"],
+        correctOpt: "B",
+        explanation: "Impulse is Force * Time, which has dimensions [MLT^-1]. This is identical to the dimensional formula of linear momentum."
+    },
+    {
+        text: "A particle moves in a circle of radius R with constant speed v. The magnitude of average acceleration during a semi-circle turn is:",
+        options: ["v^2 / R", "2v^2 / (pi * R)", "v^2 / (2 * R)", "Zero"],
+        correctOpt: "B",
+        explanation: "Average acceleration is change in velocity divided by time: 2v / (pi*R/v) = 2v^2 / (pi*R)."
+    },
+    {
+        text: "Which of the following organic compounds will show optical activity?",
+        options: ["2-Chlorobutane", "1-Chlorobutane", "2-Chloropropane", "Butane"],
+        correctOpt: "A",
+        explanation: "2-Chlorobutane contains a chiral carbon atom bonded to four different groups (-H, -Cl, -CH3, -CH2CH3)."
+    },
+    {
+        text: "The primary structure of a protein refers to:",
+        options: ["Helix configuration", "Sequence of amino acids", "Three dimensional foldings", "Aggregation of sub-units"],
+        correctOpt: "B",
+        explanation: "The primary structure is the linear sequence of amino acids joined by peptide bonds."
+    },
+    {
+        text: "Which cell organelle is responsible for cellular respiration and ATP generation?",
+        options: ["Ribosome", "Mitochondria", "Chloroplast", "Lysosome"],
+        correctOpt: "B",
+        explanation: "Mitochondria are the site of aerobic respiration and generate ATP (energy currency of the cell)."
+    },
+    {
+        text: "In angiosperms, double fertilization is characterized by:",
+        options: ["Fusion of two polar nuclei", "Syngamy and triple fusion", "Fertilization of two eggs", "Fusion of tube cell and egg"],
+        correctOpt: "B",
+        explanation: "Double fertilization involves syngamy (fusion of one male gamete with the egg) and triple fusion (fusion of second male gamete with secondary nucleus)."
+    },
+    {
+        text: "Which of the following is considered a primary agent of socialization for young children, especially during early childhood?",
+        options: ["Mass media and community networks", "Family and immediate caregivers", "Formal school curriculum", "Peer groups and extra-curricular clubs"],
+        correctOpt: "B",
+        explanation: "Family is the primary agent of socialization that shapes early behavior and values in childhood."
+    },
+    {
+        text: "In the context of cognitive development, which stage of Jean Piaget's theory matches with the ability to perform conservation tasks?",
+        options: ["Sensorimotor stage (0 to 2 years)", "Pre-operational stage (2 to 7 years)", "Concrete operational stage (7 to 11 years)", "Formal operational stage (11 years and above)"],
+        correctOpt: "C",
+        explanation: "Concrete operational stage matches with conservation and logical operations on concrete events."
+    },
+    {
+        text: "A teacher designs classroom tasks that require collaborative peer dialogues and scaffolding. This strategy aligns with:",
+        options: ["B.F. Skinner", "Lev Vygotsky", "Jean Piaget", "Albert Bandura"],
+        correctOpt: "B",
+        explanation: "Lev Vygotsky's social constructivism emphasizes collaborative dialogue, ZPD, and scaffolding."
+    }
+];
+
+function getDynamicQuestionWeb(qNum, targetAns) {
+    const baseQ = genericQuestionsWeb[(qNum - 1) % genericQuestionsWeb.length];
+    const options = ["A", "B", "C", "D"];
+    const optionsList = [...baseQ.options];
+    const baseCorrectIdx = options.indexOf(baseQ.correctOpt);
+    const targetIdx = options.indexOf(targetAns);
+    
+    if (baseCorrectIdx !== -1 && targetIdx !== -1 && baseCorrectIdx !== targetIdx) {
+        const temp = optionsList[targetIdx];
+        optionsList[targetIdx] = optionsList[baseCorrectIdx];
+        optionsList[baseCorrectIdx] = temp;
+    }
+    return {
+        text: `[Q.${qNum}] ${baseQ.text}`,
+        options: optionsList,
+        explanation: baseQ.explanation
+    };
+}
+
+let proctorBlurListener = null;
+let proctorFullscreenListener = null;
+
+function startProctoring() {
+    state.proctorWarnings = 0;
+    
+    if (proctorBlurListener) window.removeEventListener("blur", proctorBlurListener);
+    if (proctorFullscreenListener) document.removeEventListener("fullscreenchange", proctorFullscreenListener);
+    
+    proctorBlurListener = () => {
+        if (state.currentScreen === "online-test-player" && document.getElementById("player-setup-panel").style.display === "none") {
+            state.proctorWarnings++;
+            alert(`PROCTOR SECURITY NOTICE:\nWindow focus lost or tab switched! This activity has been logged. Warnings: ${state.proctorWarnings} / 3.\nReaching 3 warnings auto-submits the exam.`);
+            updateTimerDisplay();
+            if (state.proctorWarnings >= 3) {
+                alert("Security warnings limit exceeded. Automatically submitting your exam now.");
+                submitTest("ONLINE");
+            }
+        }
+    };
+    
+    proctorFullscreenListener = () => {
+        const isFull = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+        if (!isFull && state.currentScreen === "online-test-player" && document.getElementById("player-setup-panel").style.display === "none") {
+            state.proctorWarnings++;
+            alert(`PROCTOR SECURITY NOTICE:\nFullscreen mode exited! This activity has been logged. Warnings: ${state.proctorWarnings} / 3.\nReaching 3 warnings auto-submits the exam.`);
+            updateTimerDisplay();
+            if (state.proctorWarnings >= 3) {
+                alert("Security warnings limit exceeded. Automatically submitting your exam now.");
+                submitTest("ONLINE");
+            }
+        }
+    };
+    
+    window.addEventListener("blur", proctorBlurListener);
+    document.addEventListener("fullscreenchange", proctorFullscreenListener);
+}
+
+function stopProctoring() {
+    if (proctorBlurListener) window.removeEventListener("blur", proctorBlurListener);
+    if (proctorFullscreenListener) document.removeEventListener("fullscreenchange", proctorFullscreenListener);
+    
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.log(err));
+    }
+}
+
 function startOnlineTest(test) {
     state.activeTest = test;
     state.onlineAnswers = {};
     state.onlineReview = {};
     state.currentQuestionIndex = 0;
     state.secondsRemaining = test.durationMinutes * 60;
+    state.proctorWarnings = 0;
     
-    document.getElementById("player-test-title").innerText = test.title;
+    // Set Setup Instructions parameters
+    document.getElementById("setup-exam-title").innerText = test.title;
+    document.getElementById("setup-duration-rule").innerHTML = `Total duration is <strong>${test.durationMinutes} minutes</strong>. The countdown cannot be paused.`;
+    document.getElementById("setup-declaration-checkbox").checked = false;
+    document.getElementById("player-setup-start-btn").disabled = true;
     
-    // Start countdown timer
-    updateTimerDisplay();
-    clearInterval(state.timerInterval);
-    state.timerInterval = setInterval(() => {
-        state.secondsRemaining--;
-        updateTimerDisplay();
-        if (state.secondsRemaining <= 0) {
-            clearInterval(state.timerInterval);
-            submitTest("ONLINE");
-        }
-    }, 1000);
-
-    renderQuestion();
+    // Display instructions setup panel first
+    document.getElementById("player-setup-panel").style.display = "flex";
     navigateTo("online-test-player");
+    
+    // Bind Start Button click
+    const startBtn = document.getElementById("player-setup-start-btn");
+    startBtn.onclick = () => {
+        document.getElementById("player-setup-panel").style.display = "none";
+        
+        // Request fullscreen
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        
+        // Start proctor listeners & timer interval
+        startProctoring();
+        updateTimerDisplay();
+        
+        clearInterval(state.timerInterval);
+        state.timerInterval = setInterval(() => {
+            state.secondsRemaining--;
+            updateTimerDisplay();
+            if (state.secondsRemaining <= 0) {
+                clearInterval(state.timerInterval);
+                submitTest("ONLINE");
+            }
+        }, 1000);
+        
+        renderQuestion();
+    };
+
+    // Bind Back Button
+    document.getElementById("player-setup-back-btn").onclick = () => {
+        showTestDetails(test);
+    };
 }
 
 function updateTimerDisplay() {
     const el = document.getElementById("player-timer");
+    if (!el) return;
+    
     const m = Math.floor(state.secondsRemaining / 60);
     const s = state.secondsRemaining % 60;
     const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    el.innerText = `Time Left: ${formatted}`;
+    const warningsText = state.proctorWarnings > 0 ? ` | Warnings: ${state.proctorWarnings}/3` : "";
+    
+    el.innerText = `Time Left: ${formatted}${warningsText}`;
     
     if (state.secondsRemaining < 300) { // less than 5 minutes
         el.classList.add("red");
@@ -702,26 +855,15 @@ function updateTimerDisplay() {
 function renderQuestion() {
     if (!state.activeTest) return;
     const qNum = state.currentQuestionIndex + 1;
+    const targetAns = state.activeTest.answerKey[qNum] || "A";
+    const qData = getDynamicQuestionWeb(qNum, targetAns);
     
     document.getElementById("player-question-number").innerText = `Question ${qNum} of ${state.activeTest.totalQuestions}`;
     document.getElementById("mark-review-checkbox").checked = !!state.onlineReview[qNum];
-    
-    // Inject mock question body
-    const questions = [
-        "Which of the following is considered a primary agent of socialization for young children, especially during early childhood?",
-        "In the context of cognitive development, which stage of Jean Piaget's theory matches with the ability to perform conservation tasks?",
-        "A teacher designs classroom tasks that require collaborative peer dialogues. This pedagogical strategy is most strongly aligned with which learning theorist?"
-    ];
-    document.getElementById("player-question-body").innerText = questions[qNum % 3];
+    document.getElementById("player-question-body").innerText = qData.text;
 
     // Options
     const options = ["A", "B", "C", "D"];
-    const optionTexts = [
-        ["Mass media and networks", "Family and immediate caregivers", "Formal school curriculum", "Peer groups and clubs"],
-        ["Sensorimotor stage (0-2y)", "Pre-operational stage (2-7y)", "Concrete operational stage (7-11y)", "Formal operational stage (11y+)"],
-        ["B.F. Skinner", "Lev Vygotsky", "Jean Piaget", "Albert Bandura"]
-    ][qNum % 3];
-
     const optionsContainer = document.getElementById("player-options-list");
     optionsContainer.innerHTML = "";
 
@@ -731,7 +873,7 @@ function renderQuestion() {
         card.className = `option-card ${isSelected ? 'selected' : ''}`;
         card.innerHTML = `
             <div class="option-circle">${opt}</div>
-            <span class="option-text">${optionTexts[idx]}</span>
+            <span class="option-text">${qData.options[idx]}</span>
         `;
         card.addEventListener("click", () => {
             state.onlineAnswers[qNum] = opt;
@@ -739,6 +881,24 @@ function renderQuestion() {
         });
         optionsContainer.appendChild(card);
     });
+
+    // Add Clear Selection Button
+    if (state.onlineAnswers[qNum]) {
+        const clearBtn = document.createElement("button");
+        clearBtn.innerText = "Clear Selection";
+        clearBtn.style.background = "none";
+        clearBtn.style.border = "none";
+        clearBtn.style.color = "var(--danger)";
+        clearBtn.style.fontWeight = "700";
+        clearBtn.style.cursor = "pointer";
+        clearBtn.style.marginTop = "8.dp";
+        clearBtn.style.float = "right";
+        clearBtn.onclick = () => {
+            delete state.onlineAnswers[qNum];
+            renderQuestion();
+        };
+        optionsContainer.appendChild(clearBtn);
+    }
 
     // Prev/Next button states
     document.getElementById("player-prev-btn").disabled = state.currentQuestionIndex === 0;
@@ -795,6 +955,8 @@ function submitTest(attemptType) {
 }
 
 function showScorecard(record) {
+    stopProctoring();
+
     document.getElementById("result-test-title").innerText = record.testTitle;
     document.getElementById("result-score-value").innerText = `${record.marksObtained} / ${record.totalMarks}`;
     const pct = ((record.marksObtained / record.totalMarks) * 100).toFixed(1);
@@ -805,6 +967,19 @@ function showScorecard(record) {
     const percentile = Math.max(12.4, Math.min(99.6, (pctNum * 0.95 + 4.2))).toFixed(1);
     const topPercent = (100 - parseFloat(percentile)).toFixed(1);
     document.getElementById("result-percentile-box").innerText = `Percentile: ${percentile}% (Top ${topPercent}%)`;
+
+    // Visual Accuracy Gauge Update
+    const attempted = record.correctAnswers + record.incorrectAnswers;
+    const accuracy = attempted > 0 ? (record.correctAnswers / attempted) * 100 : 0;
+    document.getElementById("scorecard-accuracy-fill").setAttribute("stroke-dasharray", `${accuracy.toFixed(0)}, 100`);
+    document.getElementById("scorecard-accuracy-pct").innerText = `${accuracy.toFixed(1)}%`;
+
+    // Score Comparison Bar Chart Update
+    const scoredMarks = record.correctAnswers * 4 - record.incorrectAnswers * 1;
+    const maxScore = record.totalMarks * 4;
+    const compScoreRatio = Math.max(0, Math.min(100, (scoredMarks / maxScore) * 100));
+    document.getElementById("comp-student-score").innerText = `${scoredMarks} / ${maxScore}`;
+    document.getElementById("comp-student-bar").style.width = `${compScoreRatio}%`;
 
     document.getElementById("result-mode-badge").innerText = `${record.attemptType} Attempt`;
     document.getElementById("result-mode-badge").className = `mode-badge ${record.attemptType.toLowerCase()}`;
@@ -850,46 +1025,59 @@ function renderTestReview() {
     document.getElementById("rev-skipped-count").innerText = skipped;
     document.getElementById("rev-double-count").innerText = doubleMarked;
 
+    // Render Filter Chips dynamically
+    const filterContainer = document.getElementById("review-filter-chips");
+    filterContainer.innerHTML = "";
+    
+    const filters = [
+        { key: "ALL", label: `All (${test.totalQuestions})` },
+        { key: "CORRECT", label: `Correct (${correct})` },
+        { key: "INCORRECT", label: `Incorrect (${incorrect})` },
+        { key: "SKIPPED", label: `Skipped (${skipped})` }
+    ];
+
+    state.activeReviewFilter = state.activeReviewFilter || "ALL";
+
+    filters.forEach(f => {
+        const btn = document.createElement("button");
+        const isActive = state.activeReviewFilter === f.key;
+        btn.className = `filter-chip ${isActive ? 'active' : ''}`;
+        btn.innerText = f.label;
+        btn.style.padding = "6px 14px";
+        btn.style.fontSize = "11.5px";
+        btn.style.fontWeight = "700";
+        btn.style.border = "none";
+        btn.style.borderRadius = "20px";
+        btn.style.cursor = "pointer";
+        btn.style.backgroundColor = isActive ? "var(--primary)" : "var(--surface-variant)";
+        btn.style.color = isActive ? "var(--on-primary)" : "var(--on-surface-variant)";
+        btn.onclick = () => {
+            state.activeReviewFilter = f.key;
+            renderTestReview(); // Re-render to refresh highlights and filtered list
+        };
+        filterContainer.appendChild(btn);
+    });
+
     const listContainer = document.getElementById("review-questions-list");
     listContainer.innerHTML = "";
-
-    // Generate dynamic mock questions
-    const mockPedagogyQuestions = [
-        "Which of the following is a primary agent of socialization?",
-        "According to Jean Piaget, in which stage of cognitive development do children develop object permanence?",
-        "Vygotsky's concept of the 'Zone of Proximal Development' emphasizes:",
-        "Which learning style learns best through hands-on activities and physical motion?",
-        "Formative assessment is primarily used for:",
-        "A teacher who believes in progressive education should prioritize:",
-        "The concept of Multiple Intelligences was proposed by:",
-        "Inclusive education refers to:",
-        "Which of the following defines intrinsic motivation?",
-        "When students encounter a cognitive conflict, they try to resolve it through:"
-    ];
-
-    const mockGeneralQuestions = [
-        "Which layer of the atmosphere contains the ozone layer?",
-        "The concept of 'Fundamental Rights' in the Indian Constitution was inspired by:",
-        "Which planet in our solar system is known as the Red Planet?",
-        "Photosynthesis in plants primarily takes place in which cell organelle?",
-        "The standard unit of electrical resistance is:",
-        "Which of the following is a renewable source of energy?",
-        "The Great Barrier Reef is situated off the coast of which country?",
-        "What is the chemical symbol for gold?",
-        "Who was the author of the historical work 'Discovery of India'?",
-        "The first session of the Indian National Congress was held in 1885 at:"
-    ];
-
-    const isPedagogy = test.title.toLowerCase().includes("pedagogy") || test.title.toLowerCase().includes("tet") || test.title.toLowerCase().includes("net");
-    const questionBank = isPedagogy ? mockPedagogyQuestions : mockGeneralQuestions;
 
     for (let q = 1; q <= test.totalQuestions; q++) {
         const correctAns = test.answerKey[q] || "A";
         const submitted = state.onlineAnswers[q] || "";
         
-        let qText = questionBank[(q - 1) % questionBank.length];
-        // Append question index to differentiate
-        qText = `${qText} (Ref: Section Q-${q})`;
+        // Filter check
+        let matchesFilter = true;
+        if (state.activeReviewFilter === "CORRECT") {
+            matchesFilter = submitted.toUpperCase() === correctAns.toUpperCase();
+        } else if (state.activeReviewFilter === "INCORRECT") {
+            matchesFilter = submitted !== "" && submitted !== "None" && submitted.toUpperCase() !== correctAns.toUpperCase();
+        } else if (state.activeReviewFilter === "SKIPPED") {
+            matchesFilter = submitted === "" || submitted === "None";
+        }
+
+        if (!matchesFilter) continue;
+
+        const qData = getDynamicQuestionWeb(q, correctAns);
 
         // Status badge
         let badgeClass = "skipped";
@@ -907,28 +1095,20 @@ function renderTestReview() {
             }
         }
 
-        // Explanations
-        let explanation = "";
-        if (isPedagogy) {
-            explanation = `<strong>Correct Answer: ${correctAns}</strong><br>According to educational psychology theories, option ${correctAns} provides the most scientifically supported response. This matches CBSE/NTA standard grading guidelines where the pedagogical outcome maximizes student agency and developmental milestones.`;
-        } else {
-            explanation = `<strong>Correct Answer: ${correctAns}</strong><br>Option ${correctAns} represents the correct factual standard answer for this question. General knowledge assessments align this verification coordinate with standard NCERT curriculum profiles.`;
-        }
-
-        // Options
+        // Options rendering
         const optionsList = ["A", "B", "C", "D"];
         let optionsHTML = "";
-        optionsList.forEach(opt => {
+        optionsList.forEach((opt, idx) => {
             let optClass = "";
-            let optLabelText = `Option ${opt}`;
+            let optLabelText = qData.options[idx];
 
             if (opt === correctAns) {
                 optClass = "correct-answer";
-                optLabelText = `Option ${opt} (Correct Answer)`;
+                optLabelText = `${qData.options[idx]} (Correct Answer)`;
             }
             if (submitted !== 'MULTIPLE' && opt === submitted && submitted !== correctAns) {
                 optClass = "wrong-selected";
-                optLabelText = `Option ${opt} (Your Selection)`;
+                optLabelText = `${qData.options[idx]} (Your Selection)`;
             }
             if (submitted === 'MULTIPLE') {
                 optClass = "double-selected";
@@ -946,10 +1126,10 @@ function renderTestReview() {
         card.className = "review-q-card";
         card.innerHTML = `
             <div class="review-q-header">
-                <span class="review-q-num">Question ${q}</span>
+                <span class="review-q-num" style="color: var(--primary);">Question ${q}</span>
                 <span class="review-status-badge ${badgeClass}">${badgeText}</span>
             </div>
-            <div class="review-q-text">${qText}</div>
+            <div class="review-q-text">${qData.text}</div>
             <div class="review-options-list">
                 ${optionsHTML}
             </div>
@@ -958,7 +1138,8 @@ function renderTestReview() {
                 <i class="fa-solid fa-chevron-down" style="transition: transform 0.2s;"></i>
             </button>
             <div class="review-explanation-content" id="exp-content-${q}">
-                ${explanation}
+                <strong>Correct Answer: ${correctAns}</strong><br>
+                Explanation: ${qData.explanation}
             </div>
         `;
         listContainer.appendChild(card);
@@ -1678,6 +1859,10 @@ function drawAnalyticsCharts() {
 document.addEventListener("DOMContentLoaded", () => {
     initAppState();
 
+    document.getElementById("setup-declaration-checkbox").addEventListener("change", (e) => {
+        document.getElementById("player-setup-start-btn").disabled = !e.target.checked;
+    });
+
     // 1. Render initial content
     renderHomeExams();
     renderHomeUpdates();
@@ -1925,11 +2110,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const isAnswered = state.onlineAnswers[q] !== undefined;
             const isReview = state.onlineReview[q] === true;
 
-            let statusClass = "gray";
-            if (isReview) statusClass = "magenta";
-            else if (isAnswered) statusClass = "green";
+            let bgColor = "var(--outline)";
+            let textColor = "var(--on-surface-variant)";
+            
+            if (isReview && isAnswered) {
+                bgColor = "#9C27B0"; // Purple
+                textColor = "#fff";
+            } else if (isReview) {
+                bgColor = "#FF9800"; // Orange
+                textColor = "#fff";
+            } else if (isAnswered) {
+                bgColor = "var(--success)"; // Green
+                textColor = "#fff";
+            }
 
-            circle.className = `palette-circle ${statusClass}`;
+            circle.className = `palette-circle`;
+            circle.style.backgroundColor = bgColor;
+            circle.style.color = textColor;
+            circle.style.fontWeight = "700";
             circle.innerText = q;
             
             circle.addEventListener("click", () => {

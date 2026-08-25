@@ -186,6 +186,30 @@
 
                 <!-- 6. Online Test Player Screen -->
                 <section id="screen-online-test-player" class="app-screen no-padding">
+                    <!-- Setup Instructions Panel (Shown before starting test) -->
+                    <div id="player-setup-panel" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--background); z-index: 100; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                        <div class="back-navigation" style="margin-bottom: 0;">
+                            <button class="back-btn" id="player-setup-back-btn" style="background: none; border: none; font-size: 14px; font-weight: 700; color: var(--primary); cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                        </div>
+                        <div class="instructions-card" style="margin-top: 10px; background-color: var(--surface); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--outline);">
+                            <h3 id="setup-exam-title" style="margin: 0;">Exam Guidelines</h3>
+                            <p style="font-size: 12px; color: var(--on-surface-variant); opacity: 0.8; margin: 4px 0 0 0;">Please read all rules carefully before proceeding.</p>
+                            <ul class="steps-list" style="margin: 12px 0 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px;">
+                                <li style="display: flex; gap: 8px; align-items: flex-start;"><span class="step-num" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: var(--primary-container); color: var(--primary); border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">1</span> <span>This test contains multiple-choice questions.</span></li>
+                                <li style="display: flex; gap: 8px; align-items: flex-start;"><span class="step-num" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: var(--primary-container); color: var(--primary); border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">2</span> <span id="setup-duration-rule">Total duration is 30 minutes. The countdown cannot be paused.</span></li>
+                                <li style="display: flex; gap: 8px; align-items: flex-start;"><span class="step-num" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: var(--primary-container); color: var(--primary); border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">3</span> <span>Grading: +4 marks for Correct, -1 for Incorrect.</span></li>
+                                <li style="display: flex; gap: 8px; align-items: flex-start;"><span class="step-num" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: var(--primary-container); color: var(--primary); border-radius: 50%; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">4</span> <span><strong>Proctoring Mode:</strong> Tab switching or leaving the screen will trigger security alerts. Reaching 3 violations auto-submits the test.</span></li>
+                            </ul>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 12px; text-align: left;">
+                            <input type="checkbox" id="setup-declaration-checkbox" style="margin-top: 3px; cursor: pointer; transform: scale(1.15);">
+                            <label for="setup-declaration-checkbox" style="font-size: 12px; line-height: 1.5; cursor: pointer; user-select: none;">
+                                I declare that I have read the guidelines and proctoring conditions, and will maintain academic integrity during the exam.
+                            </label>
+                        </div>
+                        <button id="player-setup-start-btn" class="primary-action-btn" style="margin-top: auto; width: 100%;" disabled>Start Proctoring & Attempt Test</button>
+                    </div>
+
                     <div class="player-header">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <button id="player-exit-btn" style="background: none; border: none; font-size: 18px; color: var(--on-surface); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-arrow-left"></i></button>
@@ -318,6 +342,63 @@
                         <span id="result-mode-badge" class="mode-badge" style="margin-top: 8px; display: inline-block;">OMR Attempt</span>
                     </div>
 
+                    <!-- Circular Accuracy Gauge -->
+                    <div id="scorecard-accuracy-gauge-box" style="display: flex; justify-content: center; margin: 16px 0; background-color: var(--surface); padding: 12px; border-radius: 12px; border: 1px solid var(--outline); align-items: center; gap: 16px;">
+                        <svg width="64" height="64" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--outline)" stroke-width="3" />
+                            <path id="scorecard-accuracy-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--success)" stroke-width="3" stroke-dasharray="80, 100" />
+                        </svg>
+                        <div style="text-align: left;">
+                            <strong id="scorecard-accuracy-pct" style="font-size: 16px; color: var(--on-surface);">80.0%</strong>
+                            <span style="font-size: 10px; color: var(--on-surface-variant); display: block; margin-top: 2px;">Visual Accuracy Rate</span>
+                        </div>
+                    </div>
+
+                    <!-- Score Comparison Chart -->
+                    <div class="score-comparison-card" style="margin-bottom: 16px; background-color: var(--surface); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--outline); text-align: left;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 13px;">Class Performance Comparison</h4>
+                        
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                                <span>Your Score</span>
+                                <span id="comp-student-score" style="color: var(--success);">24 / 30</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background-color: var(--outline); border-radius: 3px; margin-top: 4px; overflow: hidden;">
+                                <div id="comp-student-bar" style="width: 80%; height: 100%; background-color: var(--success);"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                                <span>Cutoff Score</span>
+                                <span style="color: var(--warning);">15 / 30</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background-color: var(--outline); border-radius: 3px; margin-top: 4px; overflow: hidden;">
+                                <div style="width: 50%; height: 100%; background-color: var(--warning);"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                                <span>Topper Score</span>
+                                <span style="color: var(--primary);">28 / 30</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background-color: var(--outline); border-radius: 3px; margin-top: 4px; overflow: hidden;">
+                                <div style="width: 93%; height: 100%; background-color: var(--primary);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                                <span>Class Average</span>
+                                <span style="color: var(--tertiary);">19.2 / 30</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background-color: var(--outline); border-radius: 3px; margin-top: 4px; overflow: hidden;">
+                                <div style="width: 64%; height: 100%; background-color: var(--tertiary);"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="score-breakdown-card">
                         <h4>Section Analysis</h4>
                         <div class="breakdown-row">
@@ -378,6 +459,11 @@
                                 <!-- Injected dynamically -->
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Filter Chips bar for review questions -->
+                    <div class="filter-chips-row horizontal-scroll" id="review-filter-chips" style="margin-bottom: 12px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 0;">
+                        <!-- Chips injected dynamically -->
                     </div>
 
                     <div class="review-questions-container" id="review-questions-list">
@@ -802,9 +888,10 @@
                     <!-- Circles injected dynamically -->
                 </div>
                 <div class="palette-legend">
-                    <div class="legend-item"><span class="circle-legend green"></span> Answered</div>
-                    <div class="legend-item"><span class="circle-legend magenta"></span> In Review</div>
-                    <div class="legend-item"><span class="circle-legend gray"></span> Unattempted</div>
+                    <div class="legend-item"><span class="circle-legend green" style="background-color: var(--success); display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px;"></span> Answered</div>
+                    <div class="legend-item"><span class="circle-legend purple" style="background-color: #9C27B0; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px;"></span> Ans+Marked</div>
+                    <div class="legend-item"><span class="circle-legend orange" style="background-color: #FF9800; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px;"></span> Marked</div>
+                    <div class="legend-item"><span class="circle-legend gray" style="background-color: var(--outline); display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px;"></span> Unattempted</div>
                 </div>
             </div>
         </div>
