@@ -200,10 +200,15 @@ function navigateTo(screenId) {
         "omr-scan-prep": "OMR Attempt Mode",
         "omr-scanner": "OMR Scanner Feed",
         "omr-result": "Grader Scorecard",
-        "profile": "Student Dashboard"
+        "profile": "Student Dashboard",
+        "leaderboard": "Leaderboard & Rankings"
     };
     
     document.getElementById("header-title").innerText = titleMap[screenId] || "OMR Prep Portal";
+
+    if (screenId === "leaderboard") {
+        renderLeaderboard("global");
+    }
 }
 
 // -------------------------------------------------------------
@@ -819,6 +824,146 @@ function renderTestReview() {
     });
 }
 
+function getLeaderboardData(filter = "global") {
+    // 1. Calculate active user's stats
+    const attempts = state.attempts || [];
+    const count = attempts.length;
+    let avg = 0;
+    if (count > 0) {
+        const totalMarks = attempts.reduce((acc, curr) => acc + (curr.totalMarks || 0), 0);
+        const marksObtained = attempts.reduce((acc, curr) => acc + (curr.marksObtained || 0), 0);
+        avg = totalMarks > 0 ? (marksObtained / totalMarks) * 100 : 0;
+    } else {
+        avg = 74.2; // Fallback default if they haven't taken any tests yet
+    }
+
+    // 2. Base list of other mock users
+    const mockUsers = [
+        { name: "Pooja Sharma", score: 96.5, attempted: 28, group: "ctet" },
+        { name: "Rahul Verma", score: 94.2, attempted: 30, group: "ugc-net" },
+        { name: "Siddharth Rao", score: 91.0, attempted: 25, group: "ctet" },
+        { name: "Vikram Malhotra", score: 88.5, attempted: 22, group: "ctet" },
+        { name: "Neha Deshmukh", score: 85.0, attempted: 27, group: "ugc-net" },
+        { name: "Aditya Roy", score: 82.3, attempted: 20, group: "ctet" },
+        { name: "Meera Nair", score: 79.8, attempted: 24, group: "ugc-net" },
+        { name: "Suresh Patil", score: 72.0, attempted: 18, group: "ugc-net" },
+        { name: "Kirti Sen", score: 68.4, attempted: 15, group: "ctet" }
+    ];
+
+    // Add active user
+    mockUsers.push({
+        name: "Amit Sharma",
+        score: parseFloat(avg.toFixed(1)),
+        attempted: count || 12, // fallback count
+        group: "ctet",
+        isCurrentUser: true
+    });
+
+    // 3. Filter by group
+    let filtered = mockUsers;
+    if (filter !== "global") {
+        filtered = mockUsers.filter(u => u.group === filter || u.isCurrentUser);
+    }
+
+    // 4. Sort by score descending
+    filtered.sort((a, b) => b.score - a.score);
+
+    // 5. Add rank numbers
+    return filtered.map((user, idx) => ({
+        ...user,
+        rank: idx + 1
+    }));
+}
+
+function renderLeaderboard(filter = "global") {
+    // Update active tab button style
+    document.querySelectorAll(".leaderboard-tab").forEach(tab => {
+        if (tab.getAttribute("data-filter") === filter) {
+            tab.classList.add("active");
+        } else {
+            tab.classList.remove("active");
+        }
+    });
+
+    const data = getLeaderboardData(filter);
+
+    // 1. Render podium (Ranks 1, 2, 3)
+    const podiumContainer = document.getElementById("leaderboard-podium");
+    podiumContainer.innerHTML = "";
+
+    const podiumUsers = data.slice(0, 3);
+    
+    // Standard order on podium: 2nd, 1st, 3rd
+    const podiumOrder = [];
+    const secondUser = podiumUsers.find(u => u.rank === 2);
+    const firstUser = podiumUsers.find(u => u.rank === 1);
+    const thirdUser = podiumUsers.find(u => u.rank === 3);
+
+    if (secondUser) podiumOrder.push(secondUser);
+    if (firstUser) podiumOrder.push(firstUser);
+    if (thirdUser) podiumOrder.push(thirdUser);
+
+    podiumOrder.forEach(user => {
+        const initials = user.name.split(" ").map(n => n[0]).join("");
+        const isCurrentUser = user.isCurrentUser ? "highlighted" : "";
+        const crown = user.rank === 1 ? `<div class="podium-crown"><i class="fa-solid fa-crown"></i></div>` : "";
+        const rankClass = user.rank === 1 ? "first" : user.rank === 2 ? "second" : "third";
+
+        const podiumDiv = document.createElement("div");
+        podiumDiv.className = `podium-item ${rankClass} ${isCurrentUser}`;
+        podiumDiv.innerHTML = `
+            <div class="podium-avatar-box">
+                ${crown}
+                <span>${initials}</span>
+            </div>
+            <div class="podium-name">${user.name}</div>
+            <div class="podium-score">${user.score}%</div>
+            <div class="podium-pill">${user.rank}</div>
+        `;
+        podiumContainer.appendChild(podiumDiv);
+    });
+
+    // 2. Render ranking list (Ranks 4-10)
+    const listContainer = document.getElementById("leaderboard-list");
+    listContainer.innerHTML = "";
+
+    const listUsers = data.slice(3);
+    listUsers.forEach(user => {
+        const initials = user.name.split(" ").map(n => n[0]).join("");
+        const isCurrentUser = user.isCurrentUser ? "highlighted" : "";
+
+        const row = document.createElement("div");
+        row.className = `rank-row ${isCurrentUser}`;
+        row.innerHTML = `
+            <div class="rank-number">${user.rank}</div>
+            <div class="rank-avatar">${initials}</div>
+            <div class="rank-details">
+                <div class="rank-name">${user.name} ${user.isCurrentUser ? '<span class="badge self" style="background-color: var(--primary); color: #fff; font-size:9px; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">You</span>' : ''}</div>
+                <div class="rank-sub-details">${user.attempted} tests attempted</div>
+            </div>
+            <div class="rank-score-val">${user.score}%</div>
+        `;
+        listContainer.appendChild(row);
+    });
+
+    // 3. Render sticky my rank banner
+    const myUser = data.find(u => u.isCurrentUser);
+    const myRankBanner = document.getElementById("leaderboard-my-rank-banner");
+    if (myUser) {
+        const myInitials = myUser.name.split(" ").map(n => n[0]).join("");
+        myRankBanner.innerHTML = `
+            <div class="my-rank-banner-info">
+                <div class="rank-avatar" style="background-color: var(--primary); color: #fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">${myInitials}</div>
+                <div class="my-rank-banner-details" style="margin-left: 10px;">
+                    <h4 style="margin:0; font-size:13px; color: var(--on-primary-container);">Amit Sharma (Rank #${myUser.rank})</h4>
+                    <span style="font-size:10px; color: var(--on-primary-container); opacity:0.8;">Avg Accuracy: ${myUser.score}% | Total Tests: ${myUser.attempted}</span>
+                </div>
+            </div>
+            <div class="rank-score-val" style="font-size: 16px; color: var(--on-primary-container);">Top ${Math.round((myUser.rank / data.length) * 100)}%</div>
+        `;
+    }
+}
+
 // -------------------------------------------------------------
 // OMR Attempt Mode (Prep, Scanner, Cam Access)
 // -------------------------------------------------------------
@@ -1214,6 +1359,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("review-back-btn").addEventListener("click", () => {
         navigateTo("omr-result");
+    });
+
+    // Leaderboard Tab clicks
+    document.querySelectorAll(".leaderboard-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            const filter = tab.getAttribute("data-filter");
+            renderLeaderboard(filter);
+        });
     });
 
     // Online Player Navigation controls

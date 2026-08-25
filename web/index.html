@@ -31,6 +31,7 @@
                 <a href="#" class="nav-item" data-screen="exams"><i class="fa-solid fa-school"></i> My Exams</a>
                 <a href="#" class="nav-item" data-screen="notes"><i class="fa-solid fa-file-pdf"></i> PDF Notes</a>
                 <a href="#" class="nav-item" data-screen="test-series-catalog"><i class="fa-solid fa-list-check"></i> Test Series</a>
+                <a href="#" class="nav-item" data-screen="leaderboard"><i class="fa-solid fa-trophy"></i> Leaderboard</a>
                 <a href="#" class="nav-item" data-screen="profile"><i class="fa-solid fa-user-clock"></i> Attempt History</a>
                 <a href="#" class="nav-item" data-screen="admin-gate"><i class="fa-solid fa-user-gear"></i> Admin Dashboard</a>
             </nav>
@@ -307,6 +308,31 @@
                     </div>
                     <div class="review-questions-container" id="review-questions-list">
                         <!-- Dynamically injected card list -->
+                    </div>
+                </section>
+
+                <!-- 9C. Leaderboard Screen -->
+                <section id="screen-leaderboard" class="app-screen">
+                    <h2 class="section-center-title">Rankings & Leaderboard</h2>
+                    <div class="leaderboard-tabs">
+                        <button class="leaderboard-tab active" data-filter="global">Global</button>
+                        <button class="leaderboard-tab" data-filter="ctet">CTET</button>
+                        <button class="leaderboard-tab" data-filter="ugc-net">UGC NET</button>
+                    </div>
+
+                    <!-- Top 3 Podium Layout -->
+                    <div class="podium-container" id="leaderboard-podium">
+                        <!-- Podium items injected dynamically -->
+                    </div>
+
+                    <!-- Ranking List (Ranks 4-10) -->
+                    <div class="rankings-list" id="leaderboard-list">
+                        <!-- List rows injected dynamically -->
+                    </div>
+
+                    <!-- Sticky Bottom My Rank Bar -->
+                    <div class="my-rank-banner" id="leaderboard-my-rank-banner">
+                        <!-- User's rank injected dynamically -->
                     </div>
                 </section>
 
