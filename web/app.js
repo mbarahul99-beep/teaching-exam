@@ -30,6 +30,16 @@ const DEFAULT_DB = {
 
     testSeries: [
         {
+            id: "ts_neet_demo",
+            examId: "ugc_net",
+            title: "NEET/JEE 180-Question Mock Test Series",
+            description: "Standard full length mock test matching NEET format (180 questions).",
+            numberOfTests: 1,
+            tests: [
+                { id: "neet_demo_01", title: "NEET Demo Mock Test - 180 Questions", durationMinutes: 180, totalQuestions: 180, answerKey: generateAnswerKey(180) }
+            ]
+        },
+        {
             id: "ts_ctet_pedagogy",
             examId: "ctet",
             title: "CTET Child Development & Pedagogy Mock Tests",
@@ -83,6 +93,12 @@ function initDatabase() {
         localStorage.removeItem("adm_exams");
         localStorage.removeItem("adm_state_exams");
         localStorage.setItem("migration_ugc_net_v2", "done");
+    }
+    
+    // Migration: Add NEET 180 questions test series
+    if (!localStorage.getItem("migration_neet_v1")) {
+        localStorage.removeItem("adm_test_series");
+        localStorage.setItem("migration_neet_v1", "done");
     }
 
     DB.exams = JSON.parse(localStorage.getItem("adm_exams")) || [...DEFAULT_DB.exams];
@@ -1315,12 +1331,15 @@ function showTestDetails(test) {
     // Bind attempt buttons
     const btnOmr = document.getElementById("detail-btn-omr");
     const btnOnline = document.getElementById("detail-btn-online");
+    const btnDownload = document.getElementById("detail-btn-download-omr");
 
     // Remove old listeners by cloning
     const newBtnOmr = btnOmr.cloneNode(true);
     const newBtnOnline = btnOnline.cloneNode(true);
+    const newBtnDownload = btnDownload.cloneNode(true);
     btnOmr.parentNode.replaceChild(newBtnOmr, btnOmr);
     btnOnline.parentNode.replaceChild(newBtnOnline, btnOnline);
+    btnDownload.parentNode.replaceChild(newBtnDownload, btnDownload);
 
     newBtnOnline.addEventListener("click", () => {
         startOnlineTest(test);
@@ -1328,6 +1347,10 @@ function showTestDetails(test) {
 
     newBtnOmr.addEventListener("click", () => {
         openOmrPrep(test);
+    });
+
+    newBtnDownload.addEventListener("click", () => {
+        window.open(`printOMR.html?testId=${test.id}&qCount=${test.totalQuestions}&title=${encodeURIComponent(test.title)}`, "_blank");
     });
 
     // Populate attempts list

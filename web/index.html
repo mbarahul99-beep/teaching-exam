@@ -506,9 +506,12 @@
                     <!-- Preparation Options -->
                     <div class="score-breakdown-card" style="margin-top: 16px; padding: 16px;">
                         <h4 style="margin: 0 0 12px 0; color: var(--on-surface);">Attempt Preparation Options</h4>
-                        <div style="display: flex; gap: 12px; width: 100%;">
-                            <button id="detail-btn-omr" class="secondary-action-btn" style="flex: 1; margin: 0; background-color: transparent; border: 1.5px solid var(--outline); color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
-                            <button id="detail-btn-online" class="primary-action-btn" style="flex: 1; margin: 0;"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
+                        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                            <div style="display: flex; gap: 12px; width: 100%;">
+                                <button id="detail-btn-omr" class="secondary-action-btn" style="flex: 1; margin: 0; background-color: transparent; border: 1.5px solid var(--outline); color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Attempt OMR</button>
+                                <button id="detail-btn-online" class="primary-action-btn" style="flex: 1; margin: 0;"><i class="fa-solid fa-circle-play"></i> Attempt Online</button>
+                            </div>
+                            <button id="detail-btn-download-omr" class="secondary-action-btn" style="width: 100%; margin: 0; background-color: var(--primary-container); color: var(--primary); border: 1.5px solid var(--outline); font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-print"></i> Download / Print OMR Sheet (PDF)</button>
                         </div>
                     </div>
 

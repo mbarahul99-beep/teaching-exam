@@ -39,6 +39,24 @@ object MockDatabase {
 
     val testSeries = listOf(
         TestSeries(
+            id = "ts_neet_demo",
+            examId = "ugc_net",
+            title = "NEET/JEE 180-Question Mock Test Series",
+            description = "Standard full length mock test matching NEET format (180 questions).",
+            numberOfTests = 1,
+            tests = listOf(
+                Test(
+                    id = "neet_demo_01",
+                    title = "NEET Demo Mock Test - 180 Questions",
+                    durationMinutes = 180,
+                    totalQuestions = 180,
+                    questionPaperUrl = "https://example.com/papers/neet_demo_01.pdf",
+                    omrSheetUrl = "https://example.com/omr/sheet_180_bubbles.pdf",
+                    answerKey = generateMockAnswerKey(180)
+                )
+            )
+        ),
+        TestSeries(
             id = "ts_ctet_pedagogy",
             examId = "ctet",
             title = "CTET Child Development & Pedagogy Mock Tests",
