@@ -19,14 +19,27 @@ const DEFAULT_DB = {
     ],
 
     pdfNotes: [
-        { id: "note_his_01", title: "Ancient Indian History Notes", subject: "History", sizeMb: 2.4, pdfUrl: "https://example.com/pdf/ancient_history.pdf" },
-        { id: "note_his_02", title: "Modern Freedom Struggle Key Points", subject: "History", sizeMb: 3.1, pdfUrl: "https://example.com/pdf/modern_history.pdf" },
-        { id: "note_geo_01", title: "Physical Geography of India", subject: "Geography", sizeMb: 4.5, pdfUrl: "https://example.com/pdf/physical_geography.pdf" },
-        { id: "note_geo_02", title: "Solar System & Earth Movements", subject: "Geography", sizeMb: 1.8, pdfUrl: "https://example.com/pdf/solar_system.pdf" },
-        { id: "note_pol_01", title: "Indian Constitution & Preamble", subject: "Political S", sizeMb: 3.0, pdfUrl: "https://example.com/pdf/constitution.pdf" },
-        { id: "note_hin_01", title: "Hindi Vyakaran (Grammar) Book", subject: "Hindi", sizeMb: 5.2, pdfUrl: "https://example.com/pdf/hindi_grammar.pdf" },
-        { id: "note_mat_01", title: "Quantitative Aptitude Formulas", subject: "Maths", sizeMb: 2.2, pdfUrl: "https://example.com/pdf/math_formulas.pdf" },
-        { id: "note_sci_01", title: "Important Physics & Chemistry Laws", subject: "Science", sizeMb: 3.8, pdfUrl: "https://example.com/pdf/science_laws.pdf" }
+        // Paper 1 Notes
+        { id: "note_ctet_p1_evs_c3", title: "Class 3 EVS NCERT Summary", subject: "EVS", sizeMb: 2.4, pdfUrl: "https://example.com/pdf/ctet_p1_evs_c3.pdf", paper: "Paper 1", noteType: "NCERT", classLevel: "Class 3" },
+        { id: "note_ctet_p1_evs_c4", title: "Class 4 EVS NCERT Summary", subject: "EVS", sizeMb: 3.1, pdfUrl: "https://example.com/pdf/ctet_p1_evs_c4.pdf", paper: "Paper 1", noteType: "NCERT", classLevel: "Class 4" },
+        { id: "note_ctet_p1_evs_c5", title: "Class 5 EVS NCERT Summary", subject: "EVS", sizeMb: 4.5, pdfUrl: "https://example.com/pdf/ctet_p1_evs_c5.pdf", paper: "Paper 1", noteType: "NCERT", classLevel: "Class 5" },
+        { id: "note_ctet_p1_maths_c3", title: "Class 3 Maths Primary Notes", subject: "Mathematics", sizeMb: 1.8, pdfUrl: "https://example.com/pdf/ctet_p1_maths_c3.pdf", paper: "Paper 1", noteType: "NCERT", classLevel: "Class 3" },
+        
+        // Paper 2 Notes
+        { id: "note_ctet_p2_sst_c6", title: "Class 6 SST Our Pasts History", subject: "Social Science", sizeMb: 3.0, pdfUrl: "https://example.com/pdf/ctet_p2_sst_c6.pdf", paper: "Paper 2", noteType: "NCERT", classLevel: "Class 6" },
+        { id: "note_ctet_p2_sci_c7", title: "Class 7 Science NCERT Summary", subject: "Science", sizeMb: 5.2, pdfUrl: "https://example.com/pdf/ctet_p2_sci_c7.pdf", paper: "Paper 2", noteType: "NCERT", classLevel: "Class 7" },
+        { id: "note_ctet_p2_math_c8", title: "Class 8 Maths NCERT Solutions", subject: "Mathematics", sizeMb: 2.2, pdfUrl: "https://example.com/pdf/ctet_p2_math_c8.pdf", paper: "Paper 2", noteType: "NCERT", classLevel: "Class 8" },
+        { id: "note_ctet_p2_math_c6", title: "Class 6 Maths NCERT Formulas", subject: "Mathematics", sizeMb: 1.5, pdfUrl: "https://example.com/pdf/ctet_p2_math_c6.pdf", paper: "Paper 2", noteType: "NCERT", classLevel: "Class 6" },
+
+        // Both / Core Subject Theory Notes
+        { id: "note_ctet_cdp_core", title: "CDP Theories: Piaget & Vygotsky", subject: "CDP", sizeMb: 3.8, pdfUrl: "https://example.com/pdf/ctet_cdp_core.pdf", paper: "Both", noteType: "Subject Theory" },
+        { id: "note_ctet_eng_ped", title: "English Pedagogy teaching methods", subject: "English", sizeMb: 2.1, pdfUrl: "https://example.com/pdf/ctet_eng_ped.pdf", paper: "Both", noteType: "Subject Theory" },
+
+        // Legacy / Other Exam Notes
+        { id: "note_his_01", title: "Ancient Indian History Notes", subject: "History", sizeMb: 2.4, pdfUrl: "https://example.com/pdf/ancient_history.pdf", paper: "Both", noteType: "Subject Theory" },
+        { id: "note_his_02", title: "Modern Freedom Struggle Key Points", subject: "History", sizeMb: 3.1, pdfUrl: "https://example.com/pdf/modern_history.pdf", paper: "Both", noteType: "Subject Theory" },
+        { id: "note_geo_01", title: "Physical Geography of India", subject: "Geography", sizeMb: 4.5, pdfUrl: "https://example.com/pdf/physical_geography.pdf", paper: "Both", noteType: "Subject Theory" },
+        { id: "note_pol_01", title: "Indian Constitution & Preamble", subject: "Political Science", sizeMb: 3.0, pdfUrl: "https://example.com/pdf/constitution.pdf", paper: "Both", noteType: "Subject Theory" }
     ],
 
     testSeries: [
@@ -41,15 +54,31 @@ const DEFAULT_DB = {
             ]
         },
         {
-            id: "ts_ctet_pedagogy",
+            id: "ts_ctet_series",
             examId: "ctet",
-            title: "CTET Child Development & Pedagogy Mock Tests",
-            description: "10 Full length tests dedicated to child psychology and teaching methodology.",
-            numberOfTests: 3,
+            title: "CTET Complete Test Series (Paper 1 & 2)",
+            description: "Syllabus mock tests and solved past papers.",
+            numberOfTests: 12,
             tests: [
-                { id: "ctet_ped_01", title: "Child Development and Pedagogy - Test 01", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) },
-                { id: "ctet_ped_02", title: "Child Development and Pedagogy - Test 02", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) },
-                { id: "ctet_ped_03", title: "Pedagogy Full length Syllabus - Test 03", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30) }
+                // Mocks Paper 1
+                { id: "ctet_m_p1_cdp", title: "Primary CDP Mock Test - 1", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30), paper: "Paper 1", testType: "Subject-wise", subject: "CDP" },
+                { id: "ctet_m_p1_evs", title: "Primary EVS Mock Test - 1", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30), paper: "Paper 1", testType: "Subject-wise", subject: "EVS" },
+                { id: "ctet_m_p1_maths", title: "Primary Mathematics Mock - 1", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30), paper: "Paper 1", testType: "Subject-wise", subject: "Mathematics" },
+                { id: "ctet_m_p1_full", title: "CTET Paper 1 Full Mock Test", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", testType: "Full Syllabus" },
+                
+                // Mocks Paper 2
+                { id: "ctet_m_p2_cdp", title: "Junior CDP Mock Test - 1", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30), paper: "Paper 2", testType: "Subject-wise", subject: "CDP" },
+                { id: "ctet_m_p2_sst", title: "Junior Social Science Mock - 1", durationMinutes: 50, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", testType: "Subject-wise", subject: "Social Science" },
+                { id: "ctet_m_p2_math", title: "Junior Mathematics Mock - 1", durationMinutes: 30, totalQuestions: 30, answerKey: generateAnswerKey(30), paper: "Paper 2", testType: "Subject-wise", subject: "Mathematics" },
+                { id: "ctet_m_p2_full", title: "CTET Paper 2 Full Mock Test", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", testType: "Full Syllabus" },
+
+                // PYQs Paper 1
+                { id: "ctet_pyq_2024_p1", title: "CTET Paper 1 Solved PYQ 2024", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", isPyq: true, year: "2024" },
+                { id: "ctet_pyq_2023_p1", title: "CTET Paper 1 Solved PYQ 2023", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", isPyq: true, year: "2023" },
+
+                // PYQs Paper 2
+                { id: "ctet_pyq_2024_p2", title: "CTET Paper 2 Solved PYQ 2024", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2024" },
+                { id: "ctet_pyq_2023_p2", title: "CTET Paper 2 Solved PYQ 2023", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2023" }
             ]
         },
         {
@@ -130,6 +159,12 @@ let state = {
     examSearchQuery: "",
     activeTest: null,
     activeSeries: null,
+    
+    // Exam Details Filtering states
+    selectedPaper: "All Papers",
+    selectedMockType: "All",
+    selectedMockSubject: "All",
+    expandedClassLevel: null,
     
     // Online test state
     onlineAnswers: {},
@@ -368,34 +403,177 @@ function showExamDetails(exam) {
     // Fill title
     document.getElementById("exam-details-title").innerText = exam.title;
 
+    // Render top-level paper filter container
+    const filtersContainer = document.getElementById("exam-details-filters-container");
+    filtersContainer.innerHTML = "";
+    
+    if (exam.id === "ctet") {
+        filtersContainer.style.display = "block";
+        const paperDiv = document.createElement("div");
+        paperDiv.style.backgroundColor = "var(--surface-variant)";
+        paperDiv.style.borderRadius = "12px";
+        paperDiv.style.padding = "12px";
+        paperDiv.style.border = "1px solid var(--outline)";
+        
+        paperDiv.innerHTML = `
+            <span style="font-weight: 700; font-size: 11px; color: var(--primary); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Filter by Exam Paper</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="filter-pill-paper ${state.selectedPaper === 'All Papers' ? 'active' : ''}" data-paper="All Papers" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'All Papers' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'All Papers' ? 'var(--on-primary)' : 'var(--on-surface)'};">All Papers</button>
+                <button class="filter-pill-paper ${state.selectedPaper === 'Paper 1' ? 'active' : ''}" data-paper="Paper 1" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'Paper 1' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'Paper 1' ? 'var(--on-primary)' : 'var(--on-surface)'};">Paper 1 (Class 1-5)</button>
+                <button class="filter-pill-paper ${state.selectedPaper === 'Paper 2' ? 'active' : ''}" data-paper="Paper 2" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'Paper 2' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'Paper 2' ? 'var(--on-primary)' : 'var(--on-surface)'};">Paper 2 (Class 6-8)</button>
+            </div>
+        `;
+        
+        paperDiv.querySelectorAll(".filter-pill-paper").forEach(btn => {
+            btn.addEventListener("click", () => {
+                state.selectedPaper = btn.getAttribute("data-paper");
+                state.selectedMockSubject = "All";
+                state.selectedMockType = "All";
+                state.expandedClassLevel = null;
+                showExamDetails(exam);
+            });
+        });
+        
+        filtersContainer.appendChild(paperDiv);
+    } else {
+        filtersContainer.style.display = "none";
+    }
+
     // Get tab content elements
     const tabMocks = document.getElementById("exam-tab-mocks");
     const tabNotes = document.getElementById("exam-tab-notes");
     const tabPyqs = document.getElementById("exam-tab-pyqs");
 
-    // Default to mocks tab
+    // Default to mocks tab if none is active
+    let activeTabName = "mocks";
     document.querySelectorAll(".exam-sub-tab").forEach(btn => {
-        const isMocks = btn.getAttribute("data-tab") === "mocks";
-        btn.className = `exam-sub-tab ${isMocks ? 'active' : ''}`;
-        btn.style.backgroundColor = isMocks ? "var(--surface)" : "transparent";
-        btn.style.color = isMocks ? "var(--primary)" : "var(--on-surface-variant)";
+        if (btn.classList.contains("active")) {
+            activeTabName = btn.getAttribute("data-tab");
+        }
     });
+
+    const activateTab = (tabName) => {
+        document.querySelectorAll(".exam-sub-tab").forEach(btn => {
+            const isTarget = btn.getAttribute("data-tab") === tabName;
+            btn.className = `exam-sub-tab ${isTarget ? 'active' : ''}`;
+            btn.style.backgroundColor = isTarget ? "var(--surface)" : "transparent";
+            btn.style.color = isTarget ? "var(--primary)" : "var(--on-surface-variant)";
+        });
+        tabMocks.style.display = tabName === "mocks" ? "block" : "none";
+        tabNotes.style.display = tabName === "notes" ? "block" : "none";
+        tabPyqs.style.display = tabName === "pyqs" ? "block" : "none";
+    };
     
-    tabMocks.style.display = "block";
-    tabNotes.style.display = "none";
-    tabPyqs.style.display = "none";
+    activateTab(activeTabName);
+
+    // Add tab click handlers
+    document.querySelectorAll(".exam-sub-tab").forEach(btn => {
+        btn.onclick = () => {
+            const tabName = btn.getAttribute("data-tab");
+            activateTab(tabName);
+        };
+    });
 
     // 1. Render Mock Tests for this exam
     const mocksContainer = document.getElementById("exam-details-mocks-list");
     mocksContainer.innerHTML = "";
     
-    // Find all tests of any test series belonging to this exam
     const examSeriesList = DB.testSeries.filter(ts => ts.examId === exam.id);
-    let testsCount = 0;
-    
+    let allMocks = [];
     examSeriesList.forEach(series => {
         series.tests.forEach(test => {
-            testsCount++;
+            if (!test.isPyq) {
+                allMocks.push(test);
+            }
+        });
+    });
+
+    // Sub-filters row
+    const mockFiltersDiv = document.createElement("div");
+    mockFiltersDiv.style.display = "flex";
+    mockFiltersDiv.style.flexDirection = "column";
+    mockFiltersDiv.style.gap = "8px";
+    mockFiltersDiv.style.marginBottom = "12px";
+    
+    // Row 1: Mock Type
+    const typeRow = document.createElement("div");
+    typeRow.style.display = "flex";
+    typeRow.style.gap = "6px";
+    const typeOpts = ["All", "Full Syllabus", "Subject-wise"];
+    typeOpts.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.style.padding = "4px 10px";
+        btn.style.borderRadius = "12px";
+        btn.style.border = "1px solid var(--outline)";
+        btn.style.fontSize = "11px";
+        btn.style.cursor = "pointer";
+        btn.style.backgroundColor = state.selectedMockType === opt ? "var(--primary)" : "var(--surface)";
+        btn.style.color = state.selectedMockType === opt ? "var(--on-primary)" : "var(--on-surface)";
+        btn.innerText = opt;
+        btn.addEventListener("click", () => {
+            state.selectedMockType = opt;
+            showExamDetails(exam);
+        });
+        typeRow.appendChild(btn);
+    });
+    mockFiltersDiv.appendChild(typeRow);
+
+    // Row 2: Subjects
+    const subRow = document.createElement("div");
+    subRow.style.display = "flex";
+    subRow.style.gap = "6px";
+    subRow.style.overflowX = "auto";
+    subRow.style.paddingBottom = "4px";
+    const subjects = exam.id === "ctet" 
+        ? (state.selectedPaper === "Paper 1" ? ["All", "CDP", "EVS", "Mathematics"] : (state.selectedPaper === "Paper 2" ? ["All", "CDP", "Social Science", "Mathematics"] : ["All", "CDP", "EVS", "Mathematics", "Social Science"]))
+        : ["All"];
+    
+    if (subjects.length > 1) {
+        subjects.forEach(subj => {
+            const btn = document.createElement("button");
+            btn.style.padding = "4px 10px";
+            btn.style.borderRadius = "12px";
+            btn.style.border = "1px solid var(--outline)";
+            btn.style.fontSize = "11px";
+            btn.style.cursor = "pointer";
+            btn.style.backgroundColor = state.selectedMockSubject === subj ? "var(--primary)" : "var(--surface)";
+            btn.style.color = state.selectedMockSubject === subj ? "var(--on-primary)" : "var(--on-surface)";
+            btn.innerText = subj;
+            btn.addEventListener("click", () => {
+                state.selectedMockSubject = subj;
+                showExamDetails(exam);
+            });
+            subRow.appendChild(btn);
+        });
+        mockFiltersDiv.appendChild(subRow);
+    }
+    
+    mocksContainer.appendChild(mockFiltersDiv);
+
+    // Filter mocks in memory
+    let filteredMocks = allMocks.filter(test => {
+        if (exam.id === "ctet" && state.selectedPaper !== "All Papers") {
+            if (test.paper && test.paper !== state.selectedPaper && test.paper !== "Both") return false;
+        }
+        if (state.selectedMockType !== "All") {
+            if (test.testType !== state.selectedMockType) return false;
+        }
+        if (state.selectedMockSubject !== "All") {
+            if (test.subject !== state.selectedMockSubject) return false;
+        }
+        return true;
+    });
+
+    if (filteredMocks.length === 0) {
+        const empty = document.createElement("span");
+        empty.style.color = "var(--on-surface-variant)";
+        empty.style.opacity = "0.65";
+        empty.style.display = "block";
+        empty.style.padding = "10px";
+        empty.innerText = "No mock tests match your selection.";
+        mocksContainer.appendChild(empty);
+    } else {
+        filteredMocks.forEach(test => {
             const card = document.createElement("div");
             card.className = "individual-test-card";
             card.style.cursor = "pointer";
@@ -414,108 +592,260 @@ function showExamDetails(exam) {
             });
             mocksContainer.appendChild(card);
         });
-    });
-
-    if (testsCount === 0) {
-        mocksContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No mock tests currently available for this exam.</span>`;
     }
 
-    // 2. Render PDF Notes for this exam
+    // 2. Render PDF Notes for this exam (Option B: Collapsible Classwise cards + Core lists)
     const notesContainer = document.getElementById("exam-details-notes-list");
     notesContainer.innerHTML = "";
     
-    // Filter notes matching exam subjects
+    // Filter base notes matching this exam's syllabus criteria
     let relatedNotes = [];
     if (exam.id === "ctet") {
-        relatedNotes = DB.pdfNotes.filter(n => ["Hindi", "History"].includes(n.subject));
+        relatedNotes = DB.pdfNotes.filter(n => n.paper === "Paper 1" || n.paper === "Paper 2" || n.paper === "Both");
+        if (state.selectedPaper !== "All Papers") {
+            relatedNotes = relatedNotes.filter(n => n.paper === state.selectedPaper || n.paper === "Both");
+        }
     } else if (exam.id === "ugc_net" || exam.id === "ugc-net") {
         relatedNotes = DB.pdfNotes.filter(n => ["Political Science", "Maths", "Science"].includes(n.subject));
     } else {
         relatedNotes = DB.pdfNotes.filter(n => ["History", "Geography", "Hindi"].includes(n.subject));
     }
 
-    if (relatedNotes.length === 0) {
-        notesContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px; grid-column: span 2;">No study notes currently available for this exam.</span>`;
+    const ncertNotes = relatedNotes.filter(n => n.noteType === "NCERT" && n.classLevel);
+    const theoryNotes = relatedNotes.filter(n => n.noteType !== "NCERT");
+
+    if (ncertNotes.length === 0 && theoryNotes.length === 0) {
+        notesContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No notes available for this selection.</span>`;
     } else {
-        relatedNotes.forEach(note => {
-            const isDownloaded = state.downloadedNotes[note.id];
-            const card = document.createElement("div");
-            card.className = "note-item-card";
-            card.style.margin = "0"; // Reset margins for grid spacing
-            
-            const btnHtml = isDownloaded 
-                ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-book-open"></i> View</button>`
-                : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-download"></i></button>`;
+        // Group NCERT Notes by Class Level
+        if (ncertNotes.length > 0) {
+            const heading = document.createElement("h3");
+            heading.style.fontSize = "14px";
+            heading.style.fontWeight = "800";
+            heading.style.color = "var(--primary)";
+            heading.style.margin = "12px 0 8px 0";
+            heading.innerText = "NCERT Class-wise Summaries";
+            notesContainer.appendChild(heading);
 
-            card.innerHTML = `
-                <div class="note-info" style="flex: 1;">
-                    <h4 style="font-size: 13px; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${note.title}</h4>
-                    <div class="note-metadata" style="display: flex; gap: 8px; font-size: 10px;">
-                        <span class="note-tag" style="background-color: var(--surface-variant); color: var(--primary); padding: 2px 6px; border-radius: 4px;">${note.subject}</span>
-                        <span class="note-size">${note.sizeMb} MB</span>
-                    </div>
-                </div>
-                <div class="note-action" style="margin-left: 8px;">
-                    ${btnHtml}
-                </div>
-            `;
-
-            const actionBtn = card.querySelector("button");
-            actionBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                if (isDownloaded) {
-                    openPdfReader(note);
-                } else {
-                    actionBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-                    actionBtn.disabled = true;
-                    setTimeout(() => {
-                        state.downloadedNotes[note.id] = true;
-                        showExamDetails(exam); // refresh list
-                    }, 1200);
-                }
+            // Group notes by classLevel
+            const grouped = {};
+            ncertNotes.forEach(n => {
+                if (!grouped[n.classLevel]) grouped[n.classLevel] = [];
+                grouped[n.classLevel].push(n);
             });
-            notesContainer.appendChild(card);
-        });
+
+            // Sort keys Class 3 to Class 8
+            const sortedClasses = Object.keys(grouped).sort((a, b) => {
+                const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+
+            sortedClasses.forEach(classLevel => {
+                const notesInClass = grouped[classLevel];
+                const isExpanded = state.expandedClassLevel === classLevel;
+
+                const card = document.createElement("div");
+                card.className = "note-item-card";
+                card.style.flexDirection = "column";
+                card.style.alignItems = "stretch";
+                card.style.cursor = "pointer";
+                card.style.backgroundColor = isExpanded ? "rgba(var(--primary-rgb), 0.08)" : "var(--surface)";
+                card.style.border = "1px solid var(--outline)";
+                card.style.padding = "16px";
+                card.style.borderRadius = "12px";
+                card.style.marginBottom = "10px";
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fa-solid fa-book text-primary" style="font-size: 18px;"></i>
+                            <div style="text-align: left;">
+                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--on-surface);">${classLevel} NCERT Book Notes</h4>
+                                <span style="font-size: 11px; opacity: 0.7;">${notesInClass.length} Notes Available</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}" style="opacity: 0.6;"></i>
+                    </div>
+                `;
+
+                // Add expand / collapse toggle
+                card.addEventListener("click", () => {
+                    state.expandedClassLevel = isExpanded ? null : classLevel;
+                    showExamDetails(exam);
+                });
+
+                if (isExpanded) {
+                    const expandedContainer = document.createElement("div");
+                    expandedContainer.style.marginTop = "12px";
+                    expandedContainer.style.display = "flex";
+                    expandedContainer.style.flexDirection = "column";
+                    expandedContainer.style.gap = "8px";
+
+                    // Group notes by subject within this class
+                    const notesBySubj = {};
+                    notesInClass.forEach(n => {
+                        if (!notesBySubj[n.subject]) notesBySubj[n.subject] = [];
+                        notesBySubj[n.subject].push(n);
+                    });
+
+                    Object.keys(notesBySubj).forEach(subj => {
+                        const subHeading = document.createElement("span");
+                        subHeading.style.fontSize = "10px";
+                        subHeading.style.fontWeight = "900";
+                        subHeading.style.color = "var(--primary)";
+                        subHeading.style.textTransform = "uppercase";
+                        subHeading.style.letterSpacing = "0.5px";
+                        subHeading.style.marginTop = "6px";
+                        subHeading.style.textAlign = "left";
+                        subHeading.innerText = subj;
+                        expandedContainer.appendChild(subHeading);
+
+                        notesBySubj[subj].forEach(note => {
+                            const isDownloaded = state.downloadedNotes[note.id];
+                            const row = document.createElement("div");
+                            row.className = "note-item-row";
+                            row.style.display = "flex";
+                            row.style.justifyContent = "space-between";
+                            row.style.alignItems = "center";
+                            row.style.backgroundColor = "var(--surface)";
+                            row.style.padding = "10px 12px";
+                            row.style.borderRadius = "8px";
+                            row.style.border = "1px solid var(--outline)";
+                            
+                            const btnHtml = isDownloaded 
+                                ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px; background: none; border: 1px solid var(--primary); color: var(--primary); cursor: pointer;"><i class="fa-solid fa-book-open"></i> View</button>`
+                                : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px; background: var(--primary-container); color: var(--on-primary-container); border: none; cursor: pointer;"><i class="fa-solid fa-download"></i></button>`;
+
+                            row.innerHTML = `
+                                <div style="flex: 1; min-width: 0; padding-right: 8px; text-align: left;">
+                                    <h5 style="margin: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</h5>
+                                    <span style="font-size: 10px; opacity: 0.6;">${note.sizeMb} MB</span>
+                                </div>
+                                <div>${btnHtml}</div>
+                            `;
+
+                            row.querySelector("button").addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                if (isDownloaded) {
+                                    openPdfReader(note);
+                                } else {
+                                    const actionBtn = row.querySelector("button");
+                                    actionBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                                    actionBtn.disabled = true;
+                                    setTimeout(() => {
+                                        state.downloadedNotes[note.id] = true;
+                                        showExamDetails(exam); // refresh
+                                    }, 1200);
+                                }
+                            });
+
+                            expandedContainer.appendChild(row);
+                        });
+                    });
+
+                    card.appendChild(expandedContainer);
+                }
+
+                notesContainer.appendChild(card);
+            });
+        }
+
+        // Render Subject Theory notes (core syllabus notes)
+        if (theoryNotes.length > 0) {
+            const heading = document.createElement("h3");
+            heading.style.fontSize = "14px";
+            heading.style.fontWeight = "800";
+            heading.style.color = "var(--primary)";
+            heading.style.margin = "16px 0 8px 0";
+            heading.innerText = "Core Subject-wise Notes";
+            notesContainer.appendChild(heading);
+
+            theoryNotes.forEach(note => {
+                const isDownloaded = state.downloadedNotes[note.id];
+                const card = document.createElement("div");
+                card.className = "note-item-card";
+                card.style.margin = "0";
+                
+                const btnHtml = isDownloaded 
+                    ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-book-open"></i> View</button>`
+                    : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-download"></i></button>`;
+
+                card.innerHTML = `
+                    <div class="note-info" style="flex: 1; text-align: left;">
+                        <h4 style="font-size: 13px; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${note.title}</h4>
+                        <div class="note-metadata" style="display: flex; gap: 8px; font-size: 10px;">
+                            <span class="note-tag" style="background-color: var(--surface-variant); color: var(--primary); padding: 2px 6px; border-radius: 4px;">${note.subject}</span>
+                            <span class="note-size">${note.sizeMb} MB</span>
+                        </div>
+                    </div>
+                    <div class="note-action" style="margin-left: 8px;">
+                        ${btnHtml}
+                    </div>
+                `;
+
+                card.querySelector("button").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (isDownloaded) {
+                        openPdfReader(note);
+                    } else {
+                        const actionBtn = card.querySelector("button");
+                        actionBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+                        actionBtn.disabled = true;
+                        setTimeout(() => {
+                            state.downloadedNotes[note.id] = true;
+                            showExamDetails(exam); // refresh
+                        }, 1200);
+                    }
+                });
+                notesContainer.appendChild(card);
+            });
+        }
     }
 
     // 3. Render PYQs for this exam
     const pyqsContainer = document.getElementById("exam-details-pyqs-list");
     pyqsContainer.innerHTML = "";
     
-    // We treat one of the mock tests (e.g. the last test or test-03) as the PYQ solved paper
-    let pyqCount = 0;
+    // Find all tests of any test series belonging to this exam
+    let pyqs = [];
     examSeriesList.forEach(series => {
-        series.tests.forEach((test, idx) => {
-            // For CTET, let's treat Test 03 as PYQ. For others, let's treat the second test as PYQ!
-            if ((exam.id === "ctet" && idx === 2) || (exam.id !== "ctet" && idx === 1)) {
-                pyqCount++;
-                const card = document.createElement("div");
-                card.className = "individual-test-card";
-                card.style.cursor = "pointer";
-                
-                // Add a badge indicating it's a solved paper
-                const pyqYear = exam.id === "ctet" ? "2024 Solved" : "2023 Solved";
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title.replace("Test 03", "PYQ " + pyqYear).replace("Test 02", "PYQ " + pyqYear)}</h4>
-                        <i class="fa-solid fa-chevron-right text-primary"></i>
-                    </div>
-                    <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
-                        <span style="background-color: #e6f4ea; color: #137333; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Solved PYQ</span>
-                        <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
-                        <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
-                    </div>
-                `;
-                card.addEventListener("click", () => {
-                    showTestDetails(test);
-                });
-                pyqsContainer.appendChild(card);
+        series.tests.forEach(test => {
+            if (test.isPyq) {
+                pyqs.push(test);
             }
         });
     });
 
-    if (pyqCount === 0) {
-        pyqsContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No Previous Year Papers solved sets available for this exam.</span>`;
+    // Apply paper filters (for CTET)
+    if (exam.id === "ctet" && state.selectedPaper !== "All Papers") {
+        pyqs = pyqs.filter(test => test.paper === state.selectedPaper || test.paper === "Both");
+    }
+
+    if (pyqs.length === 0) {
+        pyqsContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No Solved PYQ papers available for this exam.</span>`;
+    } else {
+        pyqs.forEach(test => {
+            const card = document.createElement("div");
+            card.className = "individual-test-card";
+            card.style.cursor = "pointer";
+            
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
+                    <i class="fa-solid fa-chevron-right text-primary"></i>
+                </div>
+                <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
+                    <span style="background-color: #e6f4ea; color: #137333; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Solved PYQ</span>
+                    <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
+                    <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
+                </div>
+            `;
+            card.addEventListener("click", () => {
+                showTestDetails(test);
+            });
+            pyqsContainer.appendChild(card);
+        });
     }
 
     navigateTo("exam-details");

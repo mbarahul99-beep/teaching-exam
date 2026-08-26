@@ -17,7 +17,10 @@ data class PDFNote(
     val subject: String,
     val sizeMb: Double,
     val pdfUrl: String,
-    val isDownloaded: Boolean = false
+    val isDownloaded: Boolean = false,
+    val paper: String? = null,
+    val noteType: String? = null,
+    val classLevel: String? = null
 )
 
 @Serializable
@@ -29,7 +32,12 @@ data class Test(
     val questionPaperUrl: String,
     val omrSheetUrl: String,
     val totalMarks: Double = totalQuestions.toDouble(),
-    val answerKey: Map<Int, String>
+    val answerKey: Map<Int, String>,
+    val paper: String? = null,
+    val isPyq: Boolean = false,
+    val year: String? = null,
+    val testType: String? = null,
+    val subject: String? = null
 )
 
 @Serializable

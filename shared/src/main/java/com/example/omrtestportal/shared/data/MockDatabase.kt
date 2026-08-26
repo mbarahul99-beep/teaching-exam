@@ -21,14 +21,27 @@ object MockDatabase {
     )
 
     val pdfNotes = listOf(
-        PDFNote("note_his_01", "Ancient Indian History Notes", "History", 2.4, "https://example.com/pdf/ancient_history.pdf"),
-        PDFNote("note_his_02", "Modern Freedom Struggle Key Points", "History", 3.1, "https://example.com/pdf/modern_history.pdf"),
-        PDFNote("note_geo_01", "Physical Geography of India", "Geography", 4.5, "https://example.com/pdf/physical_geography.pdf"),
-        PDFNote("note_geo_02", "Solar System & Earth Movements", "Geography", 1.8, "https://example.com/pdf/solar_system.pdf"),
-        PDFNote("note_pol_01", "Indian Constitution & Preamble", "Political Science", 3.0, "https://example.com/pdf/constitution.pdf"),
-        PDFNote("note_hin_01", "Hindi Vyakaran (Grammar) Book", "Hindi", 5.2, "https://example.com/pdf/hindi_grammar.pdf"),
-        PDFNote("note_mat_01", "Quantitative Aptitude Formulas", "Maths", 2.2, "https://example.com/pdf/math_formulas.pdf"),
-        PDFNote("note_sci_01", "Important Physics & Chemistry Laws", "Science", 3.8, "https://example.com/pdf/science_laws.pdf")
+        // Paper 1 Notes
+        PDFNote("note_ctet_p1_evs_c3", "Class 3 EVS NCERT Summary", "EVS", 2.4, "https://example.com/pdf/ctet_p1_evs_c3.pdf", paper = "Paper 1", noteType = "NCERT", classLevel = "Class 3"),
+        PDFNote("note_ctet_p1_evs_c4", "Class 4 EVS NCERT Summary", "EVS", 3.1, "https://example.com/pdf/ctet_p1_evs_c4.pdf", paper = "Paper 1", noteType = "NCERT", classLevel = "Class 4"),
+        PDFNote("note_ctet_p1_evs_c5", "Class 5 EVS NCERT Summary", "EVS", 4.5, "https://example.com/pdf/ctet_p1_evs_c5.pdf", paper = "Paper 1", noteType = "NCERT", classLevel = "Class 5"),
+        PDFNote("note_ctet_p1_maths_c3", "Class 3 Maths Primary Notes", "Mathematics", 1.8, "https://example.com/pdf/ctet_p1_maths_c3.pdf", paper = "Paper 1", noteType = "NCERT", classLevel = "Class 3"),
+        
+        // Paper 2 Notes
+        PDFNote("note_ctet_p2_sst_c6", "Class 6 SST Our Pasts History", "Social Science", 3.0, "https://example.com/pdf/ctet_p2_sst_c6.pdf", paper = "Paper 2", noteType = "NCERT", classLevel = "Class 6"),
+        PDFNote("note_ctet_p2_sci_c7", "Class 7 Science NCERT Summary", "Science", 5.2, "https://example.com/pdf/ctet_p2_sci_c7.pdf", paper = "Paper 2", noteType = "NCERT", classLevel = "Class 7"),
+        PDFNote("note_ctet_p2_math_c8", "Class 8 Maths NCERT Solutions", "Mathematics", 2.2, "https://example.com/pdf/ctet_p2_math_c8.pdf", paper = "Paper 2", noteType = "NCERT", classLevel = "Class 8"),
+        PDFNote("note_ctet_p2_math_c6", "Class 6 Maths NCERT Formulas", "Mathematics", 1.5, "https://example.com/pdf/ctet_p2_math_c6.pdf", paper = "Paper 2", noteType = "NCERT", classLevel = "Class 6"),
+
+        // Both / Core Subject Theory Notes
+        PDFNote("note_ctet_cdp_core", "CDP Theories: Piaget & Vygotsky", "CDP", 3.8, "https://example.com/pdf/ctet_cdp_core.pdf", paper = "Both", noteType = "Subject Theory"),
+        PDFNote("note_ctet_eng_ped", "English Pedagogy teaching methods", "English", 2.1, "https://example.com/pdf/ctet_eng_ped.pdf", paper = "Both", noteType = "Subject Theory"),
+
+        // Legacy / Other Exam Notes
+        PDFNote("note_his_01", "Ancient Indian History Notes", "History", 2.4, "https://example.com/pdf/ancient_history.pdf", paper = "Both", noteType = "Subject Theory"),
+        PDFNote("note_his_02", "Modern Freedom Struggle Key Points", "History", 3.1, "https://example.com/pdf/modern_history.pdf", paper = "Both", noteType = "Subject Theory"),
+        PDFNote("note_geo_01", "Physical Geography of India", "Geography", 4.5, "https://example.com/pdf/physical_geography.pdf", paper = "Both", noteType = "Subject Theory"),
+        PDFNote("note_pol_01", "Indian Constitution & Preamble", "Political Science", 3.0, "https://example.com/pdf/constitution.pdf", paper = "Both", noteType = "Subject Theory")
     )
 
     // Generate mock answers for a test
@@ -57,39 +70,31 @@ object MockDatabase {
             )
         ),
         TestSeries(
-            id = "ts_ctet_pedagogy",
+            id = "ts_ctet_series",
             examId = "ctet",
-            title = "CTET Child Development & Pedagogy Mock Tests",
-            description = "10 Full length tests dedicated to child psychology and teaching methodology.",
-            numberOfTests = 3,
+            title = "CTET Complete Test Series (Paper 1 & 2)",
+            description = "Syllabus mock tests and solved past papers.",
+            numberOfTests = 12,
             tests = listOf(
-                Test(
-                    id = "ctet_ped_01",
-                    title = "Child Development and Pedagogy - Test 01",
-                    durationMinutes = 30,
-                    totalQuestions = 30,
-                    questionPaperUrl = "https://example.com/papers/ctet_ped_01.pdf",
-                    omrSheetUrl = "https://example.com/omr/sheet_30_bubbles.pdf",
-                    answerKey = generateMockAnswerKey(30)
-                ),
-                Test(
-                    id = "ctet_ped_02",
-                    title = "Child Development and Pedagogy - Test 02",
-                    durationMinutes = 30,
-                    totalQuestions = 30,
-                    questionPaperUrl = "https://example.com/papers/ctet_ped_02.pdf",
-                    omrSheetUrl = "https://example.com/omr/sheet_30_bubbles.pdf",
-                    answerKey = generateMockAnswerKey(30)
-                ),
-                Test(
-                    id = "ctet_ped_03",
-                    title = "Pedagogy Full length Syllabus - Test 03",
-                    durationMinutes = 30,
-                    totalQuestions = 30,
-                    questionPaperUrl = "https://example.com/papers/ctet_ped_03.pdf",
-                    omrSheetUrl = "https://example.com/omr/sheet_30_bubbles.pdf",
-                    answerKey = generateMockAnswerKey(30)
-                )
+                // Mocks Paper 1
+                Test("ctet_m_p1_cdp", "Primary CDP Mock Test - 1", 30, 30, "https://example.com/p1_cdp.pdf", "https://example.com/omr_30.pdf", answerKey = generateMockAnswerKey(30), paper = "Paper 1", testType = "Subject-wise", subject = "CDP"),
+                Test("ctet_m_p1_evs", "Primary EVS Mock Test - 1", 30, 30, "https://example.com/p1_evs.pdf", "https://example.com/omr_30.pdf", answerKey = generateMockAnswerKey(30), paper = "Paper 1", testType = "Subject-wise", subject = "EVS"),
+                Test("ctet_m_p1_maths", "Primary Mathematics Mock - 1", 30, 30, "https://example.com/p1_maths.pdf", "https://example.com/omr_30.pdf", answerKey = generateMockAnswerKey(30), paper = "Paper 1", testType = "Subject-wise", subject = "Mathematics"),
+                Test("ctet_m_p1_full", "CTET Paper 1 Full Mock Test", 150, 50, "https://example.com/p1_full.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", testType = "Full Syllabus"),
+                
+                // Mocks Paper 2
+                Test("ctet_m_p2_cdp", "Junior CDP Mock Test - 1", 30, 30, "https://example.com/p2_cdp.pdf", "https://example.com/omr_30.pdf", answerKey = generateMockAnswerKey(30), paper = "Paper 2", testType = "Subject-wise", subject = "CDP"),
+                Test("ctet_m_p2_sst", "Junior Social Science Mock - 1", 50, 50, "https://example.com/p2_sst.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", testType = "Subject-wise", subject = "Social Science"),
+                Test("ctet_m_p2_math", "Junior Mathematics Mock - 1", 30, 30, "https://example.com/p2_math.pdf", "https://example.com/omr_30.pdf", answerKey = generateMockAnswerKey(30), paper = "Paper 2", testType = "Subject-wise", subject = "Mathematics"),
+                Test("ctet_m_p2_full", "CTET Paper 2 Full Mock Test", 150, 50, "https://example.com/p2_full.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", testType = "Full Syllabus"),
+
+                // PYQs Paper 1
+                Test("ctet_pyq_2024_p1", "CTET Paper 1 Solved PYQ 2024", 150, 50, "https://example.com/pyq_2024_p1.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", isPyq = true, year = "2024"),
+                Test("ctet_pyq_2023_p1", "CTET Paper 1 Solved PYQ 2023", 150, 50, "https://example.com/pyq_2023_p1.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", isPyq = true, year = "2023"),
+
+                // PYQs Paper 2
+                Test("ctet_pyq_2024_p2", "CTET Paper 2 Solved PYQ 2024", 150, 50, "https://example.com/pyq_2024_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2024"),
+                Test("ctet_pyq_2023_p2", "CTET Paper 2 Solved PYQ 2023", 150, 50, "https://example.com/pyq_2023_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2023")
             )
         ),
         TestSeries(
