@@ -717,7 +717,9 @@ fun OMRResultScreen(
                 }
 
                 // Scanned OMR image preview if available
-                if (!record.scannedOmrUrl.isNullOrEmpty()) {
+                // Scanned OMR image preview if available
+                val scannedUrl = record.scannedOmrUrl
+                if (!scannedUrl.isNullOrEmpty()) {
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -737,9 +739,9 @@ fun OMRResultScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
                                 
                                 val context = LocalContext.current
-                                val bitmap = remember(record.scannedOmrUrl) {
+                                val bitmap = remember(scannedUrl) {
                                     try {
-                                        val uri = android.net.Uri.parse(record.scannedOmrUrl)
+                                        val uri = android.net.Uri.parse(scannedUrl)
                                         if (Build.VERSION.SDK_INT < 28) {
                                             MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
                                         } else {
@@ -764,7 +766,7 @@ fun OMRResultScreen(
                                     )
                                 } else {
                                     Text(
-                                        text = "OMR image found: ${record.scannedOmrUrl.take(30)}...",
+                                        text = "OMR image found: ${scannedUrl.take(30)}...",
                                         fontSize = 12.sp,
                                         color = Color.Gray
                                     )
