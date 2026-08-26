@@ -984,8 +984,11 @@ function submitTest(attemptType) {
         incorrectAnswers: incorrect,
         skippedAnswers: skipped,
         doubleMarkedAnswers: doubleMarked,
-        answers: { ...state.onlineAnswers }
+        answers: { ...state.onlineAnswers },
+        scannedOmrUrl: attemptType === "OMR" ? (state.scannedOmrUrl || null) : null
     };
+
+    state.scannedOmrUrl = null; // Clear state variable
 
     saveAttempt(record);
     showScorecard(record);
@@ -1067,6 +1070,19 @@ function showScorecard(record) {
     document.getElementById("result-skipped-count").innerText = record.skippedAnswers;
     document.getElementById("result-double-count").innerText = record.doubleMarkedAnswers || 0;
     document.getElementById("result-timestamp").innerText = `Exam Date: ${record.dateString}`;
+    
+    // Render Scanned OMR image preview if available
+    const previewCard = document.getElementById("result-omr-preview-card");
+    const previewImg = document.getElementById("result-omr-preview-img");
+    if (previewCard && previewImg) {
+        if (record.attemptType === "OMR" && record.scannedOmrUrl) {
+            previewImg.src = record.scannedOmrUrl;
+            previewCard.style.display = "block";
+        } else {
+            previewImg.src = "";
+            previewCard.style.display = "none";
+        }
+    }
     
     navigateTo("omr-result");
 }
@@ -1790,6 +1806,24 @@ async function captureAndScanOMR(video, scanBtn, progressRow, progressFill, stat
         // Call the compiled OpenCV scanner!
         const result = await window.scanOMRSheet(snapCanvas, totalQ, 3, 1, []);
         
+        // Draw correctness (green/red) and roll number (blue) overlays on the warped canvas
+        try {
+            window.drawOverlayOnWarpedCanvas(
+                result.debugWarpedCanvas,
+                totalQ,
+                result.answers,
+                test.answerKey,
+                result.bestDy,
+                [],
+                result.questionOffsets,
+                result.studentNum
+            );
+            state.scannedOmrUrl = result.debugWarpedCanvas.toDataURL("image/jpeg", 0.85);
+        } catch (overlayErr) {
+            console.error("Drawing overlays on warped canvas failed:", overlayErr);
+            state.scannedOmrUrl = null;
+        }
+
         progressFill.style.width = "85%";
         statusText.innerText = "Reading bubble density & grading paper...";
         await new Promise(r => setTimeout(r, 200));
@@ -2278,6 +2312,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Execute OMR OpenCV detection!
                     const result = await window.scanOMRSheet(canvas, totalQ, 3, 1, []);
+
+                    // Draw correctness (green/red) and roll number (blue) overlays on the warped canvas
+                    try {
+                        window.drawOverlayOnWarpedCanvas(
+                            result.debugWarpedCanvas,
+                            totalQ,
+                            result.answers,
+                            test.answerKey,
+                            result.bestDy,
+                            [],
+                            result.questionOffsets,
+                            result.studentNum
+                        );
+                        state.scannedOmrUrl = result.debugWarpedCanvas.toDataURL("image/jpeg", 0.85);
+                    } catch (overlayErr) {
+                        console.error("Drawing overlays on warped canvas failed:", overlayErr);
+                        state.scannedOmrUrl = null;
+                    }
 
                     progressFill.style.width = "85%";
                     statusText.innerText = "Grading bubble marks...";

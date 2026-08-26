@@ -1179,8 +1179,104 @@ function validateQuadAngles(tl, tr, br, bl) {
         a3 >= 70 && a3 <= 110);
 }
 
+function drawOverlayOnWarpedCanvas(canvas, numQuestions, answers, correctKey, bestDy, sections, questionOffsets, studentNum) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const qConf = getDynamicOMRQuestionLayout(numQuestions, undefined, 'auto', sections || []);
+    const bubbleRadius = qConf.bubbleRadius || 6.5;
+
+    // 1. Draw Roll Number bubble overlays
+    const sidConf = OMR_CONFIG.studentId;
+    const rollNoDigits = 3;
+    for (let col = 0; col < rollNoDigits; col++) {
+        const x = sidConf.xStart + col * sidConf.xStep;
+        const digitChar = (studentNum && studentNum[col]) || '';
+        if (digitChar !== '') {
+            const rowIdx = parseInt(digitChar, 10);
+            if (!isNaN(rowIdx) && rowIdx >= 0 && rowIdx <= 9) {
+                const y = getScaledY(sidConf.yStart + rowIdx * sidConf.yStep, bestDy);
+                ctx.beginPath();
+                ctx.arc(x, y, bubbleRadius + 1.5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.45)'; // Blue fill
+                ctx.fill();
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+        }
+    }
+
+    // 2. Draw Question bubble overlays
+    for (let q = 1; q <= numQuestions; q++) {
+        let colConf = null;
+        for (const col of qConf.columns) {
+            if (q >= col.qStart && q <= col.qEnd) {
+                colConf = col;
+                break;
+            }
+        }
+        if (!colConf) continue;
+
+        const sec = (sections || []).find((s) => q >= s.qStart && q < s.qStart + s.qCount);
+        const is5Option = sec && sec.questionType === '5 option';
+        const numOptions = is5Option ? 5 : 4;
+
+        const slots = getColumnSlots(colConf.qStart, colConf.qEnd, sections || [], numQuestions);
+        const qSlot = slots.find(s => s.type === 'question' && s.qNum === q);
+        if (!qSlot) continue;
+        const slotIndex = qSlot.slotIdx;
+
+        const offset = (questionOffsets && questionOffsets[q]) || { dx: 0, dy: 0 };
+        const y = getScaledY(colConf.yStart + slotIndex * qConf.yStep, bestDy) + offset.dy;
+
+        const studentAns = answers[q] || '';
+        const correctAns = correctKey[q] || '';
+
+        const optionChars = ['A', 'B', 'C', 'D', 'E'];
+
+        for (let optIdx = 0; optIdx < numOptions; optIdx++) {
+            const optChar = optionChars[optIdx];
+            const x = (optIdx === 4 ? colConf.xOptions[3] + 25 : colConf.xOptions[optIdx]) + offset.dx;
+
+            const isStudentPick = studentAns === optChar;
+            const isCorrectOption = correctAns === optChar;
+
+            if (isStudentPick) {
+                if (studentAns === correctAns) {
+                    // Correct: green bubble
+                    ctx.beginPath();
+                    ctx.arc(x, y, bubbleRadius + 1.5, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.45)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#16a34a';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                } else {
+                    // Incorrect: red bubble
+                    ctx.beginPath();
+                    ctx.arc(x, y, bubbleRadius + 1.5, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.45)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#dc2626';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                }
+            } else if (isCorrectOption && studentAns !== '') {
+                // Correct outline indicator if wrong selection was made
+                ctx.beginPath();
+                ctx.arc(x, y, bubbleRadius + 1.5, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#16a34a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+    }
+}
+
 // Bind to window global scope
 window.scanOMRSheet = scanOMRSheet;
 window.findOMRSheetCornersLive = findOMRSheetCornersLive;
 window.getDynamicOMRQuestionLayout = getDynamicOMRQuestionLayout;
+window.drawOverlayOnWarpedCanvas = drawOverlayOnWarpedCanvas;
 window.OMR_CONFIG = OMR_CONFIG;
