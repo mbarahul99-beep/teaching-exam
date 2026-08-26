@@ -30,6 +30,11 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.provider.MediaStore
 import android.os.Build
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebChromeClient
+import android.webkit.PermissionRequest
+import androidx.compose.ui.viewinterop.AndroidView
 import java.io.File
 import java.io.FileOutputStream
 import com.example.omrtestportal.Main
@@ -332,213 +337,122 @@ fun OMRScannerScreen(
         return
     }
 
-    var isScanning by remember { mutableStateOf(false) }
-    var scanStatusText by remember { mutableStateOf("Ready to scan OMR") }
-    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val context = LocalContext.current
+    val activity = context as? android.app.Activity
+    
+    // Check and request runtime camera permission
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CAMERA
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            if (uri != null) {
-                selectedImageUri = uri
-                isScanning = true
-            }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasCameraPermission = isGranted
         }
     )
 
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview(),
-        onResult = { bitmap ->
-            if (bitmap != null) {
-                try {
-                    val cacheFile = File(context.cacheDir, "omr_captured_${System.currentTimeMillis()}.jpg")
-                    val out = FileOutputStream(cacheFile)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                    out.flush()
-                    out.close()
-                    selectedImageUri = android.net.Uri.fromFile(cacheFile)
-                    isScanning = true
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    // Fallback to simulator without picture
-                    isScanning = true
-                }
-            }
-        }
-    )
-
-    LaunchedEffect(isScanning) {
-        if (isScanning) {
-            if (selectedImageUri != null) {
-                scanStatusText = "Reading OMR image file..."
-                delay(800)
-                scanStatusText = "Aligning document corners..."
-                delay(900)
-            } else {
-                scanStatusText = "Analyzing OMR sheet coordinates..."
-                delay(1000)
-                scanStatusText = "Finding anchor points (4 corners)..."
-                delay(1000)
-            }
-            scanStatusText = "Extracting bubble fill ratios..."
-            delay(1200)
-            scanStatusText = "Evaluating scorecard..."
-            delay(800)
-
-            // Simulate student filling answers:
-            // 80% answered correct, some incorrect, some skipped.
-            val options = listOf("A", "B", "C", "D", "None", "MULTIPLE")
-            val submission = test.answerKey.mapValues { (qNo, correctOpt) ->
-                val roll = (1..100).random()
-                when {
-                    roll <= 75 -> correctOpt // Correct
-                    roll <= 90 -> {
-                        // Incorrect option
-                        options.filter { it != correctOpt && it != "None" && it != "MULTIPLE" }.random()
-                    }
-                    roll <= 95 -> "MULTIPLE" // Double marked / Smudge!
-                    else -> "None" // Skipped
-                }
-            }
-
-            val record = MockDatabase.gradeTest(test, submission, "OMR", selectedImageUri?.toString())
-            onNavigate(OMRResult(record.id))
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(android.Manifest.permission.CAMERA)
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        // Mock Camera Viewport
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Header Info overlay
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White.copy(alpha = 0.2f))
+    if (!hasCameraPermission) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                Text("Camera permission is required to scan OMR sheets.", color = Color.White, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { permissionLauncher.launch(android.Manifest.permission.CAMERA) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Green, contentColor = Color.Black)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Text("Grant Permission", fontWeight = FontWeight.Bold)
                 }
-                Text(
-                    text = "OMR Scanner",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Spacer(modifier = Modifier.width(48.dp)) // Equalizer spacer
             }
-
-            // Central scanning frame guide
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.7f)
-                    .border(3.dp, if (isScanning) Color.Green else Color.White.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                // corner anchors simulation dots
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CornerDot(Alignment.TopStart, isScanning)
-                    CornerDot(Alignment.TopEnd, isScanning)
-                    CornerDot(Alignment.BottomStart, isScanning)
-                    CornerDot(Alignment.BottomEnd, isScanning)
-                }
-
-                if (!isScanning) {
-                    if (selectedImageUri != null) {
-                        Text(
-                            text = "OMR Image Selected\nTap scan to process file",
-                            color = Color.Green,
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    } else {
-                        Text(
-                            text = "Position OMR paper inside the box\nEnsure good lighting",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.Green)
-                        if (selectedImageUri != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Processing File...", color = Color.Green, fontSize = 12.sp)
+        }
+    } else {
+        // Setup bridge communication
+        val webAppInterface = remember(test) {
+            object {
+                @android.webkit.JavascriptInterface
+                fun postScanResult(answersJson: String, studentNum: String, scannedOmrUrl: String) {
+                    activity?.runOnUiThread {
+                        try {
+                            val jsonObject = org.json.JSONObject(answersJson)
+                            val answersMap = mutableMapOf<Int, String>()
+                            val keys = jsonObject.keys()
+                            while (keys.hasNext()) {
+                                val keyStr = keys.next()
+                                val qNo = keyStr.toIntOrNull()
+                                if (qNo != null) {
+                                    answersMap[qNo] = jsonObject.optString(keyStr, "")
+                                }
+                            }
+                            
+                            val record = MockDatabase.gradeTest(
+                                test = test,
+                                submittedAnswers = answersMap,
+                                attemptType = "OMR",
+                                scannedOmrUrl = scannedOmrUrl
+                            )
+                            
+                            onNavigate(OMRResult(record.id))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
-            }
 
-            // Bottom scan controls
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.DarkGray.copy(alpha = 0.8f)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = scanStatusText,
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    if (!isScanning) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Button(
-                                onClick = { cameraLauncher.launch(null) },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Green, contentColor = Color.Black),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = null)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Capture & Scan", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            }
-                            OutlinedButton(
-                                onClick = { launcher.launch("image/*") },
-                                border = BorderStroke(1.dp, Color.White),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(Icons.Default.CloudUpload, contentDescription = null)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Upload OMR", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            }
-                        }
+                @android.webkit.JavascriptInterface
+                fun postScanError(message: String) {
+                    activity?.runOnUiThread {
+                        onBack()
                     }
                 }
             }
+        }
+
+        // Convert answer key map to JSON string to pass into webview for correctness math overlay
+        val answerKeyJson = remember(test) {
+            val json = org.json.JSONObject()
+            test.answerKey.forEach { (q, ans) -> json.put(q.toString(), ans) }
+            json.toString()
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                factory = { ctx ->
+                    WebView(ctx).apply {
+                        settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            allowFileAccess = true
+                            allowContentAccess = true
+                            mediaPlaybackRequiresUserGesture = false
+                        }
+                        
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onPermissionRequest(request: PermissionRequest) {
+                                request.grant(request.resources)
+                            }
+                        }
+                        
+                        webViewClient = WebViewClient()
+                        
+                        addJavascriptInterface(webAppInterface, "AndroidScannerBridge")
+                        
+                        val encodedKey = android.net.Uri.encode(answerKeyJson)
+                        loadUrl("file:///android_asset/web/androidScanner.html?testId=${test.id}&totalQuestions=${test.totalQuestions}&answerKey=$encodedKey")
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }
