@@ -395,7 +395,7 @@ fun ExamDetailsScreen(
                                                 val notesBySubject = notesInClass.groupBy { it.subject }
                                                 notesBySubject.forEach { (subj, notes) ->
                                                     Text(
-                                                        text = subj.toUpperCase(),
+                                                        text = subj.uppercase(),
                                                         fontWeight = FontWeight.ExtraBold,
                                                         fontSize = 11.sp,
                                                         color = MaterialTheme.colorScheme.primary,
