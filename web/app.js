@@ -1895,6 +1895,147 @@ function runMockOmrScan() {
                 }
             }
             
+            // Generate a simulated mock OMR sheet canvas preview with annotations
+            try {
+                const mockCanvas = document.createElement("canvas");
+                mockCanvas.width = 600;
+                mockCanvas.height = 700;
+                const mCtx = mockCanvas.getContext("2d");
+                
+                // Background
+                mCtx.fillStyle = "#ffffff";
+                mCtx.fillRect(0, 0, 600, 700);
+                
+                // Sheet Border Frame
+                mCtx.strokeStyle = "#dc0045";
+                mCtx.lineWidth = 3;
+                mCtx.strokeRect(10, 10, 580, 680);
+                
+                // Alignment anchors (Black square marks at 4 corners)
+                mCtx.fillStyle = "#000000";
+                mCtx.fillRect(20, 20, 20, 20); // Top-Left
+                mCtx.fillRect(560, 20, 20, 20); // Top-Right
+                mCtx.fillRect(20, 660, 20, 20); // Bottom-Left
+                mCtx.fillRect(560, 660, 20, 20); // Bottom-Right
+                
+                // Title and scanning rule banner
+                mCtx.fillStyle = "#dc0045";
+                mCtx.font = "bold 16px sans-serif";
+                mCtx.fillText("NEET MOCK OMR ANSWER SHEET", 120, 36);
+                mCtx.fillStyle = "#334155";
+                mCtx.font = "10px sans-serif";
+                mCtx.fillText("SIMULATED GRADING VERIFICATION PREVIEW • ORIGINAL RED DESIGN", 120, 52);
+                
+                // Draw 3-column Roll Number Bubble Grid
+                mCtx.fillStyle = "#0f172a";
+                mCtx.font = "bold 12px sans-serif";
+                mCtx.fillText("ROLL NO: 123", 40, 95);
+                const rxStart = 40, ryStart = 115, rxStep = 24, ryStep = 18;
+                const mockRoll = [1, 2, 3];
+                for (let col = 0; col < 3; col++) {
+                    const activeDigit = mockRoll[col];
+                    for (let row = 0; row < 10; row++) {
+                        const cx = rxStart + col * rxStep;
+                        const cy = ryStart + row * ryStep;
+                        
+                        mCtx.beginPath();
+                        mCtx.arc(cx, cy, 6, 0, 2 * Math.PI);
+                        mCtx.strokeStyle = "#dc0045";
+                        mCtx.lineWidth = 1;
+                        mCtx.stroke();
+                        
+                        mCtx.fillStyle = "#475569";
+                        mCtx.font = "7px sans-serif";
+                        mCtx.textAlign = "center";
+                        mCtx.fillText(row.toString(), cx, cy + 2.5);
+                        mCtx.textAlign = "left";
+                        
+                        if (row === activeDigit) {
+                            // Scanned bubble indicator overlay: Translucent Blue
+                            mCtx.beginPath();
+                            mCtx.arc(cx, cy, 7.5, 0, 2 * Math.PI);
+                            mCtx.fillStyle = "rgba(59, 130, 246, 0.45)";
+                            mCtx.fill();
+                            mCtx.strokeStyle = "#2563eb";
+                            mCtx.lineWidth = 2.5;
+                            mCtx.stroke();
+                        }
+                    }
+                }
+                
+                // Draw Question Bubble Layout overlay (Physics columns)
+                const qxStart = 200, qyStart = 100, qyStep = 20, qxStep = 26;
+                mCtx.fillStyle = "#0f172a";
+                mCtx.font = "bold 12px sans-serif";
+                mCtx.fillText("SECTION A (PHYSICS)", qxStart, 80);
+                
+                // Render first 25 questions as sample bubbles
+                for (let q = 1; q <= 25; q++) {
+                    const qy = qyStart + (q - 1) * qyStep;
+                    mCtx.fillStyle = "#0f172a";
+                    mCtx.font = "10px sans-serif";
+                    mCtx.fillText(q.toString().padStart(2, '0'), qxStart - 30, qy + 3.5);
+                    
+                    const correctAns = test.answerKey[q] || "A";
+                    const studentAns = submission[q] || null;
+                    const optionChars = ["A", "B", "C", "D"];
+                    
+                    for (let o = 0; o < 4; o++) {
+                        const optChar = optionChars[o];
+                        const qx = qxStart + o * qxStep;
+                        
+                        mCtx.beginPath();
+                        mCtx.arc(qx, qy, 6.5, 0, 2 * Math.PI);
+                        mCtx.strokeStyle = "#dc0045";
+                        mCtx.lineWidth = 1;
+                        mCtx.stroke();
+                        
+                        mCtx.fillStyle = "#475569";
+                        mCtx.font = "7px sans-serif";
+                        mCtx.textAlign = "center";
+                        mCtx.fillText(optChar, qx, qy + 2.5);
+                        mCtx.textAlign = "left";
+                        
+                        const isStudentPick = studentAns === optChar;
+                        const isCorrectOption = correctAns === optChar;
+                        
+                        if (isStudentPick) {
+                            if (studentAns === correctAns) {
+                                // Correct selection: Translucent Green overlay
+                                mCtx.beginPath();
+                                mCtx.arc(qx, qy, 8, 0, 2 * Math.PI);
+                                mCtx.fillStyle = "rgba(34, 197, 94, 0.45)";
+                                mCtx.fill();
+                                mCtx.strokeStyle = "#16a34a";
+                                mCtx.lineWidth = 2.5;
+                                mCtx.stroke();
+                            } else {
+                                // Incorrect selection: Translucent Red overlay
+                                mCtx.beginPath();
+                                mCtx.arc(qx, qy, 8, 0, 2 * Math.PI);
+                                mCtx.fillStyle = "rgba(239, 68, 68, 0.45)";
+                                mCtx.fill();
+                                mCtx.strokeStyle = "#dc2626";
+                                mCtx.lineWidth = 2.5;
+                                mCtx.stroke();
+                            }
+                        } else if (isCorrectOption && studentAns !== null) {
+                            // Correct answer guide outline: Green ring
+                            mCtx.beginPath();
+                            mCtx.arc(qx, qy, 8, 0, 2 * Math.PI);
+                            mCtx.strokeStyle = "#16a34a";
+                            mCtx.lineWidth = 2;
+                            mCtx.stroke();
+                        }
+                    }
+                }
+                
+                state.scannedOmrUrl = mockCanvas.toDataURL("image/jpeg", 0.85);
+            } catch (mockErr) {
+                console.error("Generating mock OMR canvas image failed:", mockErr);
+                state.scannedOmrUrl = null;
+            }
+
             // Score submission
             state.onlineAnswers = submission;
             submitTest("OMR");
