@@ -655,12 +655,23 @@ fun OMRResultScreen(
                                 val context = LocalContext.current
                                 val bitmap = remember(scannedUrl) {
                                     try {
-                                        val uri = android.net.Uri.parse(scannedUrl)
-                                        if (Build.VERSION.SDK_INT < 28) {
-                                            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                                        if (scannedUrl.startsWith("data:")) {
+                                            val commaIndex = scannedUrl.indexOf(",")
+                                            if (commaIndex != -1) {
+                                                val base64Str = scannedUrl.substring(commaIndex + 1)
+                                                val decodedBytes = android.util.Base64.decode(base64Str, android.util.Base64.DEFAULT)
+                                                android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                                            } else {
+                                                null
+                                            }
                                         } else {
-                                            val source = ImageDecoder.createSource(context.contentResolver, uri)
-                                            ImageDecoder.decodeBitmap(source) as android.graphics.Bitmap
+                                            val uri = android.net.Uri.parse(scannedUrl)
+                                            if (Build.VERSION.SDK_INT < 28) {
+                                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                                            } else {
+                                                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                                                ImageDecoder.decodeBitmap(source) as android.graphics.Bitmap
+                                            }
                                         }
                                     } catch (e: Exception) {
                                         e.printStackTrace()
