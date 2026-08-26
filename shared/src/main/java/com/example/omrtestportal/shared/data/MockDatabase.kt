@@ -177,7 +177,7 @@ object MockDatabase {
         attemptHistory.add(0, record) // Insert at beginning
     }
 
-    fun gradeTest(test: Test, submittedAnswers: Map<Int, String>, attemptType: String): AttemptRecord {
+    fun gradeTest(test: Test, submittedAnswers: Map<Int, String>, attemptType: String, scannedOmrUrl: String? = null): AttemptRecord {
         var correct = 0
         var incorrect = 0
         var skipped = 0
@@ -208,7 +208,8 @@ object MockDatabase {
             correctAnswers = correct,
             incorrectAnswers = incorrect,
             skippedAnswers = skipped,
-            bubbleMap = submittedAnswers
+            bubbleMap = submittedAnswers,
+            scannedOmrUrl = scannedOmrUrl
         )
 
         addAttempt(record)

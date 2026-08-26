@@ -63,5 +63,6 @@ data class AttemptRecord(
     val correctAnswers: Int,
     val incorrectAnswers: Int,
     val skippedAnswers: Int,
-    val bubbleMap: Map<Int, String>
+    val bubbleMap: Map<Int, String>,
+    val scannedOmrUrl: String? = null
 )

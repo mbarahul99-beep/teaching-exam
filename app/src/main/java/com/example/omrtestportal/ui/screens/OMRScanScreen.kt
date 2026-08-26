@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,6 +25,13 @@ import androidx.navigation3.runtime.NavKey
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.platform.LocalContext
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.provider.MediaStore
+import android.os.Build
+import java.io.File
+import java.io.FileOutputStream
 import com.example.omrtestportal.Main
 import com.example.omrtestportal.OMRResult
 import com.example.omrtestportal.OMRScanner
@@ -326,6 +335,7 @@ fun OMRScannerScreen(
     var isScanning by remember { mutableStateOf(false) }
     var scanStatusText by remember { mutableStateOf("Ready to scan OMR") }
     var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -333,6 +343,27 @@ fun OMRScannerScreen(
             if (uri != null) {
                 selectedImageUri = uri
                 isScanning = true
+            }
+        }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview(),
+        onResult = { bitmap ->
+            if (bitmap != null) {
+                try {
+                    val cacheFile = File(context.cacheDir, "omr_captured_${System.currentTimeMillis()}.jpg")
+                    val out = FileOutputStream(cacheFile)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                    out.flush()
+                    out.close()
+                    selectedImageUri = android.net.Uri.fromFile(cacheFile)
+                    isScanning = true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    // Fallback to simulator without picture
+                    isScanning = true
+                }
             }
         }
     )
@@ -371,7 +402,7 @@ fun OMRScannerScreen(
                 }
             }
 
-            val record = MockDatabase.gradeTest(test, submission, "OMR")
+            val record = MockDatabase.gradeTest(test, submission, "OMR", selectedImageUri?.toString())
             onNavigate(OMRResult(record.id))
         }
     }
@@ -484,7 +515,7 @@ fun OMRScannerScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Button(
-                                onClick = { isScanning = true },
+                                onClick = { cameraLauncher.launch(null) },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green, contentColor = Color.Black),
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier.weight(1f)
@@ -681,6 +712,64 @@ fun OMRResultScreen(
                                 color = MaterialTheme.colorScheme.tertiary,
                                 icon = Icons.Default.Warning
                             )
+                        }
+                    }
+                }
+
+                // Scanned OMR image preview if available
+                if (!record.scannedOmrUrl.isNullOrEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Scanned OMR Sheet Preview",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.align(Alignment.Start)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                val context = LocalContext.current
+                                val bitmap = remember(record.scannedOmrUrl) {
+                                    try {
+                                        val uri = android.net.Uri.parse(record.scannedOmrUrl)
+                                        if (Build.VERSION.SDK_INT < 28) {
+                                            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                                        } else {
+                                            val source = ImageDecoder.createSource(context.contentResolver, uri)
+                                            ImageDecoder.decodeBitmap(source) as android.graphics.Bitmap
+                                        }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        null
+                                    }
+                                }
+
+                                if (bitmap != null) {
+                                    androidx.compose.foundation.Image(
+                                        bitmap = bitmap.asImageBitmap(),
+                                        contentDescription = "Scanned OMR Image Preview",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.FillWidth
+                                    )
+                                } else {
+                                    Text(
+                                        text = "OMR image found: ${record.scannedOmrUrl.take(30)}...",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
                         }
                     }
                 }
