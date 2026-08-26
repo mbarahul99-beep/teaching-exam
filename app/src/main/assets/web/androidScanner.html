@@ -195,7 +195,6 @@
 
                                     if (progress >= 1.0) {
                                         // Trigger scan processing!
-                                        stopCamera();
                                         processCaptureFrame(video);
                                         return;
                                     }
@@ -216,10 +215,13 @@
         async function processCaptureFrame(videoElem) {
             statusText.innerText = "Capturing high-res frame...";
             const snapCanvas = document.createElement("canvas");
-            snapCanvas.width = videoElem.videoWidth;
-            snapCanvas.height = videoElem.videoHeight;
+            snapCanvas.width = videoElem.videoWidth || 640;
+            snapCanvas.height = videoElem.videoHeight || 480;
             const ctx = snapCanvas.getContext("2d");
             ctx.drawImage(videoElem, 0, 0);
+            
+            // Stop camera now that frame is captured!
+            stopCamera();
 
             statusText.innerText = "Processing OMR alignment & perspective warp...";
             await new Promise(r => setTimeout(r, 100));

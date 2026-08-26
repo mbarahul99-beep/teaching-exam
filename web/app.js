@@ -1678,7 +1678,6 @@ function runCameraAnalysisLoop() {
                                 // Auto-capture lock!
                                 lockStartTime = null;
                                 prevCorners = null;
-                                stopCamera();
                                 simulateOmrScan(); // grade scanned frames
                                 return;
                             }
