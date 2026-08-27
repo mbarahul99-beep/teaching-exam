@@ -99,7 +99,8 @@ fun OMRScanPrepScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Steps indicator card
+                 // Steps indicator card
+                val isPyq = test.isPyq == true
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -114,10 +115,17 @@ fun OMRScanPrepScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         
-                        StepItem(number = 1, text = "Download & Print both the Question Paper PDF and the custom Bubble OMR sheet.")
-                        StepItem(number = 2, text = "Attempt the test offline by marking bubbles on the printed OMR sheet with a black/blue pen.")
-                        StepItem(number = 3, text = "Open this app's camera scanner, align the OMR sheet inside the frame, and scan.")
-                        StepItem(number = 4, text = "The app immediately processes the markings and uploads details to your Profile.")
+                        if (isPyq) {
+                            StepItem(number = 1, text = "Click 'Read In-App' to view the PYQ paper securely (cannot be saved or printed).")
+                            StepItem(number = 2, text = "Download and print the generic Bubble OMR sheet.")
+                            StepItem(number = 3, text = "Attempt the test offline by marking bubbles on the printed OMR sheet.")
+                            StepItem(number = 4, text = "Open this app's camera scanner, align the OMR sheet inside the frame, and scan.")
+                        } else {
+                            StepItem(number = 1, text = "Download & Print both the Question Paper PDF and the custom Bubble OMR sheet.")
+                            StepItem(number = 2, text = "Attempt the test offline by marking bubbles on the printed OMR sheet with a black/blue pen.")
+                            StepItem(number = 3, text = "Open this app's camera scanner, align the OMR sheet inside the frame, and scan.")
+                            StepItem(number = 4, text = "The app immediately processes the markings and uploads details to your Profile.")
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -132,8 +140,8 @@ fun OMRScanPrepScreen(
 
                 DownloadRow(
                     title = "Question Paper PDF",
-                    isDownloaded = isPaperDownloaded,
-                    onDownload = { isPaperDownloaded = true },
+                    isDownloaded = if (isPyq) false else isPaperDownloaded,
+                    onDownload = if (isPyq) null else { { isPaperDownloaded = true } },
                     onPreview = { showPaperSheet = true }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -271,7 +279,7 @@ fun StepItem(number: Int, text: String) {
 fun DownloadRow(
     title: String,
     isDownloaded: Boolean,
-    onDownload: () -> Unit,
+    onDownload: (() -> Unit)?,
     onPreview: (() -> Unit)? = null
 ) {
     Card(
@@ -300,16 +308,35 @@ fun DownloadRow(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onPreview != null) {
-                    IconButton(onClick = onPreview) {
-                        Icon(Icons.Default.Visibility, contentDescription = "Preview", tint = MaterialTheme.colorScheme.primary)
+                    if (onDownload == null) {
+                        Button(
+                            onClick = onPreview,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Read In-App", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        IconButton(onClick = onPreview) {
+                            Icon(Icons.Default.Visibility, contentDescription = "Preview", tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                 }
-                if (isDownloaded) {
-                    Text("Downloaded", fontSize = 12.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
-                } else {
-                    IconButton(onClick = onDownload) {
-                        Icon(Icons.Default.Download, contentDescription = "Download")
+                if (onDownload != null) {
+                    if (isDownloaded) {
+                        Text("Downloaded", fontSize = 12.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
+                    } else {
+                        IconButton(onClick = onDownload) {
+                            Icon(Icons.Default.Download, contentDescription = "Download")
+                        }
                     }
                 }
             }

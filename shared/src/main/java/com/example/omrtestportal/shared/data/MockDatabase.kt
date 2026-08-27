@@ -91,10 +91,12 @@ object MockDatabase {
                 // PYQs Paper 1
                 Test("ctet_pyq_2024_p1", "CTET Paper 1 Solved PYQ 2024", 150, 50, "https://example.com/pyq_2024_p1.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", isPyq = true, year = "2024"),
                 Test("ctet_pyq_2023_p1", "CTET Paper 1 Solved PYQ 2023", 150, 50, "https://example.com/pyq_2023_p1.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", isPyq = true, year = "2023"),
+                Test("ctet_pyq_2022_p1", "CTET Paper 1 Solved PYQ 2022 (Demo)", 150, 50, "https://example.com/pyq_2022_p1.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 1", isPyq = true, year = "2022"),
 
                 // PYQs Paper 2
                 Test("ctet_pyq_2024_p2", "CTET Paper 2 Solved PYQ 2024", 150, 50, "https://example.com/pyq_2024_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2024"),
-                Test("ctet_pyq_2023_p2", "CTET Paper 2 Solved PYQ 2023", 150, 50, "https://example.com/pyq_2023_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2023")
+                Test("ctet_pyq_2023_p2", "CTET Paper 2 Solved PYQ 2023", 150, 50, "https://example.com/pyq_2023_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2023"),
+                Test("ctet_pyq_2022_p2", "CTET Paper 2 Solved PYQ 2022 (Demo)", 150, 50, "https://example.com/pyq_2022_p2.pdf", "https://example.com/omr_50.pdf", answerKey = generateMockAnswerKey(50), paper = "Paper 2", isPyq = true, year = "2022")
             )
         ),
         TestSeries(

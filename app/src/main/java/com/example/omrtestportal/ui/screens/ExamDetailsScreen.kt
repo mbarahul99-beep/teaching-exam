@@ -210,10 +210,13 @@ fun ExamDetailsScreen(
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = { 
-                                        selectedPaper = paperOpt
-                                        selectedMockSubject = ""
-                                        selectedMockType = "Full Syllabus"
-                                        expandedClassLevel = null
+                                         selectedPaper = paperOpt
+                                         selectedMockSubject = ""
+                                         selectedMockType = "Full Syllabus"
+                                         selectedNoteClass = ""
+                                         selectedNoteSubject = ""
+                                         selectedPyqYear = "All Years"
+                                         expandedClassLevel = null
                                     },
                                     label = { Text(paperOpt, fontSize = 11.5.sp) },
                                     colors = FilterChipDefaults.filterChipColors(
@@ -402,8 +405,13 @@ fun ExamDetailsScreen(
                             
                             // Classes Dropdown Box
                             var classDropdownExpanded by remember { mutableStateOf(false) }
+                            val classes = if (selectedPaper == "Paper 1") {
+                                listOf("Class 1", "Class 2", "Class 3", "Class 4", "Class 5")
+                            } else {
+                                listOf("Class 6", "Class 7", "Class 8")
+                            }
+                            
                             val isClassSelected = selectedNoteClass.isNotEmpty()
-                            val classes = listOf("Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8")
                             
                             Box {
                                 FilterChip(
@@ -679,14 +687,54 @@ fun ExamDetailsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val pyqYearOptions = listOf("All Years", "2024", "2023")
-                            pyqYearOptions.forEach { opt ->
-                                val isSelected = selectedPyqYear == opt
+                            var pyqDropdownExpanded by remember { mutableStateOf(false) }
+                            val isPyqYearSelected = selectedPyqYear != "All Years"
+                            val pyqYearOptions = listOf("2024", "2023", "2022")
+                            
+                            Box {
                                 FilterChip(
-                                    selected = isSelected,
-                                    onClick = { selectedPyqYear = opt },
-                                    label = { Text(opt, fontSize = 11.5.sp) }
+                                    selected = isPyqYearSelected,
+                                    onClick = { pyqDropdownExpanded = true },
+                                    label = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(if (isPyqYearSelected) selectedPyqYear else "Years Dropdown", fontSize = 11.5.sp)
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 )
+                                
+                                DropdownMenu(
+                                    expanded = pyqDropdownExpanded,
+                                    onDismissRequest = { pyqDropdownExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("All Years (Clear)") },
+                                        onClick = {
+                                            selectedPyqYear = "All Years"
+                                            pyqDropdownExpanded = false
+                                        }
+                                    )
+                                    pyqYearOptions.forEach { opt ->
+                                        DropdownMenuItem(
+                                            text = { Text(opt) },
+                                            onClick = {
+                                                selectedPyqYear = opt
+                                                pyqDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 

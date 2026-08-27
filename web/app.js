@@ -75,10 +75,12 @@ const DEFAULT_DB = {
                 // PYQs Paper 1
                 { id: "ctet_pyq_2024_p1", title: "CTET Paper 1 Solved PYQ 2024", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", isPyq: true, year: "2024" },
                 { id: "ctet_pyq_2023_p1", title: "CTET Paper 1 Solved PYQ 2023", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", isPyq: true, year: "2023" },
+                { id: "ctet_pyq_2022_p1", title: "CTET Paper 1 Solved PYQ 2022 (Demo)", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 1", isPyq: true, year: "2022" },
 
                 // PYQs Paper 2
                 { id: "ctet_pyq_2024_p2", title: "CTET Paper 2 Solved PYQ 2024", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2024" },
-                { id: "ctet_pyq_2023_p2", title: "CTET Paper 2 Solved PYQ 2023", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2023" }
+                { id: "ctet_pyq_2023_p2", title: "CTET Paper 2 Solved PYQ 2023", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2023" },
+                { id: "ctet_pyq_2022_p2", title: "CTET Paper 2 Solved PYQ 2022 (Demo)", durationMinutes: 150, totalQuestions: 50, answerKey: generateAnswerKey(50), paper: "Paper 2", isPyq: true, year: "2022" }
             ]
         },
         {
@@ -431,6 +433,9 @@ function showExamDetails(exam) {
                 state.selectedPaper = btn.getAttribute("data-paper");
                 state.selectedMockSubject = "";
                 state.selectedMockType = "Full Syllabus";
+                state.selectedNoteClass = "";
+                state.selectedNoteSubject = "";
+                state.selectedPyqYear = "All Years";
                 state.expandedClassLevel = null;
                 showExamDetails(exam);
             });
@@ -666,7 +671,9 @@ function showExamDetails(exam) {
     optClassPlaceholder.innerText = "Classes Dropdown";
     selectClass.appendChild(optClassPlaceholder);
     
-    const classes = ["Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8"];
+    const classes = state.selectedPaper === "Paper 1" 
+        ? ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"]
+        : ["Class 6", "Class 7", "Class 8"];
     classes.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c;
@@ -951,20 +958,32 @@ function showExamDetails(exam) {
     pyqFiltersDiv.style.marginBottom = "8px";
     pyqFiltersDiv.style.padding = "4px 0";
     
-    const pyqYearOptions = ["All Years", "2024", "2023"];
+    const selectYear = document.createElement("select");
+    selectYear.className = "filter-select-dropdown";
+    selectYear.style.padding = "5px 12.5px";
+    selectYear.style.fontSize = "11.5px";
+    selectYear.style.borderRadius = "12px";
+    if (state.selectedPyqYear !== "All Years") {
+        selectYear.style.borderColor = "var(--primary)";
+        selectYear.style.backgroundColor = "var(--primary-container)";
+        selectYear.style.color = "var(--primary)";
+    }
+    
+    const pyqYearOptions = ["All Years", "2024", "2023", "2022"];
     pyqYearOptions.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = `filter-chip-pill ${state.selectedPyqYear === opt ? 'active' : ''}`;
-        btn.innerText = opt;
-        btn.style.padding = "5px 12px";
-        btn.style.fontSize = "11.5px";
-        btn.style.borderRadius = "12px";
-        btn.addEventListener("click", () => {
-            state.selectedPyqYear = opt;
-            showExamDetails(exam);
-        });
-        pyqFiltersDiv.appendChild(btn);
+        const optEl = document.createElement("option");
+        optEl.value = opt;
+        optEl.innerText = opt;
+        if (state.selectedPyqYear === opt) {
+            optEl.selected = true;
+        }
+        selectYear.appendChild(optEl);
     });
+    selectYear.addEventListener("change", (e) => {
+        state.selectedPyqYear = e.target.value;
+        showExamDetails(exam);
+    });
+    pyqFiltersDiv.appendChild(selectYear);
     pyqsContainer.appendChild(pyqFiltersDiv);
 
     // Find all tests of any test series belonging to this exam
@@ -2018,6 +2037,43 @@ function openOmrPrep(test) {
     document.getElementById("btn-download-paper").innerHTML = `<i class="fa-solid fa-download"></i>`;
     document.getElementById("btn-download-omr").innerHTML = `<i class="fa-solid fa-download"></i>`;
     document.getElementById("omr-pdf-viewer-container").style.display = "none";
+    
+    const isPyq = !!test.isPyq;
+    const btnDownloadPaper = document.getElementById("btn-download-paper");
+    const btnPreviewPaper = document.getElementById("btn-preview-paper");
+    const stepsListEl = document.querySelector("#screen-omr-scan-prep .steps-list");
+    
+    if (isPyq) {
+        btnDownloadPaper.style.display = "none";
+        btnPreviewPaper.style.width = "100%";
+        btnPreviewPaper.innerHTML = `<i class="fa-solid fa-eye"></i> Open secure paper PDF (In-App Only)`;
+        btnPreviewPaper.style.padding = "0 16px";
+        btnPreviewPaper.style.fontSize = "11px";
+        btnPreviewPaper.style.fontWeight = "bold";
+        btnPreviewPaper.style.borderRadius = "8px";
+        
+        stepsListEl.innerHTML = `
+            <li><span class="step-num">1</span> Click 'Open secure paper PDF' above to read the PYQ paper in the app's secure viewer (cannot be saved or printed).</li>
+            <li><span class="step-num">2</span> Download and print the generic Bubble OMR sheet.</li>
+            <li><span class="step-num">3</span> Attempt the test offline by marking bubbles on the printed OMR sheet.</li>
+            <li><span class="step-num">4</span> Open this app's camera scanner, align the OMR sheet inside the frame, and scan.</li>
+        `;
+    } else {
+        btnDownloadPaper.style.display = "block";
+        btnPreviewPaper.style.width = "";
+        btnPreviewPaper.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+        btnPreviewPaper.style.padding = "";
+        btnPreviewPaper.style.fontSize = "";
+        btnPreviewPaper.style.fontWeight = "";
+        btnPreviewPaper.style.borderRadius = "";
+        
+        stepsListEl.innerHTML = `
+            <li><span class="step-num">1</span> Download & Print both the Question Paper PDF and the custom Bubble OMR sheet.</li>
+            <li><span class="step-num">2</span> Attempt the test offline by marking bubbles on the printed OMR sheet with a black/blue pen.</li>
+            <li><span class="step-num">3</span> Open this app's camera scanner, align the OMR sheet inside the frame, and scan.</li>
+            <li><span class="step-num">4</span> The app immediately processes the markings and uploads details to your Profile.</li>
+        `;
+    }
     
     // Pre-render the question list
     renderMockQuestionPaper(test);
