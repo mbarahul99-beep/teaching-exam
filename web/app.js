@@ -410,21 +410,18 @@ function showExamDetails(exam) {
     if (exam.id === "ctet") {
         filtersContainer.style.display = "block";
         const paperDiv = document.createElement("div");
-        paperDiv.style.backgroundColor = "var(--surface-variant)";
-        paperDiv.style.borderRadius = "12px";
-        paperDiv.style.padding = "12px";
-        paperDiv.style.border = "1px solid var(--outline)";
+        paperDiv.className = "filter-section-card";
         
         paperDiv.innerHTML = `
-            <span style="font-weight: 700; font-size: 11px; color: var(--primary); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Filter by Exam Paper</span>
-            <div style="display: flex; gap: 8px;">
-                <button class="filter-pill-paper ${state.selectedPaper === 'All Papers' ? 'active' : ''}" data-paper="All Papers" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'All Papers' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'All Papers' ? 'var(--on-primary)' : 'var(--on-surface)'};">All Papers</button>
-                <button class="filter-pill-paper ${state.selectedPaper === 'Paper 1' ? 'active' : ''}" data-paper="Paper 1" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'Paper 1' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'Paper 1' ? 'var(--on-primary)' : 'var(--on-surface)'};">Paper 1 (Class 1-5)</button>
-                <button class="filter-pill-paper ${state.selectedPaper === 'Paper 2' ? 'active' : ''}" data-paper="Paper 2" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 12px; cursor: pointer; transition: all 0.2s; background-color: ${state.selectedPaper === 'Paper 2' ? 'var(--primary)' : 'var(--surface)'}; color: ${state.selectedPaper === 'Paper 2' ? 'var(--on-primary)' : 'var(--on-surface)'};">Paper 2 (Class 6-8)</button>
+            <span class="filter-section-title">Filter by Exam Paper</span>
+            <div class="filter-pills-row">
+                <button class="filter-chip-pill ${state.selectedPaper === 'All Papers' ? 'active' : ''}" data-paper="All Papers">All Papers</button>
+                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 1' ? 'active' : ''}" data-paper="Paper 1">Paper 1 (Class 1-5)</button>
+                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 2' ? 'active' : ''}" data-paper="Paper 2">Paper 2 (Class 6-8)</button>
             </div>
         `;
         
-        paperDiv.querySelectorAll(".filter-pill-paper").forEach(btn => {
+        paperDiv.querySelectorAll(".filter-chip-pill").forEach(btn => {
             btn.addEventListener("click", () => {
                 state.selectedPaper = btn.getAttribute("data-paper");
                 state.selectedMockSubject = "All";
@@ -455,9 +452,11 @@ function showExamDetails(exam) {
     const activateTab = (tabName) => {
         document.querySelectorAll(".exam-sub-tab").forEach(btn => {
             const isTarget = btn.getAttribute("data-tab") === tabName;
-            btn.className = `exam-sub-tab ${isTarget ? 'active' : ''}`;
-            btn.style.backgroundColor = isTarget ? "var(--surface)" : "transparent";
-            btn.style.color = isTarget ? "var(--primary)" : "var(--on-surface-variant)";
+            if (isTarget) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
         });
         tabMocks.style.display = tabName === "mocks" ? "block" : "none";
         tabNotes.style.display = tabName === "notes" ? "block" : "none";
@@ -473,6 +472,14 @@ function showExamDetails(exam) {
             activateTab(tabName);
         };
     });
+
+    // Utility for empty state HTML
+    const getEmptyStateHtml = (message) => `
+        <div class="empty-state-container">
+            <i class="fa-solid fa-folder-open"></i>
+            <p>${message}</p>
+        </div>
+    `;
 
     // 1. Render Mock Tests for this exam
     const mocksContainer = document.getElementById("exam-details-mocks-list");
@@ -490,25 +497,21 @@ function showExamDetails(exam) {
 
     // Sub-filters row
     const mockFiltersDiv = document.createElement("div");
-    mockFiltersDiv.style.display = "flex";
-    mockFiltersDiv.style.flexDirection = "column";
-    mockFiltersDiv.style.gap = "8px";
-    mockFiltersDiv.style.marginBottom = "12px";
+    mockFiltersDiv.className = "filter-section-card";
     
     // Row 1: Mock Type
+    const typeLabel = document.createElement("span");
+    typeLabel.className = "filter-section-title";
+    typeLabel.innerText = "Filter Mock Type";
+    mockFiltersDiv.appendChild(typeLabel);
+
     const typeRow = document.createElement("div");
-    typeRow.style.display = "flex";
-    typeRow.style.gap = "6px";
+    typeRow.className = "filter-pills-row";
+    typeRow.style.marginBottom = "12px";
     const typeOpts = ["All", "Full Syllabus", "Subject-wise"];
     typeOpts.forEach(opt => {
         const btn = document.createElement("button");
-        btn.style.padding = "4px 10px";
-        btn.style.borderRadius = "12px";
-        btn.style.border = "1px solid var(--outline)";
-        btn.style.fontSize = "11px";
-        btn.style.cursor = "pointer";
-        btn.style.backgroundColor = state.selectedMockType === opt ? "var(--primary)" : "var(--surface)";
-        btn.style.color = state.selectedMockType === opt ? "var(--on-primary)" : "var(--on-surface)";
+        btn.className = `filter-chip-pill ${state.selectedMockType === opt ? 'active' : ''}`;
         btn.innerText = opt;
         btn.addEventListener("click", () => {
             state.selectedMockType = opt;
@@ -519,25 +522,21 @@ function showExamDetails(exam) {
     mockFiltersDiv.appendChild(typeRow);
 
     // Row 2: Subjects
-    const subRow = document.createElement("div");
-    subRow.style.display = "flex";
-    subRow.style.gap = "6px";
-    subRow.style.overflowX = "auto";
-    subRow.style.paddingBottom = "4px";
     const subjects = exam.id === "ctet" 
         ? (state.selectedPaper === "Paper 1" ? ["All", "CDP", "EVS", "Mathematics"] : (state.selectedPaper === "Paper 2" ? ["All", "CDP", "Social Science", "Mathematics"] : ["All", "CDP", "EVS", "Mathematics", "Social Science"]))
         : ["All"];
     
     if (subjects.length > 1) {
+        const subLabel = document.createElement("span");
+        subLabel.className = "filter-section-title";
+        subLabel.innerText = "Select Subject";
+        mockFiltersDiv.appendChild(subLabel);
+
+        const subRow = document.createElement("div");
+        subRow.className = "filter-pills-row";
         subjects.forEach(subj => {
             const btn = document.createElement("button");
-            btn.style.padding = "4px 10px";
-            btn.style.borderRadius = "12px";
-            btn.style.border = "1px solid var(--outline)";
-            btn.style.fontSize = "11px";
-            btn.style.cursor = "pointer";
-            btn.style.backgroundColor = state.selectedMockSubject === subj ? "var(--primary)" : "var(--surface)";
-            btn.style.color = state.selectedMockSubject === subj ? "var(--on-primary)" : "var(--on-surface)";
+            btn.className = `filter-chip-pill ${state.selectedMockSubject === subj ? 'active' : ''}`;
             btn.innerText = subj;
             btn.addEventListener("click", () => {
                 state.selectedMockSubject = subj;
@@ -565,13 +564,7 @@ function showExamDetails(exam) {
     });
 
     if (filteredMocks.length === 0) {
-        const empty = document.createElement("span");
-        empty.style.color = "var(--on-surface-variant)";
-        empty.style.opacity = "0.65";
-        empty.style.display = "block";
-        empty.style.padding = "10px";
-        empty.innerText = "No mock tests match your selection.";
-        mocksContainer.appendChild(empty);
+        mocksContainer.innerHTML += getEmptyStateHtml("No mock tests match your selection.");
     } else {
         filteredMocks.forEach(test => {
             const card = document.createElement("div");
@@ -615,7 +608,7 @@ function showExamDetails(exam) {
     const theoryNotes = relatedNotes.filter(n => n.noteType !== "NCERT");
 
     if (ncertNotes.length === 0 && theoryNotes.length === 0) {
-        notesContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No notes available for this selection.</span>`;
+        notesContainer.innerHTML = getEmptyStateHtml("No notes available for this selection.");
     } else {
         // Group NCERT Notes by Class Level
         if (ncertNotes.length > 0) {
@@ -646,26 +639,18 @@ function showExamDetails(exam) {
                 const isExpanded = state.expandedClassLevel === classLevel;
 
                 const card = document.createElement("div");
-                card.className = "note-item-card";
-                card.style.flexDirection = "column";
-                card.style.alignItems = "stretch";
-                card.style.cursor = "pointer";
-                card.style.backgroundColor = isExpanded ? "rgba(var(--primary-rgb), 0.08)" : "var(--surface)";
-                card.style.border = "1px solid var(--outline)";
-                card.style.padding = "16px";
-                card.style.borderRadius = "12px";
-                card.style.marginBottom = "10px";
+                card.className = `class-notes-card ${isExpanded ? 'expanded' : ''}`;
 
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <i class="fa-solid fa-book text-primary" style="font-size: 18px;"></i>
+                    <div class="class-notes-header">
+                        <div class="class-notes-title-box">
+                            <i class="fa-solid fa-book-open-reader text-primary"></i>
                             <div style="text-align: left;">
-                                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--on-surface);">${classLevel} NCERT Book Notes</h4>
-                                <span style="font-size: 11px; opacity: 0.7;">${notesInClass.length} Notes Available</span>
+                                <h4>${classLevel} NCERT Book Notes</h4>
+                                <span>${notesInClass.length} Notes Available</span>
                             </div>
                         </div>
-                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}" style="opacity: 0.6;"></i>
+                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-primary" style="opacity: 0.8; font-size: 13px;"></i>
                     </div>
                 `;
 
@@ -677,10 +662,7 @@ function showExamDetails(exam) {
 
                 if (isExpanded) {
                     const expandedContainer = document.createElement("div");
-                    expandedContainer.style.marginTop = "12px";
-                    expandedContainer.style.display = "flex";
-                    expandedContainer.style.flexDirection = "column";
-                    expandedContainer.style.gap = "8px";
+                    expandedContainer.className = "class-notes-subject-group";
 
                     // Group notes by subject within this class
                     const notesBySubj = {};
@@ -691,13 +673,7 @@ function showExamDetails(exam) {
 
                     Object.keys(notesBySubj).forEach(subj => {
                         const subHeading = document.createElement("span");
-                        subHeading.style.fontSize = "10px";
-                        subHeading.style.fontWeight = "900";
-                        subHeading.style.color = "var(--primary)";
-                        subHeading.style.textTransform = "uppercase";
-                        subHeading.style.letterSpacing = "0.5px";
-                        subHeading.style.marginTop = "6px";
-                        subHeading.style.textAlign = "left";
+                        subHeading.className = "subject-label-tag";
                         subHeading.innerText = subj;
                         expandedContainer.appendChild(subHeading);
 
@@ -705,17 +681,10 @@ function showExamDetails(exam) {
                             const isDownloaded = state.downloadedNotes[note.id];
                             const row = document.createElement("div");
                             row.className = "note-item-row";
-                            row.style.display = "flex";
-                            row.style.justifyContent = "space-between";
-                            row.style.alignItems = "center";
-                            row.style.backgroundColor = "var(--surface)";
-                            row.style.padding = "10px 12px";
-                            row.style.borderRadius = "8px";
-                            row.style.border = "1px solid var(--outline)";
                             
                             const btnHtml = isDownloaded 
-                                ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px; background: none; border: 1px solid var(--primary); color: var(--primary); cursor: pointer;"><i class="fa-solid fa-book-open"></i> View</button>`
-                                : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px; background: var(--primary-container); color: var(--on-primary-container); border: none; cursor: pointer;"><i class="fa-solid fa-download"></i></button>`;
+                                ? `<button class="btn-view-note"><i class="fa-solid fa-book-open"></i> View</button>`
+                                : `<button class="btn-download-note"><i class="fa-solid fa-download"></i></button>`;
 
                             row.innerHTML = `
                                 <div style="flex: 1; min-width: 0; padding-right: 8px; text-align: left;">
@@ -768,8 +737,8 @@ function showExamDetails(exam) {
                 card.style.margin = "0";
                 
                 const btnHtml = isDownloaded 
-                    ? `<button class="btn-view-note" style="padding: 6px 12px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-book-open"></i> View</button>`
-                    : `<button class="btn-download-note" style="padding: 6px 10px; border-radius: 6px; font-size: 11px;"><i class="fa-solid fa-download"></i></button>`;
+                    ? `<button class="btn-view-note"><i class="fa-solid fa-book-open"></i> View</button>`
+                    : `<button class="btn-download-note"><i class="fa-solid fa-download"></i></button>`;
 
                 card.innerHTML = `
                     <div class="note-info" style="flex: 1; text-align: left;">
@@ -823,7 +792,7 @@ function showExamDetails(exam) {
     }
 
     if (pyqs.length === 0) {
-        pyqsContainer.innerHTML = `<span style="color: var(--on-surface-variant); opacity: 0.65; display: block; padding: 10px;">No Solved PYQ papers available for this exam.</span>`;
+        pyqsContainer.innerHTML = getEmptyStateHtml("No Solved PYQ papers available for this exam.");
     } else {
         pyqs.forEach(test => {
             const card = document.createElement("div");

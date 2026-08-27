@@ -658,19 +658,22 @@ body {
     align-items: center;
     height: 52px;
     padding: 6px 12px;
-    background-color: var(--surface-variant);
+    background-color: var(--surface);
+    border: 1px solid var(--outline);
     border-radius: var(--border-radius-md);
     gap: 10px;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s ease;
 }
 
 .compact-rect-item:hover {
-    background-color: var(--outline);
+    background-color: var(--primary-container);
+    border-color: var(--primary);
+    transform: translateY(-1px);
 }
 
 .compact-rect-item:active {
-    transform: scale(0.99);
+    transform: scale(0.98);
 }
 
 .rect-icon-box {
@@ -2834,4 +2837,265 @@ textarea.form-input-field {
     fill: var(--surface-variant);
     rx: 4;
 }
+
+/* -------------------------------------------------------------
+   Modern Component UI Styles & Fixes
+   ------------------------------------------------------------- */
+
+/* Screen Header Alignment */
+.screen-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--outline);
+}
+
+.screen-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--on-surface);
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Circular Icon Back Button */
+.icon-back-btn {
+    background-color: var(--surface-variant);
+    color: var(--on-surface-variant);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.icon-back-btn:hover {
+    background-color: var(--primary-container);
+    color: var(--primary);
+    transform: translateX(-2px);
+}
+
+.icon-back-btn i {
+    font-size: 14px;
+}
+
+/* Filter Component Card & Title */
+.filter-section-card {
+    background-color: var(--surface-variant);
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.filter-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: block;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+/* Filter Pills Container */
+.filter-pills-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-bottom: 2px;
+}
+
+/* Rounded Theme Chips */
+.filter-chip-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--outline);
+    background-color: var(--surface);
+    color: var(--on-surface);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-chip-pill:hover {
+    border-color: var(--primary);
+    background-color: var(--primary-container);
+    color: var(--primary);
+}
+
+.filter-chip-pill.active {
+    background-color: var(--primary);
+    color: var(--surface);
+    border-color: var(--primary);
+}
+
+/* Segmented Sub Tabs Bar */
+.exam-sub-tabs {
+    display: flex;
+    background-color: var(--surface-variant);
+    border-radius: var(--border-radius-sm);
+    padding: 4px;
+    border: 1px solid var(--outline);
+    margin-bottom: 16px;
+}
+
+.exam-sub-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.exam-sub-tab:hover {
+    color: var(--primary);
+}
+
+.exam-sub-tab.active {
+    background-color: var(--surface);
+    color: var(--primary);
+    box-shadow: var(--card-shadow);
+}
+
+/* Empty State Container */
+.empty-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 20px;
+    text-align: center;
+    background-color: var(--surface);
+    border-radius: var(--border-radius-md);
+    border: 1px dashed var(--outline);
+    margin-top: 10px;
+}
+
+.empty-state-container i {
+    font-size: 28px;
+    color: var(--secondary);
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-state-container p {
+    font-size: 13px;
+    color: var(--on-surface-variant);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Collapsible Classwise NCERT Cards */
+.class-notes-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface);
+    border: 1px solid var(--outline);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.class-notes-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--card-shadow);
+}
+
+.class-notes-card.expanded {
+    background-color: var(--primary-container);
+    border-color: var(--primary);
+}
+
+.class-notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.class-notes-title-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.class-notes-title-box i {
+    font-size: 18px;
+    color: var(--primary);
+}
+
+.class-notes-title-box h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--on-surface);
+}
+
+.class-notes-title-box span {
+    font-size: 11px;
+    color: var(--on-surface-variant);
+    opacity: 0.8;
+}
+
+.class-notes-subject-group {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subject-label-tag {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+    text-align: left;
+}
+
+.note-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface);
+    padding: 10px 12px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--outline);
+    transition: all 0.2s ease;
+}
+
+.note-item-row:hover {
+    border-color: var(--primary);
+}
+
+/* Card Hover Animations & Shadows */
+.individual-test-card:hover, .note-item-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--hover-shadow);
+    transform: translateY(-2px);
+}
+.individual-test-card, .note-item-card {
+    transition: all 0.2s ease;
+}
+
 
