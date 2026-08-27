@@ -49,9 +49,9 @@ fun ExamDetailsScreen(
     val tabs = listOf("Mock Tests", "Notes", "PYQs")
 
     // Filter states
-    var selectedPaper by remember { mutableStateOf("All Papers") }
-    var selectedMockType by remember { mutableStateOf("All") }
-    var selectedMockSubject by remember { mutableStateOf("All") }
+    var selectedPaper by remember { mutableStateOf("Paper 1") }
+    var selectedMockType by remember { mutableStateOf("Full Syllabus") }
+    var selectedMockSubject by remember { mutableStateOf("") }
     
     // Expanded state for Option B class level card
     var expandedClassLevel by remember { mutableStateOf<String?>(null) }
@@ -66,18 +66,17 @@ fun ExamDetailsScreen(
             if (test.isPyq) return@filter false
             
             // Paper filter (only for CTET)
-            if (examId == "ctet" && selectedPaper != "All Papers") {
+            if (examId == "ctet") {
                 if (test.paper != null && test.paper != selectedPaper && test.paper != "Both") {
                     return@filter false
                 }
             }
             // Mock Type filter
-            if (selectedMockType != "All") {
-                if (test.testType != selectedMockType) return@filter false
-            }
-            // Subject filter
-            if (selectedMockSubject != "All") {
-                if (test.subject != selectedMockSubject) return@filter false
+            if (selectedMockType == "Full Syllabus") {
+                if (test.testType != "Full Syllabus") return@filter false
+            } else if (selectedMockType == "Subject-wise") {
+                if (test.testType != "Subject-wise") return@filter false
+                if (selectedMockSubject.isNotEmpty() && test.subject != selectedMockSubject) return@filter false
             }
             true
         }
@@ -100,7 +99,7 @@ fun ExamDetailsScreen(
             allPyqs
         }
 
-        if (examId == "ctet" && selectedPaper != "All Papers") {
+        if (examId == "ctet") {
             sourceList.filter { it.paper == selectedPaper || it.paper == "Both" }
         } else {
             sourceList
@@ -116,7 +115,7 @@ fun ExamDetailsScreen(
             else -> notes.filter { it.subject in listOf("History", "Geography", "Hindi") }
         }
         
-        if (examId == "ctet" && selectedPaper != "All Papers") {
+        if (examId == "ctet") {
             baseNotes.filter { it.paper == selectedPaper || it.paper == "Both" }
         } else {
             baseNotes
@@ -164,35 +163,35 @@ fun ExamDetailsScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "Filter by Exam Paper",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 6.dp)
-                        )
+                    Column(modifier = Modifier.padding(10.dp)) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            val paperOptions = listOf("All Papers", "Paper 1", "Paper 2")
+                            Text(
+                                text = "Paper:",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                            val paperOptions = listOf("Paper 1", "Paper 2")
                             paperOptions.forEach { paperOpt ->
                                 val isSelected = selectedPaper == paperOpt
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = { 
                                         selectedPaper = paperOpt
-                                        // Reset filters when switching paper to avoid empty indices
-                                        selectedMockSubject = "All"
-                                        selectedMockType = "All"
+                                        selectedMockSubject = ""
+                                        selectedMockType = "Full Syllabus"
                                         expandedClassLevel = null
                                     },
-                                    label = { Text(if (paperOpt == "All Papers") "All Papers" else if (paperOpt == "Paper 1") "Paper 1 (Class 1-5)" else "Paper 2 (Class 6-8)") },
+                                    label = { Text(paperOpt, fontSize = 11.5.sp) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -250,46 +249,89 @@ fun ExamDetailsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            FilterChip(
-                                selected = selectedMockType == "All",
-                                onClick = { selectedMockType = "All" },
-                                label = { Text("All Mocks") }
-                            )
-                            FilterChip(
-                                selected = selectedMockType == "Full Syllabus",
-                                onClick = { selectedMockType = "Full Syllabus" },
-                                label = { Text("Full Syllabus") }
-                            )
-                            FilterChip(
-                                selected = selectedMockType == "Subject-wise",
-                                onClick = { selectedMockType = "Subject-wise" },
-                                label = { Text("Subject-wise") }
-                            )
-                        }
-
-                        // Subject sub-filter row (Only if subject-wise or All is selected)
-                        val subjects = when (selectedPaper) {
-                            "Paper 1" -> listOf("All", "CDP", "EVS", "Mathematics")
-                            "Paper 2" -> listOf("All", "CDP", "Social Science", "Mathematics")
-                            else -> listOf("All", "CDP", "EVS", "Mathematics", "Social Science")
-                        }
-                        
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            items(subjects) { subj ->
+                            // Full Syllabus Chip
+                            val isFullSyllabus = selectedMockType == "Full Syllabus"
+                            FilterChip(
+                                selected = isFullSyllabus,
+                                onClick = { 
+                                    selectedMockType = "Full Syllabus"
+                                    selectedMockSubject = ""
+                                },
+                                label = { Text("Full Syllabus", fontSize = 11.5.sp) }
+                            )
+                            
+                            // Subject Dropdown Box
+                            var dropdownExpanded by remember { mutableStateOf(false) }
+                            val isSubjectWise = selectedMockType == "Subject-wise"
+                            val subjects = if (selectedPaper == "Paper 1") {
+                                listOf("CDP", "Hindi", "English", "EVS", "Mathematics")
+                            } else {
+                                listOf("CDP", "Hindi", "English", "Mathematics", "Social Science")
+                            }
+                            val subjectsLabels = if (selectedPaper == "Paper 1") {
+                                listOf("CDP", "Language (Hindi)", "Language (English)", "EVS", "Mathematics")
+                            } else {
+                                listOf("CDP", "Language (Hindi)", "Language (English)", "Mathematics", "Social Science")
+                            }
+                            
+                            val activeLabel = if (isSubjectWise && selectedMockSubject.isNotEmpty()) {
+                                val index = subjects.indexOf(selectedMockSubject)
+                                if (index >= 0) subjectsLabels[index] else "Subject-wise Dropdown"
+                            } else {
+                                "Subject-wise Dropdown"
+                            }
+                            
+                            Box {
                                 FilterChip(
-                                    selected = selectedMockSubject == subj,
-                                    onClick = { selectedMockSubject = subj },
-                                    label = { Text(subj) }
+                                    selected = isSubjectWise,
+                                    onClick = { dropdownExpanded = true },
+                                    label = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(activeLabel, fontSize = 11.5.sp)
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 )
+                                
+                                DropdownMenu(
+                                    expanded = dropdownExpanded,
+                                    onDismissRequest = { dropdownExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Clear Subject Filter") },
+                                        onClick = {
+                                            selectedMockType = "Full Syllabus"
+                                            selectedMockSubject = ""
+                                            dropdownExpanded = false
+                                        }
+                                    )
+                                    subjects.forEachIndexed { index, sub ->
+                                        val label = subjectsLabels[index]
+                                        DropdownMenuItem(
+                                            text = { Text(label) },
+                                            onClick = {
+                                                selectedMockType = "Subject-wise"
+                                                selectedMockSubject = sub
+                                                dropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 

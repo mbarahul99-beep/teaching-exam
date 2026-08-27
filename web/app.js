@@ -161,9 +161,9 @@ let state = {
     activeSeries: null,
     
     // Exam Details Filtering states
-    selectedPaper: "All Papers",
-    selectedMockType: "All",
-    selectedMockSubject: "All",
+    selectedPaper: "Paper 1",
+    selectedMockType: "Full Syllabus",
+    selectedMockSubject: "",
     expandedClassLevel: null,
     
     // Online test state
@@ -410,22 +410,24 @@ function showExamDetails(exam) {
     if (exam.id === "ctet") {
         filtersContainer.style.display = "block";
         const paperDiv = document.createElement("div");
-        paperDiv.className = "filter-section-card";
+        paperDiv.style.display = "flex";
+        paperDiv.style.alignItems = "center";
+        paperDiv.style.gap = "8px";
+        paperDiv.style.padding = "4px 0";
         
         paperDiv.innerHTML = `
-            <span class="filter-section-title">Filter by Exam Paper</span>
-            <div class="filter-pills-row">
-                <button class="filter-chip-pill ${state.selectedPaper === 'All Papers' ? 'active' : ''}" data-paper="All Papers">All Papers</button>
-                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 1' ? 'active' : ''}" data-paper="Paper 1">Paper 1 (Class 1-5)</button>
-                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 2' ? 'active' : ''}" data-paper="Paper 2">Paper 2 (Class 6-8)</button>
+            <span class="filter-section-title" style="margin: 0; font-size: 11px; font-weight: 800;">Paper:</span>
+            <div class="filter-pills-row" style="gap: 6px;">
+                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 1' ? 'active' : ''}" data-paper="Paper 1" style="padding: 4px 10px; font-size: 11.5px; border-radius: 12px;">Paper 1</button>
+                <button class="filter-chip-pill ${state.selectedPaper === 'Paper 2' ? 'active' : ''}" data-paper="Paper 2" style="padding: 4px 10px; font-size: 11.5px; border-radius: 12px;">Paper 2</button>
             </div>
         `;
         
         paperDiv.querySelectorAll(".filter-chip-pill").forEach(btn => {
             btn.addEventListener("click", () => {
                 state.selectedPaper = btn.getAttribute("data-paper");
-                state.selectedMockSubject = "All";
-                state.selectedMockType = "All";
+                state.selectedMockSubject = "";
+                state.selectedMockType = "Full Syllabus";
                 state.expandedClassLevel = null;
                 showExamDetails(exam);
             });
@@ -475,9 +477,9 @@ function showExamDetails(exam) {
 
     // Utility for empty state HTML
     const getEmptyStateHtml = (message) => `
-        <div class="empty-state-container">
-            <i class="fa-solid fa-folder-open"></i>
-            <p>${message}</p>
+        <div class="empty-state-container" style="padding: 24px 16px;">
+            <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 8px;"></i>
+            <p style="font-size: 12.5px;">${message}</p>
         </div>
     `;
 
@@ -495,70 +497,98 @@ function showExamDetails(exam) {
         });
     });
 
-    // Sub-filters row
+    // Sub-filters row (Full Syllabus vs Subject-wise Dropdown)
     const mockFiltersDiv = document.createElement("div");
-    mockFiltersDiv.className = "filter-section-card";
+    mockFiltersDiv.className = "filter-pills-row";
+    mockFiltersDiv.style.alignItems = "center";
+    mockFiltersDiv.style.gap = "8px";
+    mockFiltersDiv.style.marginBottom = "8px";
+    mockFiltersDiv.style.padding = "4px 0";
     
-    // Row 1: Mock Type
-    const typeLabel = document.createElement("span");
-    typeLabel.className = "filter-section-title";
-    typeLabel.innerText = "Filter Mock Type";
-    mockFiltersDiv.appendChild(typeLabel);
-
-    const typeRow = document.createElement("div");
-    typeRow.className = "filter-pills-row";
-    typeRow.style.marginBottom = "12px";
-    const typeOpts = ["All", "Full Syllabus", "Subject-wise"];
-    typeOpts.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = `filter-chip-pill ${state.selectedMockType === opt ? 'active' : ''}`;
-        btn.innerText = opt;
-        btn.addEventListener("click", () => {
-            state.selectedMockType = opt;
-            showExamDetails(exam);
-        });
-        typeRow.appendChild(btn);
+    // Full Syllabus Button
+    const isFullSyllabus = state.selectedMockType === "Full Syllabus";
+    const fullSyllabusBtn = document.createElement("button");
+    fullSyllabusBtn.className = `filter-chip-pill ${isFullSyllabus ? 'active' : ''}`;
+    fullSyllabusBtn.innerText = "Full Syllabus";
+    fullSyllabusBtn.style.padding = "5px 12px";
+    fullSyllabusBtn.style.fontSize = "11.5px";
+    fullSyllabusBtn.style.borderRadius = "12px";
+    fullSyllabusBtn.addEventListener("click", () => {
+        state.selectedMockType = "Full Syllabus";
+        state.selectedMockSubject = "";
+        showExamDetails(exam);
     });
-    mockFiltersDiv.appendChild(typeRow);
-
-    // Row 2: Subjects
-    const subjects = exam.id === "ctet" 
-        ? (state.selectedPaper === "Paper 1" ? ["All", "CDP", "EVS", "Mathematics"] : (state.selectedPaper === "Paper 2" ? ["All", "CDP", "Social Science", "Mathematics"] : ["All", "CDP", "EVS", "Mathematics", "Social Science"]))
-        : ["All"];
+    mockFiltersDiv.appendChild(fullSyllabusBtn);
     
-    if (subjects.length > 1) {
-        const subLabel = document.createElement("span");
-        subLabel.className = "filter-section-title";
-        subLabel.innerText = "Select Subject";
-        mockFiltersDiv.appendChild(subLabel);
-
-        const subRow = document.createElement("div");
-        subRow.className = "filter-pills-row";
-        subjects.forEach(subj => {
-            const btn = document.createElement("button");
-            btn.className = `filter-chip-pill ${state.selectedMockSubject === subj ? 'active' : ''}`;
-            btn.innerText = subj;
-            btn.addEventListener("click", () => {
-                state.selectedMockSubject = subj;
-                showExamDetails(exam);
-            });
-            subRow.appendChild(btn);
-        });
-        mockFiltersDiv.appendChild(subRow);
+    // Dropdown for Subject-wise
+    const isSubjectWise = state.selectedMockType === "Subject-wise";
+    const select = document.createElement("select");
+    select.className = "filter-select-dropdown";
+    select.style.padding = "5px 12px";
+    select.style.fontSize = "11.5px";
+    select.style.borderRadius = "12px";
+    if (isSubjectWise) {
+        select.style.borderColor = "var(--primary)";
+        select.style.backgroundColor = "var(--primary-container)";
+        select.style.color = "var(--primary)";
     }
     
+    const optPlaceholder = document.createElement("option");
+    optPlaceholder.value = "";
+    optPlaceholder.innerText = "Subject-wise Dropdown";
+    select.appendChild(optPlaceholder);
+    
+    const subjectsMap = state.selectedPaper === "Paper 1" 
+        ? [
+            { val: "CDP", label: "CDP" },
+            { val: "Hindi", label: "Language (Hindi)" },
+            { val: "English", label: "Language (English)" },
+            { val: "EVS", label: "EVS" },
+            { val: "Mathematics", label: "Mathematics" }
+          ]
+        : [
+            { val: "CDP", label: "CDP" },
+            { val: "Hindi", label: "Language (Hindi)" },
+            { val: "English", label: "Language (English)" },
+            { val: "Mathematics", label: "Mathematics" },
+            { val: "Social Science", label: "Social Science" }
+          ];
+          
+    subjectsMap.forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub.val;
+        opt.innerText = sub.label;
+        if (isSubjectWise && state.selectedMockSubject === sub.val) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+    
+    select.addEventListener("change", (e) => {
+        const val = e.target.value;
+        if (val) {
+            state.selectedMockType = "Subject-wise";
+            state.selectedMockSubject = val;
+        } else {
+            state.selectedMockType = "Full Syllabus";
+            state.selectedMockSubject = "";
+        }
+        showExamDetails(exam);
+    });
+    
+    mockFiltersDiv.appendChild(select);
     mocksContainer.appendChild(mockFiltersDiv);
 
     // Filter mocks in memory
     let filteredMocks = allMocks.filter(test => {
-        if (exam.id === "ctet" && state.selectedPaper !== "All Papers") {
+        if (exam.id === "ctet") {
             if (test.paper && test.paper !== state.selectedPaper && test.paper !== "Both") return false;
         }
-        if (state.selectedMockType !== "All") {
-            if (test.testType !== state.selectedMockType) return false;
-        }
-        if (state.selectedMockSubject !== "All") {
-            if (test.subject !== state.selectedMockSubject) return false;
+        if (state.selectedMockType === "Full Syllabus") {
+            if (test.testType !== "Full Syllabus") return false;
+        } else if (state.selectedMockType === "Subject-wise") {
+            if (test.testType !== "Subject-wise") return false;
+            if (state.selectedMockSubject && test.subject !== state.selectedMockSubject) return false;
         }
         return true;
     });
@@ -570,12 +600,14 @@ function showExamDetails(exam) {
             const card = document.createElement("div");
             card.className = "individual-test-card";
             card.style.cursor = "pointer";
+            card.style.padding = "12px";
+            card.style.gap = "8px";
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
-                    <i class="fa-solid fa-chevron-right text-primary"></i>
+                    <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
+                    <i class="fa-solid fa-chevron-right text-primary" style="font-size: 11px;"></i>
                 </div>
-                <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
+                <div class="test-stats-row" style="margin-top: 4px; display: flex; gap: 12px; font-size: 11px; opacity: 0.7;">
                     <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
                     <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
                 </div>
@@ -613,10 +645,10 @@ function showExamDetails(exam) {
         // Group NCERT Notes by Class Level
         if (ncertNotes.length > 0) {
             const heading = document.createElement("h3");
-            heading.style.fontSize = "14px";
+            heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
             heading.style.color = "var(--primary)";
-            heading.style.margin = "12px 0 8px 0";
+            heading.style.margin = "6px 0 6px 0";
             heading.innerText = "NCERT Class-wise Summaries";
             notesContainer.appendChild(heading);
 
@@ -640,17 +672,19 @@ function showExamDetails(exam) {
 
                 const card = document.createElement("div");
                 card.className = `class-notes-card ${isExpanded ? 'expanded' : ''}`;
+                card.style.padding = "10px 12px";
+                card.style.marginBottom = "6px";
 
                 card.innerHTML = `
                     <div class="class-notes-header">
-                        <div class="class-notes-title-box">
-                            <i class="fa-solid fa-book-open-reader text-primary"></i>
+                        <div class="class-notes-title-box" style="gap: 8px;">
+                            <i class="fa-solid fa-book-open-reader text-primary" style="font-size: 15px;"></i>
                             <div style="text-align: left;">
-                                <h4>${classLevel} NCERT Book Notes</h4>
-                                <span>${notesInClass.length} Notes Available</span>
+                                <h4 style="font-size: 13px; font-weight: 700;">${classLevel} NCERT Book Notes</h4>
+                                <span style="font-size: 10px;">${notesInClass.length} Notes Available</span>
                             </div>
                         </div>
-                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-primary" style="opacity: 0.8; font-size: 13px;"></i>
+                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-primary" style="opacity: 0.8; font-size: 11px;"></i>
                     </div>
                 `;
 
@@ -663,6 +697,8 @@ function showExamDetails(exam) {
                 if (isExpanded) {
                     const expandedContainer = document.createElement("div");
                     expandedContainer.className = "class-notes-subject-group";
+                    expandedContainer.style.marginTop = "8px";
+                    expandedContainer.style.gap = "6px";
 
                     // Group notes by subject within this class
                     const notesBySubj = {};
@@ -674,6 +710,8 @@ function showExamDetails(exam) {
                     Object.keys(notesBySubj).forEach(subj => {
                         const subHeading = document.createElement("span");
                         subHeading.className = "subject-label-tag";
+                        subHeading.style.fontSize = "9px";
+                        subHeading.style.marginTop = "4px";
                         subHeading.innerText = subj;
                         expandedContainer.appendChild(subHeading);
 
@@ -681,15 +719,16 @@ function showExamDetails(exam) {
                             const isDownloaded = state.downloadedNotes[note.id];
                             const row = document.createElement("div");
                             row.className = "note-item-row";
+                            row.style.padding = "6px 8px";
                             
                             const btnHtml = isDownloaded 
-                                ? `<button class="btn-view-note"><i class="fa-solid fa-book-open"></i> View</button>`
-                                : `<button class="btn-download-note"><i class="fa-solid fa-download"></i></button>`;
+                                ? `<button class="btn-view-note" style="padding: 4px 8px; font-size: 10px;"><i class="fa-solid fa-book-open"></i> View</button>`
+                                : `<button class="btn-download-note" style="width: 28px; height: 28px; font-size: 12px;"><i class="fa-solid fa-download"></i></button>`;
 
                             row.innerHTML = `
                                 <div style="flex: 1; min-width: 0; padding-right: 8px; text-align: left;">
-                                    <h5 style="margin: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</h5>
-                                    <span style="font-size: 10px; opacity: 0.6;">${note.sizeMb} MB</span>
+                                    <h5 style="margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</h5>
+                                    <span style="font-size: 9px; opacity: 0.6;">${note.sizeMb} MB</span>
                                 </div>
                                 <div>${btnHtml}</div>
                             `;
@@ -723,10 +762,10 @@ function showExamDetails(exam) {
         // Render Subject Theory notes (core syllabus notes)
         if (theoryNotes.length > 0) {
             const heading = document.createElement("h3");
-            heading.style.fontSize = "14px";
+            heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
             heading.style.color = "var(--primary)";
-            heading.style.margin = "16px 0 8px 0";
+            heading.style.margin = "10px 0 6px 0";
             heading.innerText = "Core Subject-wise Notes";
             notesContainer.appendChild(heading);
 
@@ -735,16 +774,18 @@ function showExamDetails(exam) {
                 const card = document.createElement("div");
                 card.className = "note-item-card";
                 card.style.margin = "0";
+                card.style.padding = "10px 12px";
+                card.style.marginBottom = "6px";
                 
                 const btnHtml = isDownloaded 
-                    ? `<button class="btn-view-note"><i class="fa-solid fa-book-open"></i> View</button>`
-                    : `<button class="btn-download-note"><i class="fa-solid fa-download"></i></button>`;
+                    ? `<button class="btn-view-note" style="padding: 4px 8px; font-size: 10px;"><i class="fa-solid fa-book-open"></i> View</button>`
+                    : `<button class="btn-download-note" style="width: 28px; height: 28px; font-size: 12px;"><i class="fa-solid fa-download"></i></button>`;
 
                 card.innerHTML = `
                     <div class="note-info" style="flex: 1; text-align: left;">
-                        <h4 style="font-size: 13px; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${note.title}</h4>
-                        <div class="note-metadata" style="display: flex; gap: 8px; font-size: 10px;">
-                            <span class="note-tag" style="background-color: var(--surface-variant); color: var(--primary); padding: 2px 6px; border-radius: 4px;">${note.subject}</span>
+                        <h4 style="font-size: 12.5px; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${note.title}</h4>
+                        <div class="note-metadata" style="display: flex; gap: 6px; font-size: 9px;">
+                            <span class="note-tag" style="background-color: var(--surface-variant); color: var(--primary); padding: 1px 4px; border-radius: 4px;">${note.subject}</span>
                             <span class="note-size">${note.sizeMb} MB</span>
                         </div>
                     </div>
@@ -787,7 +828,7 @@ function showExamDetails(exam) {
     });
 
     // Apply paper filters (for CTET)
-    if (exam.id === "ctet" && state.selectedPaper !== "All Papers") {
+    if (exam.id === "ctet") {
         pyqs = pyqs.filter(test => test.paper === state.selectedPaper || test.paper === "Both");
     }
 
@@ -798,14 +839,16 @@ function showExamDetails(exam) {
             const card = document.createElement("div");
             card.className = "individual-test-card";
             card.style.cursor = "pointer";
+            card.style.padding = "12px";
+            card.style.gap = "8px";
             
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
-                    <i class="fa-solid fa-chevron-right text-primary"></i>
+                    <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--on-surface);">${test.title}</h4>
+                    <i class="fa-solid fa-chevron-right text-primary" style="font-size: 11px;"></i>
                 </div>
-                <div class="test-stats-row" style="margin-top: 8px; display: flex; gap: 16px; font-size: 12px; opacity: 0.7;">
-                    <span style="background-color: #e6f4ea; color: #137333; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Solved PYQ</span>
+                <div class="test-stats-row" style="margin-top: 4px; display: flex; gap: 12px; font-size: 11px; opacity: 0.7;">
+                    <span style="background-color: #e6f4ea; color: #137333; font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Solved PYQ</span>
                     <span><i class="fa-regular fa-clock"></i> ${test.durationMinutes} Mins</span>
                     <span><i class="fa-regular fa-file-lines"></i> ${test.totalQuestions} Questions</span>
                 </div>

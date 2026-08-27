@@ -127,39 +127,46 @@
                 </section>
 
                 <!-- Exam Details Screen with tabs: Mock Tests, Notes, PYQs -->
-                <section id="screen-exam-details" class="app-screen">
-                    <div class="screen-header">
-                        <button class="icon-back-btn" id="exam-details-back-btn"><i class="fa-solid fa-arrow-left"></i></button>
-                        <h2 id="exam-details-title">Exam Details</h2>
-                    </div>
-                    <!-- Top-level filters (dynamic) -->
-                    <div id="exam-details-filters-container" style="margin: 12px 0 8px 0; display: flex; flex-direction: column; gap: 8px;"></div>
-                    
-                    <!-- Tab options bar -->
-                    <div class="exam-sub-tabs" style="display: flex; background-color: var(--surface-variant); border-radius: 8px; padding: 4px; border: 1px solid var(--outline);">
-                        <button class="exam-sub-tab active" data-tab="mocks" style="flex: 1; padding: 10px; border: none; background-color: var(--surface); color: var(--primary); font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s;">Mock Tests</button>
-                        <button class="exam-sub-tab" data-tab="notes" style="flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 6px; cursor: pointer; color: var(--on-surface-variant); font-size: 13px; transition: all 0.2s;">Notes</button>
-                        <button class="exam-sub-tab" data-tab="pyqs" style="flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 6px; cursor: pointer; color: var(--on-surface-variant); font-size: 13px; transition: all 0.2s;">PYQs</button>
-                    </div>
-
-                    <!-- Mock Tests List Section -->
-                    <div id="exam-tab-mocks" class="exam-tab-content">
-                        <div class="tests-list" id="exam-details-mocks-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                            <!-- Injected dynamically -->
+                <section id="screen-exam-details" class="app-screen" style="display: flex; flex-direction: column; height: 100%; max-height: 100%; overflow: hidden; padding: 0 16px;">
+                    <!-- Sticky Header & Filter Area -->
+                    <div class="sticky-details-header" style="position: sticky; top: 0; background-color: var(--background); z-index: 10; padding: 12px 0 6px 0; border-bottom: 1px solid var(--outline); display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                        <div class="screen-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none; gap: 12px;">
+                            <button class="icon-back-btn" id="exam-details-back-btn" style="width: 32px; height: 32px;"><i class="fa-solid fa-arrow-left" style="font-size: 12px;"></i></button>
+                            <h2 id="exam-details-title" style="font-size: 14px; font-weight: 800;">Exam Details</h2>
+                        </div>
+                        
+                        <!-- Top-level filters (dynamic) -->
+                        <div id="exam-details-filters-container" style="margin: 0;"></div>
+                        
+                        <!-- Tab options bar -->
+                        <div class="exam-sub-tabs" style="margin-bottom: 0; padding: 2px;">
+                            <button class="exam-sub-tab active" data-tab="mocks" style="padding: 6px; font-size: 12px;">Mock Tests</button>
+                            <button class="exam-sub-tab" data-tab="notes" style="padding: 6px; font-size: 12px;">Notes</button>
+                            <button class="exam-sub-tab" data-tab="pyqs" style="padding: 6px; font-size: 12px;">PYQs</button>
                         </div>
                     </div>
 
-                    <!-- Notes List Section -->
-                    <div id="exam-tab-notes" class="exam-tab-content" style="display: none;">
-                        <div class="notes-list" id="exam-details-notes-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                            <!-- Injected dynamically -->
+                    <!-- Scrollable content area -->
+                    <div class="scrollable-details-content" style="flex: 1; overflow-y: auto; padding: 8px 0; margin-bottom: 8px;">
+                        <!-- Mock Tests List Section -->
+                        <div id="exam-tab-mocks" class="exam-tab-content">
+                            <div class="tests-list" id="exam-details-mocks-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Injected dynamically -->
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- PYQs List Section -->
-                    <div id="exam-tab-pyqs" class="exam-tab-content" style="display: none;">
-                        <div class="tests-list" id="exam-details-pyqs-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-                            <!-- Injected dynamically -->
+                        <!-- Notes List Section -->
+                        <div id="exam-tab-notes" class="exam-tab-content" style="display: none;">
+                            <div class="notes-list" id="exam-details-notes-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- PYQs List Section -->
+                        <div id="exam-tab-pyqs" class="exam-tab-content" style="display: none;">
+                            <div class="tests-list" id="exam-details-pyqs-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Injected dynamically -->
+                            </div>
                         </div>
                     </div>
                 </section>
