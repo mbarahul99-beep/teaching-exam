@@ -164,6 +164,8 @@ let state = {
     selectedPaper: "Paper 1",
     selectedMockType: "Full Syllabus",
     selectedMockSubject: "",
+    selectedNoteType: "All",
+    selectedPyqYear: "All Years",
     expandedClassLevel: null,
     
     // Online test state
@@ -623,6 +625,30 @@ function showExamDetails(exam) {
     const notesContainer = document.getElementById("exam-details-notes-list");
     notesContainer.innerHTML = "";
     
+    // Sub-filters row
+    const notesFiltersDiv = document.createElement("div");
+    notesFiltersDiv.className = "filter-pills-row";
+    notesFiltersDiv.style.alignItems = "center";
+    notesFiltersDiv.style.gap = "8px";
+    notesFiltersDiv.style.marginBottom = "8px";
+    notesFiltersDiv.style.padding = "4px 0";
+    
+    const noteTypeOptions = ["All Notes", "NCERT Book Notes", "Core Theories"];
+    noteTypeOptions.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = `filter-chip-pill ${state.selectedNoteType === opt ? 'active' : ''}`;
+        btn.innerText = opt;
+        btn.style.padding = "5px 12px";
+        btn.style.fontSize = "11.5px";
+        btn.style.borderRadius = "12px";
+        btn.addEventListener("click", () => {
+            state.selectedNoteType = opt;
+            showExamDetails(exam);
+        });
+        notesFiltersDiv.appendChild(btn);
+    });
+    notesContainer.appendChild(notesFiltersDiv);
+
     // Filter base notes matching this exam's syllabus criteria
     let relatedNotes = [];
     if (exam.id === "ctet") {
@@ -639,11 +665,14 @@ function showExamDetails(exam) {
     const ncertNotes = relatedNotes.filter(n => n.noteType === "NCERT" && n.classLevel);
     const theoryNotes = relatedNotes.filter(n => n.noteType !== "NCERT");
 
-    if (ncertNotes.length === 0 && theoryNotes.length === 0) {
-        notesContainer.innerHTML = getEmptyStateHtml("No notes available for this selection.");
+    const showNcert = state.selectedNoteType === "All Notes" || state.selectedNoteType === "NCERT Book Notes";
+    const showTheory = state.selectedNoteType === "All Notes" || state.selectedNoteType === "Core Theories";
+
+    if ((!showNcert || ncertNotes.length === 0) && (!showTheory || theoryNotes.length === 0)) {
+        notesContainer.innerHTML += getEmptyStateHtml("No notes available for this selection.");
     } else {
         // Group NCERT Notes by Class Level
-        if (ncertNotes.length > 0) {
+        if (showNcert && ncertNotes.length > 0) {
             const heading = document.createElement("h3");
             heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
@@ -760,7 +789,7 @@ function showExamDetails(exam) {
         }
 
         // Render Subject Theory notes (core syllabus notes)
-        if (theoryNotes.length > 0) {
+        if (showTheory && theoryNotes.length > 0) {
             const heading = document.createElement("h3");
             heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
@@ -817,6 +846,30 @@ function showExamDetails(exam) {
     const pyqsContainer = document.getElementById("exam-details-pyqs-list");
     pyqsContainer.innerHTML = "";
     
+    // Sub-filters row
+    const pyqFiltersDiv = document.createElement("div");
+    pyqFiltersDiv.className = "filter-pills-row";
+    pyqFiltersDiv.style.alignItems = "center";
+    pyqFiltersDiv.style.gap = "8px";
+    pyqFiltersDiv.style.marginBottom = "8px";
+    pyqFiltersDiv.style.padding = "4px 0";
+    
+    const pyqYearOptions = ["All Years", "2024", "2023"];
+    pyqYearOptions.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = `filter-chip-pill ${state.selectedPyqYear === opt ? 'active' : ''}`;
+        btn.innerText = opt;
+        btn.style.padding = "5px 12px";
+        btn.style.fontSize = "11.5px";
+        btn.style.borderRadius = "12px";
+        btn.addEventListener("click", () => {
+            state.selectedPyqYear = opt;
+            showExamDetails(exam);
+        });
+        pyqFiltersDiv.appendChild(btn);
+    });
+    pyqsContainer.appendChild(pyqFiltersDiv);
+
     // Find all tests of any test series belonging to this exam
     let pyqs = [];
     examSeriesList.forEach(series => {
@@ -832,8 +885,13 @@ function showExamDetails(exam) {
         pyqs = pyqs.filter(test => test.paper === state.selectedPaper || test.paper === "Both");
     }
 
+    // Apply year filters
+    if (state.selectedPyqYear !== "All Years") {
+        pyqs = pyqs.filter(test => test.year === state.selectedPyqYear);
+    }
+
     if (pyqs.length === 0) {
-        pyqsContainer.innerHTML = getEmptyStateHtml("No Solved PYQ papers available for this exam.");
+        pyqsContainer.innerHTML += getEmptyStateHtml("No Solved PYQ papers available for this exam.");
     } else {
         pyqs.forEach(test => {
             const card = document.createElement("div");

@@ -52,6 +52,8 @@ fun ExamDetailsScreen(
     var selectedPaper by remember { mutableStateOf("Paper 1") }
     var selectedMockType by remember { mutableStateOf("Full Syllabus") }
     var selectedMockSubject by remember { mutableStateOf("") }
+    var selectedNoteType by remember { mutableStateOf("All Notes") }
+    var selectedPyqYear by remember { mutableStateOf("All Years") }
     
     // Expanded state for Option B class level card
     var expandedClassLevel by remember { mutableStateOf<String?>(null) }
@@ -82,8 +84,8 @@ fun ExamDetailsScreen(
         }
     }
 
-    // Filtered PYQs list (tests with isPyq == true, filtered by paper)
-    val pyqTests = remember(mockTests, selectedPaper, examId) {
+    // Filtered PYQs list (tests with isPyq == true, filtered by paper and year)
+    val pyqTests = remember(mockTests, selectedPaper, selectedPyqYear, examId) {
         val allPyqs = mockTests.filter { it.isPyq }
         val sourceList = if (allPyqs.isEmpty()) {
             // Fallback for legacy exams without isPyq database entries
@@ -99,10 +101,16 @@ fun ExamDetailsScreen(
             allPyqs
         }
 
-        if (examId == "ctet") {
+        val filteredByPaper = if (examId == "ctet") {
             sourceList.filter { it.paper == selectedPaper || it.paper == "Both" }
         } else {
             sourceList
+        }
+
+        if (selectedPyqYear != "All Years") {
+            filteredByPaper.filter { it.year == selectedPyqYear }
+        } else {
+            filteredByPaper
         }
     }
 
@@ -123,14 +131,24 @@ fun ExamDetailsScreen(
     }
 
     // NCERT Notes (Option B: Class-wise summaries)
-    val ncertNotesGrouped = remember(filteredNotesList) {
-        filteredNotesList.filter { it.noteType == "NCERT" && it.classLevel != null }
-            .groupBy { it.classLevel!! }
+    val ncertNotesGrouped = remember(filteredNotesList, selectedNoteType) {
+        val showNcert = selectedNoteType == "All Notes" || selectedNoteType == "NCERT Book Notes"
+        if (showNcert) {
+            filteredNotesList.filter { it.noteType == "NCERT" && it.classLevel != null }
+                .groupBy { it.classLevel!! }
+        } else {
+            emptyMap()
+        }
     }
 
     // Core Subject-wise Notes
-    val theoryNotes = remember(filteredNotesList) {
-        filteredNotesList.filter { it.noteType != "NCERT" }
+    val theoryNotes = remember(filteredNotesList, selectedNoteType) {
+        val showTheory = selectedNoteType == "All Notes" || selectedNoteType == "Core Theories"
+        if (showTheory) {
+            filteredNotesList.filter { it.noteType != "NCERT" }
+        } else {
+            emptyList()
+        }
     }
 
     // State for local downloads
@@ -357,149 +375,169 @@ fun ExamDetailsScreen(
                 }
                 1 -> {
                     // Notes Tab - Option B: Hierarchical Grouped Cards
-                    if (ncertNotesGrouped.isEmpty() && theoryNotes.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No Notes available for this selection.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxSize()
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (ncertNotesGrouped.isNotEmpty()) {
-                                item {
-                                    Text(
-                                        text = "NCERT Class-wise Summaries",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(bottom = 8.dp)
-                                    )
-                                }
-                                
-                                val sortedClasses = ncertNotesGrouped.keys.sortedBy { classKey ->
-                                    classKey.replace("Class ", "").toIntOrNull() ?: 99
-                                }
-                                
-                                items(sortedClasses) { classLevel ->
-                                    val notesInClass = ncertNotesGrouped[classLevel] ?: emptyList()
-                                    val isExpanded = expandedClassLevel == classLevel
-                                    
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                expandedClassLevel = if (isExpanded) null else classLevel
-                                            },
-                                        shape = RoundedCornerShape(12.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (isExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                                                             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            val noteTypeOptions = listOf("All Notes", "NCERT Book Notes", "Core Theories")
+                            noteTypeOptions.forEach { opt ->
+                                val isSelected = selectedNoteType == opt
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedNoteType = opt },
+                                    label = { Text(opt, fontSize = 11.5.sp) }
+                                )
+                            }
+                        }
+
+                        if (ncertNotesGrouped.isEmpty() && theoryNotes.isEmpty()) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("No Notes available for this selection.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
+                        } else {
+                            LazyColumn(
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                if (ncertNotesGrouped.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            text = "NCERT Class-wise Summaries",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(bottom = 8.dp)
                                         )
-                                    ) {
-                                        Column(modifier = Modifier.padding(16.dp)) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Book,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(12.dp))
-                                                    Column {
-                                                        Text(
-                                                            text = "$classLevel NCERT Book Notes",
-                                                            fontWeight = FontWeight.Bold,
-                                                            fontSize = 15.sp,
-                                                            color = MaterialTheme.colorScheme.onSurface
+                                    }
+                                    
+                                    val sortedClasses = ncertNotesGrouped.keys.sortedBy { classKey ->
+                                        classKey.replace("Class ", "").toIntOrNull() ?: 99
+                                    }
+                                    
+                                    items(sortedClasses) { classLevel ->
+                                        val notesInClass = ncertNotesGrouped[classLevel] ?: emptyList()
+                                        val isExpanded = expandedClassLevel == classLevel
+                                        
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    expandedClassLevel = if (isExpanded) null else classLevel
+                                                },
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (isExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                                                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                        ) {
+                                            Column(modifier = Modifier.padding(16.dp)) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Book,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.size(20.dp)
                                                         )
-                                                        Text(
-                                                            text = "${notesInClass.size} Notes Available",
-                                                            fontSize = 12.sp,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        )
+                                                        Spacer(modifier = Modifier.width(12.dp))
+                                                        Column {
+                                                            Text(
+                                                                text = "$classLevel NCERT Book Notes",
+                                                                fontWeight = FontWeight.Bold,
+                                                                fontSize = 15.sp,
+                                                                color = MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                            Text(
+                                                                text = "${notesInClass.size} Notes Available",
+                                                                fontSize = 12.sp,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
                                                     }
-                                                }
-                                                Icon(
-                                                    imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                                    contentDescription = if (isExpanded) "Collapse" else "Expand"
-                                                )
-                                            }
-                                            
-                                            if (isExpanded) {
-                                                Spacer(modifier = Modifier.height(12.dp))
-                                                val notesBySubject = notesInClass.groupBy { it.subject }
-                                                notesBySubject.forEach { (subj, notes) ->
-                                                    Text(
-                                                        text = subj.uppercase(),
-                                                        fontWeight = FontWeight.ExtraBold,
-                                                        fontSize = 11.sp,
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.padding(vertical = 4.dp)
+                                                    Icon(
+                                                        imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                                        contentDescription = if (isExpanded) "Collapse" else "Expand"
                                                     )
-                                                    notes.forEach { note ->
-                                                        val isDownloaded = downloadedNotes[note.id] ?: false
-                                                        PDFNoteRowItem(
-                                                            note = note,
-                                                            isDownloaded = isDownloaded,
-                                                            isDownloading = downloadingNoteId == note.id,
-                                                            onDownloadClick = {
-                                                                downloadingNoteId = note.id
-                                                                coroutineScope.launch {
-                                                                    delay(1200)
-                                                                    downloadedNotes[note.id] = true
-                                                                    downloadingNoteId = null
-                                                                }
-                                                            },
-                                                            onViewClick = {
-                                                                activePdfReaderNote = note
-                                                            }
+                                                }
+                                                
+                                                if (isExpanded) {
+                                                    Spacer(modifier = Modifier.height(12.dp))
+                                                    val notesBySubject = notesInClass.groupBy { it.subject }
+                                                    notesBySubject.forEach { (subj, notes) ->
+                                                        Text(
+                                                            text = subj.uppercase(),
+                                                            fontWeight = FontWeight.ExtraBold,
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.padding(vertical = 4.dp)
                                                         )
-                                                        Spacer(modifier = Modifier.height(6.dp))
+                                                        notes.forEach { note ->
+                                                            val isDownloaded = downloadedNotes[note.id] ?: false
+                                                            PDFNoteRowItem(
+                                                                note = note,
+                                                                isDownloaded = isDownloaded,
+                                                                isDownloading = downloadingNoteId == note.id,
+                                                                onDownloadClick = {
+                                                                    downloadingNoteId = note.id
+                                                                    coroutineScope.launch {
+                                                                        delay(1200)
+                                                                        downloadedNotes[note.id] = true
+                                                                        downloadingNoteId = null
+                                                                    }
+                                                                },
+                                                                onViewClick = {
+                                                                    activePdfReaderNote = note
+                                                                }
+                                                            )
+                                                            Spacer(modifier = Modifier.height(6.dp))
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            
-                            if (theoryNotes.isNotEmpty()) {
-                                item {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Core Subject-wise Notes",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(bottom = 8.dp)
-                                    )
-                                }
                                 
-                                items(theoryNotes) { note ->
-                                    val isDownloaded = downloadedNotes[note.id] ?: false
-                                    PDFNoteCard(
-                                        note = note,
-                                        isDownloaded = isDownloaded,
-                                        isDownloading = downloadingNoteId == note.id,
-                                        onDownloadClick = {
-                                            downloadingNoteId = note.id
-                                            coroutineScope.launch {
-                                                delay(1200)
-                                                downloadedNotes[note.id] = true
-                                                downloadingNoteId = null
+                                if (theoryNotes.isNotEmpty()) {
+                                    item {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Core Subject-wise Notes",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(bottom = 8.dp)
+                                        )
+                                    }
+                                    
+                                    items(theoryNotes) { note ->
+                                        val isDownloaded = downloadedNotes[note.id] ?: false
+                                        PDFNoteCard(
+                                            note = note,
+                                            isDownloaded = isDownloaded,
+                                            isDownloading = downloadingNoteId == note.id,
+                                            onDownloadClick = {
+                                                downloadingNoteId = note.id
+                                                coroutineScope.launch {
+                                                    delay(1200)
+                                                    downloadedNotes[note.id] = true
+                                                    downloadingNoteId = null
+                                                }
+                                            },
+                                            onViewClick = {
+                                                activePdfReaderNote = note
                                             }
-                                        },
-                                        onViewClick = {
-                                            activePdfReaderNote = note
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -507,21 +545,41 @@ fun ExamDetailsScreen(
                 }
                 2 -> {
                     // PYQs Tab
-                    if (pyqTests.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No Solved PYQ papers available for this exam.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxSize()
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            items(pyqTests) { test ->
-                                IndividualTestCard(
-                                    test = test,
-                                    onClick = { onNavigate(TestDetails(test.id)) }
+                            val pyqYearOptions = listOf("All Years", "2024", "2023")
+                            pyqYearOptions.forEach { opt ->
+                                val isSelected = selectedPyqYear == opt
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedPyqYear = opt },
+                                    label = { Text(opt, fontSize = 11.5.sp) }
                                 )
+                            }
+                        }
+
+                        if (pyqTests.isEmpty()) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("No Solved PYQ papers available for this exam.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
+                        } else {
+                            LazyColumn(
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(pyqTests) { test ->
+                                    IndividualTestCard(
+                                        test = test,
+                                        onClick = { onNavigate(TestDetails(test.id)) }
+                                    )
+                                }
                             }
                         }
                     }
