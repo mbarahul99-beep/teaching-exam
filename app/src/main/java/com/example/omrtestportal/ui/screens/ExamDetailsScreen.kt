@@ -52,7 +52,8 @@ fun ExamDetailsScreen(
     var selectedPaper by remember { mutableStateOf("Paper 1") }
     var selectedMockType by remember { mutableStateOf("Full Syllabus") }
     var selectedMockSubject by remember { mutableStateOf("") }
-    var selectedNoteType by remember { mutableStateOf("All Notes") }
+    var selectedNoteClass by remember { mutableStateOf("") }
+    var selectedNoteSubject by remember { mutableStateOf("") }
     var selectedPyqYear by remember { mutableStateOf("All Years") }
     
     // Expanded state for Option B class level card
@@ -115,7 +116,7 @@ fun ExamDetailsScreen(
     }
 
     // Filtered Notes list
-    val filteredNotesList = remember(examId, selectedPaper) {
+    val filteredNotesList = remember(examId, selectedPaper, selectedNoteSubject) {
         val notes = MockDatabase.pdfNotes
         val baseNotes = when (examId) {
             "ctet" -> notes.filter { it.paper == "Paper 1" || it.paper == "Paper 2" || it.paper == "Both" }
@@ -123,31 +124,36 @@ fun ExamDetailsScreen(
             else -> notes.filter { it.subject in listOf("History", "Geography", "Hindi") }
         }
         
-        if (examId == "ctet") {
+        val paperFiltered = if (examId == "ctet") {
             baseNotes.filter { it.paper == selectedPaper || it.paper == "Both" }
         } else {
             baseNotes
         }
-    }
 
-    // NCERT Notes (Option B: Class-wise summaries)
-    val ncertNotesGrouped = remember(filteredNotesList, selectedNoteType) {
-        val showNcert = selectedNoteType == "All Notes" || selectedNoteType == "NCERT Book Notes"
-        if (showNcert) {
-            filteredNotesList.filter { it.noteType == "NCERT" && it.classLevel != null }
-                .groupBy { it.classLevel!! }
+        if (selectedNoteSubject.isNotEmpty()) {
+            paperFiltered.filter { it.subject == selectedNoteSubject }
         } else {
-            emptyMap()
+            paperFiltered
         }
     }
 
-    // Core Subject-wise Notes
-    val theoryNotes = remember(filteredNotesList, selectedNoteType) {
-        val showTheory = selectedNoteType == "All Notes" || selectedNoteType == "Core Theories"
-        if (showTheory) {
-            filteredNotesList.filter { it.noteType != "NCERT" }
+    // NCERT Notes (Option B: Class-wise summaries)
+    val ncertNotesGrouped = remember(filteredNotesList, selectedNoteClass) {
+        val classFiltered = if (selectedNoteClass.isNotEmpty()) {
+            filteredNotesList.filter { it.classLevel == selectedNoteClass }
         } else {
+            filteredNotesList
+        }
+        classFiltered.filter { it.noteType == "NCERT" && it.classLevel != null }
+            .groupBy { it.classLevel!! }
+    }
+
+    // Core Subject-wise Notes
+    val theoryNotes = remember(filteredNotesList, selectedNoteClass) {
+        if (selectedNoteClass.isNotEmpty()) {
             emptyList()
+        } else {
+            filteredNotesList.filter { it.noteType != "NCERT" }
         }
     }
 
@@ -383,14 +389,134 @@ fun ExamDetailsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val noteTypeOptions = listOf("All Notes", "NCERT Book Notes", "Core Theories")
-                            noteTypeOptions.forEach { opt ->
-                                val isSelected = selectedNoteType == opt
+                            // All Notes Chip
+                            val isAllNotes = selectedNoteClass.isEmpty() && selectedNoteSubject.isEmpty()
+                            FilterChip(
+                                selected = isAllNotes,
+                                onClick = { 
+                                    selectedNoteClass = ""
+                                    selectedNoteSubject = ""
+                                },
+                                label = { Text("All Notes", fontSize = 11.5.sp) }
+                            )
+                            
+                            // Classes Dropdown Box
+                            var classDropdownExpanded by remember { mutableStateOf(false) }
+                            val isClassSelected = selectedNoteClass.isNotEmpty()
+                            val classes = listOf("Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8")
+                            
+                            Box {
                                 FilterChip(
-                                    selected = isSelected,
-                                    onClick = { selectedNoteType = opt },
-                                    label = { Text(opt, fontSize = 11.5.sp) }
+                                    selected = isClassSelected,
+                                    onClick = { classDropdownExpanded = true },
+                                    label = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(if (isClassSelected) selectedNoteClass else "Classes Dropdown", fontSize = 11.5.sp)
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 )
+                                
+                                DropdownMenu(
+                                    expanded = classDropdownExpanded,
+                                    onDismissRequest = { classDropdownExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Clear Class Filter") },
+                                        onClick = {
+                                            selectedNoteClass = ""
+                                            classDropdownExpanded = false
+                                        }
+                                    )
+                                    classes.forEach { c ->
+                                        DropdownMenuItem(
+                                            text = { Text(c) },
+                                            onClick = {
+                                                selectedNoteClass = c
+                                                classDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Subjects Dropdown Box
+                            var subjectDropdownExpanded by remember { mutableStateOf(false) }
+                            val isSubjectSelected = selectedNoteSubject.isNotEmpty()
+                            val subjects = if (selectedPaper == "Paper 1") {
+                                listOf("CDP", "Hindi", "English", "EVS", "Mathematics")
+                            } else {
+                                listOf("CDP", "Hindi", "English", "Mathematics", "Social Science")
+                            }
+                            val subjectsLabels = if (selectedPaper == "Paper 1") {
+                                listOf("CDP", "Language (Hindi)", "Language (English)", "EVS", "Mathematics")
+                            } else {
+                                listOf("CDP", "Language (Hindi)", "Language (English)", "Mathematics", "Social Science")
+                            }
+                            
+                            val activeLabel = if (isSubjectSelected) {
+                                val index = subjects.indexOf(selectedNoteSubject)
+                                if (index >= 0) subjectsLabels[index] else "Subjects Dropdown"
+                            } else {
+                                "Subjects Dropdown"
+                            }
+                            
+                            Box {
+                                FilterChip(
+                                    selected = isSubjectSelected,
+                                    onClick = { subjectDropdownExpanded = true },
+                                    label = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(activeLabel, fontSize = 11.5.sp)
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                                
+                                DropdownMenu(
+                                    expanded = subjectDropdownExpanded,
+                                    onDismissRequest = { subjectDropdownExpanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Clear Subject Filter") },
+                                        onClick = {
+                                            selectedNoteSubject = ""
+                                            subjectDropdownExpanded = false
+                                        }
+                                    )
+                                    subjects.forEachIndexed { index, sub ->
+                                        val label = subjectsLabels[index]
+                                        DropdownMenuItem(
+                                            text = { Text(label) },
+                                            onClick = {
+                                                selectedNoteSubject = sub
+                                                subjectDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 

@@ -164,7 +164,8 @@ let state = {
     selectedPaper: "Paper 1",
     selectedMockType: "Full Syllabus",
     selectedMockSubject: "",
-    selectedNoteType: "All",
+    selectedNoteClass: "",
+    selectedNoteSubject: "",
     selectedPyqYear: "All Years",
     expandedClassLevel: null,
     
@@ -633,20 +634,104 @@ function showExamDetails(exam) {
     notesFiltersDiv.style.marginBottom = "8px";
     notesFiltersDiv.style.padding = "4px 0";
     
-    const noteTypeOptions = ["All Notes", "NCERT Book Notes", "Core Theories"];
-    noteTypeOptions.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = `filter-chip-pill ${state.selectedNoteType === opt ? 'active' : ''}`;
-        btn.innerText = opt;
-        btn.style.padding = "5px 12px";
-        btn.style.fontSize = "11.5px";
-        btn.style.borderRadius = "12px";
-        btn.addEventListener("click", () => {
-            state.selectedNoteType = opt;
-            showExamDetails(exam);
-        });
-        notesFiltersDiv.appendChild(btn);
+    // All Notes Button
+    const isAllNotes = !state.selectedNoteClass && !state.selectedNoteSubject;
+    const allNotesBtn = document.createElement("button");
+    allNotesBtn.className = `filter-chip-pill ${isAllNotes ? 'active' : ''}`;
+    allNotesBtn.innerText = "All Notes";
+    allNotesBtn.style.padding = "5px 12px";
+    allNotesBtn.style.fontSize = "11.5px";
+    allNotesBtn.style.borderRadius = "12px";
+    allNotesBtn.addEventListener("click", () => {
+        state.selectedNoteClass = "";
+        state.selectedNoteSubject = "";
+        showExamDetails(exam);
     });
+    notesFiltersDiv.appendChild(allNotesBtn);
+    
+    // Classes Dropdown
+    const selectClass = document.createElement("select");
+    selectClass.className = "filter-select-dropdown";
+    selectClass.style.padding = "5px 12px";
+    selectClass.style.fontSize = "11.5px";
+    selectClass.style.borderRadius = "12px";
+    if (state.selectedNoteClass) {
+        selectClass.style.borderColor = "var(--primary)";
+        selectClass.style.backgroundColor = "var(--primary-container)";
+        selectClass.style.color = "var(--primary)";
+    }
+    
+    const optClassPlaceholder = document.createElement("option");
+    optClassPlaceholder.value = "";
+    optClassPlaceholder.innerText = "Classes Dropdown";
+    selectClass.appendChild(optClassPlaceholder);
+    
+    const classes = ["Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8"];
+    classes.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.innerText = c;
+        if (state.selectedNoteClass === c) {
+            opt.selected = true;
+        }
+        selectClass.appendChild(opt);
+    });
+    
+    selectClass.addEventListener("change", (e) => {
+        state.selectedNoteClass = e.target.value;
+        showExamDetails(exam);
+    });
+    notesFiltersDiv.appendChild(selectClass);
+    
+    // Subjects Dropdown
+    const selectSub = document.createElement("select");
+    selectSub.className = "filter-select-dropdown";
+    selectSub.style.padding = "5px 12px";
+    selectSub.style.fontSize = "11.5px";
+    selectSub.style.borderRadius = "12px";
+    if (state.selectedNoteSubject) {
+        selectSub.style.borderColor = "var(--primary)";
+        selectSub.style.backgroundColor = "var(--primary-container)";
+        selectSub.style.color = "var(--primary)";
+    }
+    
+    const optSubPlaceholder = document.createElement("option");
+    optSubPlaceholder.value = "";
+    optSubPlaceholder.innerText = "Subjects Dropdown";
+    selectSub.appendChild(optSubPlaceholder);
+    
+    const subjectsMap = state.selectedPaper === "Paper 1" 
+        ? [
+            { val: "CDP", label: "CDP" },
+            { val: "Hindi", label: "Language (Hindi)" },
+            { val: "English", label: "Language (English)" },
+            { val: "EVS", label: "EVS" },
+            { val: "Mathematics", label: "Mathematics" }
+          ]
+        : [
+            { val: "CDP", label: "CDP" },
+            { val: "Hindi", label: "Language (Hindi)" },
+            { val: "English", label: "Language (English)" },
+            { val: "Mathematics", label: "Mathematics" },
+            { val: "Social Science", label: "Social Science" }
+          ];
+          
+    subjectsMap.forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub.val;
+        opt.innerText = sub.label;
+        if (state.selectedNoteSubject === sub.val) {
+            opt.selected = true;
+        }
+        selectSub.appendChild(opt);
+    });
+    
+    selectSub.addEventListener("change", (e) => {
+        state.selectedNoteSubject = e.target.value;
+        showExamDetails(exam);
+    });
+    notesFiltersDiv.appendChild(selectSub);
+    
     notesContainer.appendChild(notesFiltersDiv);
 
     // Filter base notes matching this exam's syllabus criteria
@@ -662,17 +747,28 @@ function showExamDetails(exam) {
         relatedNotes = DB.pdfNotes.filter(n => ["History", "Geography", "Hindi"].includes(n.subject));
     }
 
-    const ncertNotes = relatedNotes.filter(n => n.noteType === "NCERT" && n.classLevel);
-    const theoryNotes = relatedNotes.filter(n => n.noteType !== "NCERT");
+    // Filter by subject if chosen
+    if (state.selectedNoteSubject) {
+        relatedNotes = relatedNotes.filter(n => n.subject === state.selectedNoteSubject);
+    }
 
-    const showNcert = state.selectedNoteType === "All Notes" || state.selectedNoteType === "NCERT Book Notes";
-    const showTheory = state.selectedNoteType === "All Notes" || state.selectedNoteType === "Core Theories";
+    // NCERT Notes (NCERT type and classLevel present)
+    let ncertNotes = relatedNotes.filter(n => n.noteType === "NCERT" && n.classLevel);
+    // Theory Notes (not NCERT)
+    let theoryNotes = relatedNotes.filter(n => n.noteType !== "NCERT");
 
-    if ((!showNcert || ncertNotes.length === 0) && (!showTheory || theoryNotes.length === 0)) {
+    // Filter NCERT notes by class if chosen
+    if (state.selectedNoteClass) {
+        ncertNotes = ncertNotes.filter(n => n.classLevel === state.selectedNoteClass);
+        // If a class is selected, general theory notes are hidden
+        theoryNotes = [];
+    }
+
+    if (ncertNotes.length === 0 && theoryNotes.length === 0) {
         notesContainer.innerHTML += getEmptyStateHtml("No notes available for this selection.");
     } else {
         // Group NCERT Notes by Class Level
-        if (showNcert && ncertNotes.length > 0) {
+        if (ncertNotes.length > 0) {
             const heading = document.createElement("h3");
             heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
@@ -741,6 +837,7 @@ function showExamDetails(exam) {
                         subHeading.className = "subject-label-tag";
                         subHeading.style.fontSize = "9px";
                         subHeading.style.marginTop = "4px";
+                        subHeading.style.pointerEvents = "none";
                         subHeading.innerText = subj;
                         expandedContainer.appendChild(subHeading);
 
@@ -789,7 +886,7 @@ function showExamDetails(exam) {
         }
 
         // Render Subject Theory notes (core syllabus notes)
-        if (showTheory && theoryNotes.length > 0) {
+        if (theoryNotes.length > 0) {
             const heading = document.createElement("h3");
             heading.style.fontSize = "12px";
             heading.style.fontWeight = "800";
