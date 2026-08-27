@@ -700,7 +700,7 @@ function showExamDetails(exam) {
     optSubPlaceholder.innerText = "Subjects Dropdown";
     selectSub.appendChild(optSubPlaceholder);
     
-    const subjectsMap = state.selectedPaper === "Paper 1" 
+    const notesSubjectsMap = state.selectedPaper === "Paper 1" 
         ? [
             { val: "CDP", label: "CDP" },
             { val: "Hindi", label: "Language (Hindi)" },
@@ -716,7 +716,7 @@ function showExamDetails(exam) {
             { val: "Social Science", label: "Social Science" }
           ];
           
-    subjectsMap.forEach(sub => {
+    notesSubjectsMap.forEach(sub => {
         const opt = document.createElement("option");
         opt.value = sub.val;
         opt.innerText = sub.label;
