@@ -7,6 +7,7 @@ import java.util.*
 object MockDatabase {
 
     val exams = listOf(
+        Exam("neet", "National Eligibility cum Entrance Test", "NEET", "local_hospital"),
         Exam("ctet", "Central Teacher Eligibility Test", "CTET", "school"),
         Exam("kvs_nvs", "KVS / NVS Recruitment Exam", "KVS/NVS", "domain"),
         Exam("dsssb", "DSSSB Teacher Recruitment", "DSSSB", "location_city"),
@@ -53,7 +54,7 @@ object MockDatabase {
     val testSeries = listOf(
         TestSeries(
             id = "ts_neet_demo",
-            examId = "ugc_net",
+            examId = "neet",
             title = "NEET/JEE 180-Question Mock Test Series",
             description = "Standard full length mock test matching NEET format (180 questions).",
             numberOfTests = 1,
@@ -65,7 +66,8 @@ object MockDatabase {
                     totalQuestions = 180,
                     questionPaperUrl = "https://example.com/papers/neet_demo_01.pdf",
                     omrSheetUrl = "https://example.com/omr/sheet_180_bubbles.pdf",
-                    answerKey = generateMockAnswerKey(180)
+                    answerKey = generateMockAnswerKey(180),
+                    testType = "Full Syllabus"
                 )
             )
         ),

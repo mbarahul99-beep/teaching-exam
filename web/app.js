@@ -50,7 +50,7 @@ const DEFAULT_DB = {
             description: "Standard full length mock test matching NEET format (180 questions).",
             numberOfTests: 1,
             tests: [
-                { id: "neet_demo_01", title: "NEET Demo Mock Test - 180 Questions", durationMinutes: 180, totalQuestions: 180, answerKey: generateAnswerKey(180) }
+                { id: "neet_demo_01", title: "NEET Demo Mock Test - 180 Questions", durationMinutes: 180, totalQuestions: 180, answerKey: generateAnswerKey(180), testType: "Full Syllabus" }
             ]
         },
         {
@@ -134,19 +134,29 @@ function initDatabase() {
         localStorage.setItem("migration_neet_v2", "done");
     }
 
-    DB.exams = JSON.parse(localStorage.getItem("adm_exams")) || [...DEFAULT_DB.exams];
-    DB.stateExams = JSON.parse(localStorage.getItem("adm_state_exams")) || [...DEFAULT_DB.stateExams];
-    DB.pdfNotes = JSON.parse(localStorage.getItem("adm_pdf_notes")) || [...DEFAULT_DB.pdfNotes];
-    DB.testSeries = JSON.parse(localStorage.getItem("adm_test_series")) || [...DEFAULT_DB.testSeries];
-    DB.updates = JSON.parse(localStorage.getItem("adm_updates")) || [...DEFAULT_DB.updates];
+    const parsedExams = JSON.parse(localStorage.getItem("adm_exams"));
+    DB.exams = (parsedExams && parsedExams.length > 0) ? parsedExams : [...DEFAULT_DB.exams];
+    
+    const parsedStateExams = JSON.parse(localStorage.getItem("adm_state_exams"));
+    DB.stateExams = (parsedStateExams && parsedStateExams.length > 0) ? parsedStateExams : [...DEFAULT_DB.stateExams];
+    
+    const parsedPdfNotes = JSON.parse(localStorage.getItem("adm_pdf_notes"));
+    DB.pdfNotes = (parsedPdfNotes && parsedPdfNotes.length > 0) ? parsedPdfNotes : [...DEFAULT_DB.pdfNotes];
+    
+    const parsedTestSeries = JSON.parse(localStorage.getItem("adm_test_series"));
+    DB.testSeries = (parsedTestSeries && parsedTestSeries.length > 0) ? parsedTestSeries : [...DEFAULT_DB.testSeries];
+    
+    const parsedUpdates = JSON.parse(localStorage.getItem("adm_updates"));
+    DB.updates = (parsedUpdates && parsedUpdates.length > 0) ? parsedUpdates : [...DEFAULT_DB.updates];
+    
     DB.defaultAttempts = [...DEFAULT_DB.defaultAttempts];
     
-    // Save defaults back to storage if empty
-    if (!localStorage.getItem("adm_exams")) localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
-    if (!localStorage.getItem("adm_state_exams")) localStorage.setItem("adm_state_exams", JSON.stringify(DB.stateExams));
-    if (!localStorage.getItem("adm_pdf_notes")) localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
-    if (!localStorage.getItem("adm_test_series")) localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
-    if (!localStorage.getItem("adm_updates")) localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
+    // Save defaults back to storage if empty or not set
+    localStorage.setItem("adm_exams", JSON.stringify(DB.exams));
+    localStorage.setItem("adm_state_exams", JSON.stringify(DB.stateExams));
+    localStorage.setItem("adm_pdf_notes", JSON.stringify(DB.pdfNotes));
+    localStorage.setItem("adm_test_series", JSON.stringify(DB.testSeries));
+    localStorage.setItem("adm_updates", JSON.stringify(DB.updates));
 }
 
 initDatabase();
